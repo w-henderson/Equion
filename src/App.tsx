@@ -1,6 +1,6 @@
 import React from 'react';
 import logo from './logo.svg';
-import './styles/App.css';
+import './styles/App.scss';
 
 import Titlebar from './components/Titlebar';
 

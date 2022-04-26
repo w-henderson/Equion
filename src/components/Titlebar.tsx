@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/Titlebar.css';
+import '../styles/Titlebar.scss';
 
 import { appWindow } from '@tauri-apps/api/window';
 
