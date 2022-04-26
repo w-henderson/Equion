@@ -5,7 +5,13 @@ import { appWindow } from '@tauri-apps/api/window';
 
 import SetIcon from './SetIcon';
 
-class Sets extends React.Component {
+interface SetsProps {
+  sets: SetData[],
+  selectedSet: string,
+  selectCallback: (id: string) => void
+}
+
+class Sets extends React.Component<SetsProps> {
   render() {
     return (
       <div data-tauri-drag-region className="Sets">
@@ -16,30 +22,13 @@ class Sets extends React.Component {
         </div>
 
         <div className="setList">
-          <SetIcon name="α" />
-          <SetIcon name="β" />
-          <SetIcon name="γ" />
-          <SetIcon name="δ" />
-          <SetIcon name="ε" />
-          <SetIcon name="ζ" />
-          <SetIcon name="η" />
-          <SetIcon name="θ" />
-          <SetIcon name="ι" />
-          <SetIcon name="κ" />
-          <SetIcon name="λ" />
-          <SetIcon name="μ" />
-          <SetIcon name="ν" />
-          <SetIcon name="ξ" />
-          <SetIcon name="ο" />
-          <SetIcon name="π" />
-          <SetIcon name="ρ" />
-          <SetIcon name="σ" />
-          <SetIcon name="τ" />
-          <SetIcon name="υ" />
-          <SetIcon name="φ" />
-          <SetIcon name="χ" />
-          <SetIcon name="ψ" />
-          <SetIcon name="ω" />
+          {this.props.sets.map(set =>
+            <SetIcon
+              set={set}
+              selected={set.id === this.props.selectedSet}
+              onClick={() => this.props.selectCallback(set.id)}
+              key={set.id} />
+          )}
         </div>
       </div>
     )

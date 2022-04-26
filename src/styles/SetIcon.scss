@@ -8,15 +8,14 @@ div.SetIcon {
 
   font-size: 24px;
   font-weight: 800;
-  color: white;
   background-color: var(--accent);
   border-radius: 32px;
-  user-select: none;
   cursor: pointer;
 
   transition: transform 250ms, background-color 250ms;
 
-  &:hover {
+  &:hover,
+  &.selected {
     transform: scale(1.1);
     background-color: var(--accent-light);
   }

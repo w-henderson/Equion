@@ -2,14 +2,16 @@ import React from 'react';
 import '../styles/SetIcon.scss';
 
 interface SetIconProps {
-  name: string
+  set: SetData,
+  selected: boolean,
+  onClick: () => void
 }
 
 class SetIcon extends React.Component<SetIconProps> {
   render() {
     return (
-      <div className="SetIcon">
-        {this.props.name}
+      <div className={this.props.selected ? "SetIcon selected" : "SetIcon"} onClick={this.props.onClick}>
+        {this.props.set.icon}
       </div>
     )
   }
