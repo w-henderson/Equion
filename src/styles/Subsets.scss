@@ -13,7 +13,11 @@ div.Subsets {
       pointer-events: none;
     }
 
-    padding: 18px;
+    padding: 18px 24px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+  }
+
+  div.setList {
+    padding: 24px;
   }
 }

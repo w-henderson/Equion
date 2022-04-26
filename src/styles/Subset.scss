@@ -1,0 +1,28 @@
+div.Subset {
+  display: flex;
+  place-items: center;
+  opacity: 0.5;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+
+  transition: opacity 100ms, background-color 100ms;
+
+  &::before {
+    content: "ζ";
+    font-size: 20px;
+    margin-right: 8px;
+  }
+
+  &:hover {
+    opacity: 0.75;
+    background-color: var(--accent-dark);
+  }
+
+  &.selected {
+    background-color: var(--accent);
+    opacity: 1;
+    cursor: default;
+  }
+}
