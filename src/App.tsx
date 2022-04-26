@@ -1,11 +1,15 @@
 import React from 'react';
 import './styles/App.scss';
 
+import ApiContext from './api/ApiContext';
+import Api from './api/Api';
+
 import Sets from './components/Sets';
 import Subsets from './components/Subsets';
 import Messages from './components/Messages';
 
 interface AppState {
+  api: Api,
   sets: SetData[],
   selectedSet: string,
   selectedSubset: string
@@ -31,6 +35,7 @@ class App extends React.Component<{}, AppState> {
     ];
 
     this.state = {
+      api: new Api(),
       sets: [
         {
           id: "1",
@@ -73,21 +78,24 @@ class App extends React.Component<{}, AppState> {
 
   render() {
     let selectedSet = this.state.sets.find(set => set.id === this.state.selectedSet)!;
+    let selectedSubset = selectedSet.subsets.find(subset => subset.id === this.state.selectedSubset)!;
 
     return (
-      <div className="App">
-        <Sets
-          sets={this.state.sets}
-          selectedSet={this.state.selectedSet}
-          selectCallback={this.selectSet} />
+      <ApiContext.Provider value={this.state.api}>
+        <div className="App">
+          <Sets
+            sets={this.state.sets}
+            selectedSet={this.state.selectedSet}
+            selectCallback={this.selectSet} />
 
-        <Subsets
-          set={selectedSet}
-          selectedSubset={this.state.selectedSubset}
-          selectCallback={this.selectSubset} />
+          <Subsets
+            set={selectedSet}
+            selectedSubset={this.state.selectedSubset}
+            selectCallback={this.selectSubset} />
 
-        <Messages />
-      </div>
+          <Messages subset={selectedSubset} />
+        </div>
+      </ApiContext.Provider>
     );
   }
 }

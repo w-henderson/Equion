@@ -22,7 +22,8 @@ class Subsets extends React.Component<SubsetsProps> {
             <Subset
               name={subset.name}
               selected={subset.id === this.props.selectedSubset}
-              onClick={() => this.props.selectCallback(subset.id)} />
+              onClick={() => this.props.selectCallback(subset.id)}
+              key={subset.id} />
           )}
         </div>
       </div>

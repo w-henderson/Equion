@@ -9,3 +9,16 @@ interface SubsetData {
   id: string,
   name: string
 }
+
+interface UserData {
+  id: string,
+  name: string,
+  image: string
+}
+
+interface MessageData {
+  id: string,
+  text: string,
+  author: UserData,
+  timestamp: number
+}

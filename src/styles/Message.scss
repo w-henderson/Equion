@@ -1,0 +1,54 @@
+div.Message {
+  display: flex;
+  flex-direction: row;
+  max-width: 80%;
+  margin-top: 16px;
+
+  img {
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 20px;
+    display: inline-block;
+    margin: 0 16px 0 0;
+    align-self: flex-end;
+  }
+
+  div.content {
+    display: inline-block;
+    padding: 12px;
+    background-color: var(--accent-dark);
+    border-radius: 16px 16px 16px 0;
+
+    div.meta {
+      font-size: 12px;
+      margin-bottom: 4px;
+
+      span.date {
+        float: right;
+        font-weight: 200;
+        opacity: 0.5;
+        margin-left: 16px;
+      }
+    }
+
+    div.text {
+      user-select: text;
+    }
+  }
+
+  &.local {
+    align-self: flex-end;
+
+    img {
+      order: 2;
+      margin: 0 0 0 16px;
+    }
+
+    div.content {
+      order: 1;
+      border-radius: 16px 16px 0 16px;
+    }
+  }
+}

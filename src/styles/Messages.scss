@@ -1,3 +1,27 @@
 div.Messages {
   flex: 1;
+
+  div.title {
+    h1 {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 20px;
+      height: 24px;
+      margin: 0;
+      pointer-events: none;
+    }
+
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+    background: var(--dark-mid);
+  }
+
+  div.messageList {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 60px);
+
+    justify-content: flex-end;
+    padding: 24px;
+  }
 }
