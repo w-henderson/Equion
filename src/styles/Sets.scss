@@ -1,0 +1,66 @@
+div.Sets {
+  display: flex;
+  flex-direction: column;
+  width: 116px;
+  height: 100%;
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+  background: var(--mid);
+
+  div.windowButtons {
+    width: 68px;
+    margin: 24px;
+    display: flex;
+    justify-content: space-between;
+
+    div {
+      width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      display: inline-block;
+
+      &:hover {
+        filter: brightness(0.8);
+      }
+
+      &.close {
+        background: var(--red);
+      }
+
+      &.minimise {
+        background: var(--yellow);
+      }
+
+      &.maximise {
+        background: var(--green);
+      }
+    }
+  }
+
+  div.setList {
+    padding-left: 8px;
+    overflow: auto;
+    flex: 1;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--mid);
+      border-radius: 4px;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: var(--accent-dark);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--accent);
+    }
+  }
+}

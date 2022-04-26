@@ -1,14 +1,17 @@
 import React from 'react';
-import logo from './logo.svg';
 import './styles/App.scss';
 
-import Titlebar from './components/Titlebar';
+import Sets from './components/Sets';
+import Subsets from './components/Subsets';
+import Messages from './components/Messages';
 
 class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <Titlebar />
+        <Sets />
+        <Subsets />
+        <Messages />
       </div>
     );
   }
