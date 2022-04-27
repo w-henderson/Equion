@@ -2,6 +2,7 @@ import React from 'react';
 import '../styles/Messages.scss';
 
 import Message from "./Message";
+import MessageBox from './MessageBox';
 
 interface MessagesProps {
   subset: SubsetData
@@ -53,6 +54,8 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             <Message message={message} key={message.id} />
           )}
         </div>
+
+        <MessageBox />
       </div>
     )
   }

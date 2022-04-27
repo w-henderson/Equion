@@ -1,0 +1,26 @@
+div.MessageBox {
+  position: relative;
+  height: 60px;
+  background-color: var(--dark-mid);
+  border-top: 1px solid rgba(0, 0, 0, 0.5);
+
+  form {
+    height: 100%;
+    padding: 16px;
+
+    input {
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      outline: none;
+      border: none;
+      color: white;
+      font-family: Inter;
+      font-size: 16px;
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}

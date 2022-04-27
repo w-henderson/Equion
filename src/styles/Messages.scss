@@ -1,4 +1,6 @@
 div.Messages {
+  display: flex;
+  flex-direction: column;
   flex: 1;
 
   div.title {
@@ -19,7 +21,7 @@ div.Messages {
   div.messageList {
     display: flex;
     flex-direction: column;
-    height: calc(100% - 60px);
+    flex: 1;
 
     justify-content: flex-end;
     padding: 24px;
