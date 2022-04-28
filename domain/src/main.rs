@@ -1,6 +1,8 @@
 mod api;
 mod auth;
+mod sets;
 mod user;
+mod util;
 
 use crate::api::http_api;
 
@@ -26,7 +28,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_route("/api/v1/login", http_api(api::auth::login))
         .with_route("/api/v1/logout", http_api(api::auth::logout))
         .with_route("/api/v1/user", http_api(api::user::get_user))
-        .with_route("/api/v1/updateUser", http_api(api::user::update_user));
+        .with_route("/api/v1/updateUser", http_api(api::user::update_user))
+        .with_route("/api/v1/sets", http_api(api::sets::get_sets))
+        .with_route("/api/v1/set", http_api(api::sets::get_set))
+        .with_route("/api/v1/createSet", http_api(api::sets::create_set))
+        .with_route("/api/v1/createSubset", http_api(api::sets::create_subset))
+        .with_route("/api/v1/joinSet", http_api(api::sets::join_set))
+        .with_route("/api/v1/leaveSet", http_api(api::sets::leave_set));
 
     app.run("0.0.0.0:80")
 }

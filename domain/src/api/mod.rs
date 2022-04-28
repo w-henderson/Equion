@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod sets;
 pub mod user;
 
 use crate::State;
