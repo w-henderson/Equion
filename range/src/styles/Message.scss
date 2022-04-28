@@ -35,6 +35,10 @@ div.Message {
 
     div.text {
       user-select: text;
+
+      mjx-container[jax="CHTML"][display="true"] {
+        margin: 16px 0 !important;
+      }
     }
   }
 

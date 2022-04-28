@@ -23,7 +23,11 @@ div.Messages {
     flex-direction: column;
     flex: 1;
 
-    justify-content: flex-end;
     padding: 24px;
+    overflow: hidden auto;
+
+    :first-child {
+      margin-top: auto;
+    }
   }
 }

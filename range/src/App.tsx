@@ -1,6 +1,8 @@
 import React from 'react';
 import './styles/App.scss';
 
+import { MathJaxContext } from 'better-react-mathjax';
+
 import ApiContext from './api/ApiContext';
 import Api from './api/Api';
 
@@ -82,19 +84,28 @@ class App extends React.Component<{}, AppState> {
 
     return (
       <ApiContext.Provider value={this.state.api}>
-        <div className="App">
-          <Sets
-            sets={this.state.sets}
-            selectedSet={this.state.selectedSet}
-            selectCallback={this.selectSet} />
+        <MathJaxContext
+          hideUntilTypeset="every"
+          version={3}
+          config={{
+            options: {
+              enableMenu: false
+            }
+          }}>
+          <div className="App">
+            <Sets
+              sets={this.state.sets}
+              selectedSet={this.state.selectedSet}
+              selectCallback={this.selectSet} />
 
-          <Subsets
-            set={selectedSet}
-            selectedSubset={this.state.selectedSubset}
-            selectCallback={this.selectSubset} />
+            <Subsets
+              set={selectedSet}
+              selectedSubset={this.state.selectedSubset}
+              selectCallback={this.selectSubset} />
 
-          <Messages subset={selectedSubset} />
-        </div>
+            <Messages subset={selectedSubset} />
+          </div>
+        </MathJaxContext>
       </ApiContext.Provider>
     );
   }

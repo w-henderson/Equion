@@ -2,6 +2,7 @@ import React from 'react';
 import '../styles/Message.scss';
 
 import ApiContext from '../api/ApiContext';
+import { MathJax } from 'better-react-mathjax';
 
 interface MessageProps {
   message: MessageData
@@ -27,7 +28,9 @@ class Message extends React.Component<MessageProps> {
           </div>
 
           <div className="text">
-            {this.props.message.text}
+            <MathJax>
+              {this.props.message.text}
+            </MathJax>
           </div>
         </div>
       </div>

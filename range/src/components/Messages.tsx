@@ -35,7 +35,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             name: "William Henderson",
             image: "https://avatars.githubusercontent.com/u/58106291"
           },
-          text: "Hi from me!",
+          text: "\\[\\frac{10}{4x} \\approx 2^{12}\\]",
           timestamp: 1651003806648
         }
       ]
