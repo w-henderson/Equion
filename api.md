@@ -66,6 +66,7 @@ Input:
 {
   "token": "",
   "display_name?": "",
+  "email?": "",
   "image?": "",
   "bio?": ""
 }

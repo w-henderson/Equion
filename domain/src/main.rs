@@ -1,5 +1,6 @@
 mod api;
 mod auth;
+mod user;
 
 use crate::api::http_api;
 
@@ -23,7 +24,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let app: App<State> = App::new_with_config(32, State { pool })
         .with_route("/api/v1/signup", http_api(api::auth::signup))
         .with_route("/api/v1/login", http_api(api::auth::login))
-        .with_route("/api/v1/logout", http_api(api::auth::logout));
+        .with_route("/api/v1/logout", http_api(api::auth::logout))
+        .with_route("/api/v1/user", http_api(api::user::get_user))
+        .with_route("/api/v1/updateUser", http_api(api::user::update_user));
 
     app.run("0.0.0.0:80")
 }
