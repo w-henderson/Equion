@@ -12,7 +12,7 @@ Input:
 
 Output:
 ```json
-{ "success": true, "token": "" }
+{ "success": true, "token": "", "uid": "" }
 ```
 
 ### `v1/signup`: Sign up with details
@@ -23,7 +23,7 @@ Input:
 
 Output:
 ```json
-{ "success": true, "token": "" }
+{ "success": true, "token": "", "uid": "" }
 ```
 
 ### `v1/logout`: Logout and invalidate token

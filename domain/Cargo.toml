@@ -8,3 +8,5 @@ humphrey = "^0.6.1"
 humphrey_ws = "^0.3.3"
 humphrey_json = "^0.1.1"
 mysql = "^22.1.0"
+uuid = { version = "^1.0.0", features = ["v4"] }
+argon2 = "^0.3.0"
