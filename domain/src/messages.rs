@@ -4,6 +4,7 @@ use humphrey_json::prelude::*;
 use mysql::{prelude::*, Value};
 
 use chrono::{TimeZone, Utc};
+use uuid::Uuid;
 
 pub struct Message {
     pub id: String,
@@ -119,20 +120,47 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user_id: String = conn
-            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
-            .map_err(|_| "Could not check for invalid token".to_string())?
-            .ok_or_else(|| "Invalid token".to_string())?;
+        let meta: Option<(String, String, String, Option<String>)> = conn
+            .exec_first(
+                "SELECT sets.id, users.id, users.display_name, users.image FROM sets
+                    JOIN memberships ON sets.id = memberships.set_id
+                    JOIN users ON memberships.user_id = users.id
+                    JOIN subsets ON sets.id = subsets.set_id
+                    WHERE users.token = ? AND subsets.id = ?",
+                (token.as_ref(), subset.as_ref()),
+            )
+            .map_err(|_| "Could not check for invalid token".to_string())?;
+
+        if meta.is_none() {
+            return Err("Insufficient permissions".to_string());
+        }
+
+        let (set_id, user_id, author_name, author_image) = meta.unwrap();
+        let new_message_id = Uuid::new_v4().to_string();
 
         conn.exec_drop(
-            "INSERT INTO messages (id, content, subset, sender, send_time) VALUES (UUID(), ?, ?, ?, NOW())",
+            "INSERT INTO messages (id, content, subset, sender, send_time) VALUES (?, ?, ?, ?, NOW())",
             (
+                &new_message_id,
                 content.as_ref(),
                 subset.as_ref(),
-                user_id,
+                &user_id,
             ),
         )
         .map_err(|_| "Could not send message".to_string())?;
+
+        let send_time = Utc::now().timestamp() as u64;
+
+        let message = Message {
+            id: new_message_id,
+            content: content.as_ref().to_string(),
+            author_id: user_id,
+            author_name,
+            author_image,
+            send_time,
+        };
+
+        self.broadcast_new_message(set_id, message);
 
         Ok(())
     }

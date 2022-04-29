@@ -201,6 +201,8 @@ impl State {
         )
         .map_err(|_| "Could not add new subset".to_string())?;
 
+        self.broadcast_new_subset(set, &new_subset_id, name);
+
         Ok(new_subset_id)
     }
 

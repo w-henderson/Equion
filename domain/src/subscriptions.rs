@@ -1,4 +1,9 @@
+use crate::messages;
 use crate::State;
+
+use humphrey_ws::Message;
+
+use humphrey_json::prelude::*;
 
 use mysql::prelude::*;
 
@@ -88,5 +93,55 @@ impl State {
         }
 
         Ok(())
+    }
+
+    pub fn broadcast_new_subset(
+        &self,
+        set: impl AsRef<str>,
+        id: impl AsRef<str>,
+        name: impl AsRef<str>,
+    ) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/newSubset",
+                "subset": {
+                    "id": (id.as_ref()),
+                    "name": (name.as_ref())
+                }
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
+
+    pub fn broadcast_new_message(&self, set: impl AsRef<str>, message: messages::Message) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/newMessage",
+                "message": message
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
     }
 }

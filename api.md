@@ -260,7 +260,7 @@ Output:
 { "success": true }
 ```
 
-## WebSocket-only APIs
+## WebSocket-only Commands
 
 ### `v1/subscribe`: Subscribe to a set
 Subscribes the WebSocket connection to updates for the given set.
@@ -293,3 +293,35 @@ Output:
 ```json
 { "success": true }
 ```
+
+## WebSocket-only Events
+These are sent to the client when events happen in a set.
+
+### `v1/newSubset`: New subset
+Sent when a new subset is created.
+
+```json
+{
+  "event": "v1/newSubset",
+  "subset": {
+    "id": "",
+    "name": "",
+  }
+}
+```
+
+### `v1/newMessage`: New message in a subset
+Sent when a new message is sent to a subset.
+
+```json
+{
+  "event": "v1/newMessage",
+  "message": {
+    "id": "",
+    "content": "",
+    "author_id": "",
+    "author_name": "",
+    "author_image?": "",
+    "send_time": "",
+  }
+}
