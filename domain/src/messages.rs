@@ -107,4 +107,33 @@ impl State {
 
         Ok(messages)
     }
+
+    pub fn send_message(
+        &self,
+        token: impl AsRef<str>,
+        subset: impl AsRef<str>,
+        content: impl AsRef<str>,
+    ) -> Result<(), String> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())?;
+
+        let user_id: String = conn
+            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
+            .map_err(|_| "Could not check for invalid token".to_string())?
+            .ok_or_else(|| "Invalid token".to_string())?;
+
+        conn.exec_drop(
+            "INSERT INTO messages (id, content, subset, sender, send_time) VALUES (UUID(), ?, ?, ?, NOW())",
+            (
+                content.as_ref(),
+                subset.as_ref(),
+                user_id,
+            ),
+        )
+        .map_err(|_| "Could not send message".to_string())?;
+
+        Ok(())
+    }
 }

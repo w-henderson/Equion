@@ -22,3 +22,18 @@ pub fn get_messages(state: Arc<State>, json: String) -> Value {
         }))
     })
 }
+
+pub fn send_message(state: Arc<State>, json: String) -> Value {
+    error_context(|| {
+        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
+        let token = get_string(&json, "token")?;
+        let subset = get_string(&json, "subset")?;
+        let content = get_string(&json, "content")?;
+
+        state.send_message(token, subset, content)?;
+
+        Ok(json!({
+            "success": true
+        }))
+    })
+}
