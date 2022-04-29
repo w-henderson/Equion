@@ -1,10 +1,14 @@
 # API v1 Design Document
 
-All API calls can either be POSTed to `https://example.com/api/{name}` or be sent through WebSocket to `wss://example.com/ws` with the additional `name` parameter.
+All API calls can either be POSTed to `https://example.com/api/{command}` or be sent through WebSocket to `wss://example.com/ws` with the additional `command` parameter.
+
+**Warning:** This is a work in progress, and all API calls are subject to change.
 
 ## Authentication
 
 ### `v1/login`: Login with username and password
+Asserts that the username and password combination are valid, then returns a token that can be used to authenticate future requests. The token does not expire, but can be invalidated with `v1/logout`.
+
 Input:
 ```json
 { "username": "", "password": "" }
@@ -16,6 +20,8 @@ Output:
 ```
 
 ### `v1/signup`: Sign up with details
+Signs up a user with the given details. Further customisation should be done through the `v1/updateUser` endpoint. The user will be automatically logged in, so a token will be returned, along with the new user's ID. If the user name already exists, an error will occur.
+
 Input:
 ```json
 { "username": "", "password": "", "display_name": "", "email": "" }
@@ -27,6 +33,8 @@ Output:
 ```
 
 ### `v1/logout`: Logout and invalidate token
+Logs out the user and invalidates the token.
+
 Input:
 ```json
 { "token": "" }
@@ -40,6 +48,8 @@ Output:
 ## User
 
 ### `v1/user`: Get user details
+Gets details for the user with the given ID. This endpoint does not require authentication. The user's email is currently returned, but this is likely to change in the future.
+
 Input:
 ```json
 { "uid": "" }
@@ -61,6 +71,8 @@ Output:
 ```
 
 ### `v1/updateUser`: Update user details
+Updates the current user's details. This endpoint requires authentication to identify and authenticate the user. All fields apart from `token` are optional, and only the fields specified will be updated.
+
 Input:
 ```json
 {
@@ -80,6 +92,8 @@ Output:
 ## Sets
 
 ### `v1/sets`: Get all sets for the user
+Returns all of the current user's sets, in no particular order.
+
 Input:
 ```json
 { "token": "" }
@@ -106,6 +120,8 @@ Output:
 ```
 
 ### `v1/set`: Get set details
+Gets details for a specific set. This endpoint requires authentication, and will return an error if the user is not a member of the set.
+
 Input:
 ```json
 { "token": "", "id": "" }
@@ -130,6 +146,8 @@ Output:
 ```
 
 ### `v1/createSet`: Create a new set
+Creates a new set with the given name, and icon if supplied. Returns the ID of the new set. The authenticated user will automatically become a member of the set, and will also be given administrative privileges over the set.
+
 Input:
 ```json
 {
@@ -145,6 +163,8 @@ Output:
 ```
 
 ### `v1/createSubset`: Create a new subset
+Creates a new subset of the given set with the given name. Returns the ID of the new subset.
+
 Input:
 ```json
 {
@@ -160,6 +180,8 @@ Output:
 ```
 
 ### `v1/joinSet`: Join a set
+Joins the authenticated user to the given set.
+
 Input:
 ```json
 {
@@ -174,6 +196,8 @@ Output:
 ```
 
 ### `v1/leaveSet`: Leave a set
+Removes the authenticated user from the given set.
+
 Input:
 ```json
 {
@@ -189,7 +213,9 @@ Output:
 
 ## Messages
 
-### `v1/messages`: Get all messages for a subset
+### `v1/messages`: Get messages for a subset
+Gets messages from the given subset. If set, the `before` field takes a message ID, and will only return messages sent before that message. If set, the `limit` field will limit the number of messages returned.
+
 Input:
 ```json
 {
@@ -218,6 +244,8 @@ Output:
 ```
 
 ### `v1/sendMessage`: Send a message to a subset
+Sends a message from the given user to the given subset.
+
 Input:
 ```json
 {
