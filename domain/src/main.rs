@@ -1,5 +1,6 @@
 mod api;
 mod auth;
+mod messages;
 mod sets;
 mod user;
 mod util;
@@ -34,7 +35,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_route("/api/v1/createSet", http_api(api::sets::create_set))
         .with_route("/api/v1/createSubset", http_api(api::sets::create_subset))
         .with_route("/api/v1/joinSet", http_api(api::sets::join_set))
-        .with_route("/api/v1/leaveSet", http_api(api::sets::leave_set));
+        .with_route("/api/v1/leaveSet", http_api(api::sets::leave_set))
+        .with_route("/api/v1/messages", http_api(api::messages::get_messages));
 
     app.run("0.0.0.0:80")
 }

@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod messages;
 pub mod sets;
 pub mod user;
 
@@ -63,4 +64,11 @@ pub fn get_string(json: &Value, key: &str) -> Result<String, String> {
         .ok_or_else(|| format!("Missing {}", key))
         .and_then(|v| v.as_str().ok_or_else(|| format!("Invalid {}", key)))
         .map(|s| s.to_string())
+}
+
+pub fn get_int(json: &Value, key: &str) -> Result<u64, String> {
+    json.get(key)
+        .ok_or_else(|| format!("Missing {}", key))
+        .and_then(|v| v.as_number().ok_or_else(|| format!("Invalid {}", key)))
+        .map(|n| n as u64)
 }

@@ -207,9 +207,10 @@ Output:
   "messages": [
     {
       "id": "",
-      "authorId": "",
-      "authorName": "",
-      "authorImage?": "",
+      "content": "",
+      "author_id": "",
+      "author_name": "",
+      "author_image?": "",
       "send_time": "",
     }
   ]
