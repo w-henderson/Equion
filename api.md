@@ -259,3 +259,37 @@ Output:
 ```json
 { "success": true }
 ```
+
+## WebSocket-only APIs
+
+### `v1/subscribe`: Subscribe to a set
+Subscribes the WebSocket connection to updates for the given set.
+
+Input:
+```json
+{
+  "token": "",
+  "set": ""
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+### `v1/unsubscribe`: Unsubscribe from a set
+Unsubscribes the WebSocket connection from updates for the given set.
+
+Input:
+```json
+{
+  "token": "",
+  "set": ""
+}
+```
+
+Output:
+```json
+{ "success": true }
+```

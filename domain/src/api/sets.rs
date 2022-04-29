@@ -6,9 +6,8 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
-pub fn get_sets(state: Arc<State>, json: String) -> Value {
+pub fn get_sets(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
 
         let response = state.get_sets(token)?;
@@ -20,9 +19,8 @@ pub fn get_sets(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn get_set(state: Arc<State>, json: String) -> Value {
+pub fn get_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
         let id = get_string(&json, "id")?;
 
@@ -35,9 +33,8 @@ pub fn get_set(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn create_set(state: Arc<State>, json: String) -> Value {
+pub fn create_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
         let name = get_string(&json, "name")?;
         let icon = get_string(&json, "icon").ok();
@@ -51,9 +48,8 @@ pub fn create_set(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn create_subset(state: Arc<State>, json: String) -> Value {
+pub fn create_subset(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
         let set = get_string(&json, "set")?;
         let name = get_string(&json, "name")?;
@@ -67,9 +63,8 @@ pub fn create_subset(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn join_set(state: Arc<State>, json: String) -> Value {
+pub fn join_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
         let set = get_string(&json, "set")?;
 
@@ -81,9 +76,8 @@ pub fn join_set(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn leave_set(state: Arc<State>, json: String) -> Value {
+pub fn leave_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
         let set = get_string(&json, "set")?;
 

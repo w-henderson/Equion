@@ -6,9 +6,8 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
-pub fn signup(state: Arc<State>, json: String) -> Value {
+pub fn signup(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let username = get_string(&json, "username")?;
         let password = get_string(&json, "password")?;
         let display_name = get_string(&json, "display_name")?;
@@ -24,9 +23,8 @@ pub fn signup(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn login(state: Arc<State>, json: String) -> Value {
+pub fn login(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let username = get_string(&json, "username")?;
         let password = get_string(&json, "password")?;
 
@@ -40,9 +38,8 @@ pub fn login(state: Arc<State>, json: String) -> Value {
     })
 }
 
-pub fn logout(state: Arc<State>, json: String) -> Value {
+pub fn logout(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
-        let json: Value = humphrey_json::from_str(&json).map_err(|_| "Invalid JSON".to_string())?;
         let token = get_string(&json, "token")?;
 
         state.logout(token)?;
