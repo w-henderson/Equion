@@ -12,11 +12,13 @@ interface MessagesProps {
 class Messages extends React.Component<MessagesProps> {
   messages: React.RefObject<HTMLDivElement>;
   lastId: string | null;
+  lastMessageId: string | null;
 
   constructor(props: MessagesProps) {
     super(props);
 
     this.lastId = null;
+    this.lastMessageId = null;
 
     this.handleScroll = this.handleScroll.bind(this);
     this.messages = React.createRef();
@@ -39,8 +41,16 @@ class Messages extends React.Component<MessagesProps> {
   }
 
   componentDidUpdate() {
+    // Scroll to the bottom if the subset has changed
     if (this.props.subset !== undefined && this.props.subset.id !== this.lastId) {
       this.lastId = this.props.subset.id;
+      this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
+    }
+
+    // Scroll to the bottom if a message has been sent
+    let messagesCount = this.props.subset?.messages?.length;
+    if (messagesCount !== undefined && this.lastMessageId !== this.props.subset!.messages![messagesCount - 1].id) {
+      this.lastMessageId = this.props.subset!.messages![messagesCount - 1].id;
       this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
     }
   }

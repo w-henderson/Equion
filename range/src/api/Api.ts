@@ -12,8 +12,8 @@ class Api {
   token: string | null;
   ready: boolean;
   subscriber: Subscriber;
-  onMessage: (message: MessageData) => void;
-  onSubset: (subset: SubsetData) => void;
+  onMessage: (message: MessageData, set: string, subset: string) => void;
+  onSubset: (subset: SubsetData, set: string) => void;
 
   constructor() {
     this.ready = false;
