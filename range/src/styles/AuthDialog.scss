@@ -29,8 +29,8 @@ div.AuthDialog {
 
       transition: background-color 200ms;
 
-      &:focus,
-      &:hover {
+      &:focus:not(:disabled),
+      &:hover:not(:disabled) {
         background-color: var(--accent-dark);
       }
 
@@ -38,6 +38,11 @@ div.AuthDialog {
       &[type="button"] {
         width: 100%;
         cursor: pointer;
+
+        &:disabled {
+          color: rgba(255, 255, 255, 0.5);
+          cursor: default;
+        }
       }
     }
 

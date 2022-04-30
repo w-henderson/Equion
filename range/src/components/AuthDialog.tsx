@@ -17,6 +17,7 @@ interface AuthDialogState {
   confirmPassword: string,
   displayName: string,
   email: string,
+  loading: boolean,
 }
 
 class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
@@ -32,6 +33,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       confirmPassword: "",
       displayName: "",
       email: "",
+      loading: false
     }
 
     this.login = this.login.bind(this);
@@ -40,6 +42,8 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
   login(e: React.FormEvent) {
     e.preventDefault();
+
+    this.setState({ loading: true });
 
     toast.promise(this.context.login(this.state.username, this.state.password), {
       loading: "Logging in...",
@@ -51,6 +55,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       this.setState({
         password: "",
         confirmPassword: "",
+        loading: false
       })
     });
   }
@@ -67,6 +72,8 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       return;
     }
 
+    this.setState({ loading: true });
+
     toast.promise(this.context.signup(this.state.username, this.state.password, this.state.displayName, this.state.email), {
       loading: "Signing up...",
       success: "Signed up, welcome to Equion!",
@@ -77,6 +84,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       this.setState({
         password: "",
         confirmPassword: "",
+        loading: false
       })
     });
   }
@@ -106,10 +114,10 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
               autoComplete={"off"}
               onChange={(e) => this.setState({ password: e.target.value })} />
 
-            <input type="submit" value="Login" key="login" />
+            <input type="submit" value={this.state.loading ? "Loading..." : "Login"} key="login" disabled={this.state.loading} />
           </form>
 
-          <span onClick={() => this.setState({ tab: "signup" })}>
+          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "signup" }) }}>
             Create a new account
           </span>
         </div>
@@ -162,10 +170,10 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
               autoComplete={"off"}
               onChange={(e) => this.setState({ displayName: e.target.value })} />
 
-            <input type="submit" value="Sign Up" key="sign_up" />
+            <input type="submit" value={this.state.loading ? "Loading..." : "Sign Up"} key="sign_up" disabled={this.state.loading} />
           </form>
 
-          <span onClick={() => this.setState({ tab: "login" })}>
+          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "login" }) }}>
             Sign in to an existing account
           </span>
         </div>
