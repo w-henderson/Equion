@@ -3,6 +3,7 @@ import '../styles/AuthDialog.scss';
 import logo from "../images/logo.png";
 
 import toast from 'react-hot-toast';
+import { appWindow } from '@tauri-apps/api/window';
 
 import ApiContext from '../api/ApiContext';
 
@@ -90,9 +91,17 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
   }
 
   render() {
+    let windowButtons = <div className="windowButtons">
+      <div className="close" onClick={() => appWindow.close()} />
+      <div className="minimise" onClick={() => appWindow.minimize()} />
+      <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
+    </div>;
+
     if (this.state.tab === "login") {
       return (
         <div className="AuthDialog" data-tauri-drag-region>
+          {windowButtons}
+
           <img src={logo} />
 
           <h1>Welcome to Equion</h1>
@@ -125,6 +134,8 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
     } else {
       return (
         <div className="AuthDialog" data-tauri-drag-region>
+          {windowButtons}
+
           <img src={logo} />
 
           <h1>Welcome to Equion</h1>

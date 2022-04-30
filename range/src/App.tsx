@@ -77,13 +77,25 @@ class App extends React.Component<{}, AppState> {
           selectedSet={this.state.selectedSet}
           selectCallback={this.selectSet} />
 
-        <Subsets
-          set={selectedSet}
-          selectedSubset={this.state.selectedSubset}
-          selectCallback={this.selectSubset} />
+        {selectedSet &&
+          <>
+            <Subsets
+              set={selectedSet}
+              selectedSubset={this.state.selectedSubset}
+              selectCallback={this.selectSubset} />
 
-        <Messages
-          subset={selectedSubset} />
+            <Messages
+              subset={selectedSubset} />
+          </>
+        }
+
+        {!selectedSet &&
+          <div className="noSetSelected">
+            <h1>Welcome to Equion</h1>
+            <p>Select a set from the list or create one to get started.</p>
+          </div>
+        }
+
       </div>
     );
     ;
@@ -94,11 +106,6 @@ class App extends React.Component<{}, AppState> {
       inner = (
         <ApiContext.Provider value={this.api}>
           <div className="App">
-            <Sets
-              sets={[]}
-              selectedSet={null}
-              selectCallback={() => { }} />
-
             <AuthDialog authComplete={this.authComplete} />
           </div>
         </ApiContext.Provider>

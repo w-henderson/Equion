@@ -4,6 +4,7 @@ import '../styles/Sets.scss';
 import { appWindow } from '@tauri-apps/api/window';
 
 import SetIcon from './SetIcon';
+import AddSetIcon from './AddSetIcon';
 
 interface SetsProps {
   sets: SetData[],
@@ -21,7 +22,7 @@ class Sets extends React.Component<SetsProps> {
           <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
         </div>
 
-        <div className="setList">
+        <div className="setList" data-tauri-drag-region>
           {this.props.sets.map(set =>
             <SetIcon
               set={set}
@@ -29,6 +30,8 @@ class Sets extends React.Component<SetsProps> {
               onClick={() => this.props.selectCallback(set.id)}
               key={set.id} />
           )}
+
+          <AddSetIcon />
         </div>
       </div>
     )

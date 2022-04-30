@@ -4,6 +4,14 @@ div.App {
   height: 100%;
   background-color: var(--dark);
   overflow: hidden;
+
+  div.noSetSelected {
+    display: flex;
+    flex-direction: column;
+    place-items: center;
+    place-content: center;
+    width: 100%;
+  }
 }
 
 ::-webkit-scrollbar {

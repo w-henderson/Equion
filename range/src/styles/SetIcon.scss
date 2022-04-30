@@ -12,7 +12,7 @@ div.SetIcon {
   border-radius: 32px;
   cursor: pointer;
 
-  transition: transform 250ms, background-color 250ms;
+  transition: transform 250ms, background-color 250ms, border 250ms;
 
   &:hover,
   &.selected {
@@ -22,5 +22,17 @@ div.SetIcon {
 
   &.selected {
     cursor: default;
+  }
+
+  &.add {
+    font-size: 48px;
+    font-weight: 200;
+    padding-bottom: 8px;
+    background-color: transparent;
+    border: 4px solid var(--accent);
+
+    &:hover {
+      border: 4px solid var(--accent-light);
+    }
   }
 }
