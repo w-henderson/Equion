@@ -1,25 +1,43 @@
 import { forage } from "@tauri-apps/tauri-forage";
 import toast from "react-hot-toast";
 
+import Subscriber from "./Subscriber";
+
 const API_ROUTE = "http://localhost/api/v1";
+const WS_ROUTE = "ws://localhost/ws";
+export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
 
 class Api {
   uid: string | null;
   token: string | null;
   ready: boolean;
+  subscriber: Subscriber;
+  onMessage: (message: MessageData) => void;
+  onSubset: (subset: SubsetData) => void;
 
   constructor() {
     this.ready = false;
     this.uid = null;
     this.token = null;
+
+    this.subscriber = new Subscriber(WS_ROUTE);
+    this.onMessage = () => { };
+    this.onSubset = () => { };
   }
 
   public async init(): Promise<boolean> {
     this.uid = await forage.getItem({ key: "uid" })();
     this.token = await forage.getItem({ key: "token" })();
+    this.subscriber.onMessage = this.onMessage;
+    this.subscriber.onSubset = this.onSubset;
     this.ready = true;
 
     return false;
+  }
+
+  public finishAuth(uid: string, token: string) {
+    this.uid = uid;
+    this.token = token;
   }
 
   public errorHandler(e: string) {
@@ -38,8 +56,7 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          this.uid = res.uid;
-          this.token = res.token;
+          this.finishAuth(res.uid, res.token);
 
           /*forage.setItem({ key: "uid", value: res.uid })();
           forage.setItem({ key: "token", value: res.token })();*/
@@ -62,8 +79,7 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          this.uid = res.uid;
-          this.token = res.token;
+          this.finishAuth(res.uid, res.token);
 
           /*forage.setItem({ key: "uid", value: res.uid })();
           forage.setItem({ key: "token", value: res.token })();*/
@@ -71,6 +87,58 @@ class Api {
           return Promise.reject(res.error);
         }
       });
+  }
+
+  public getSets(): Promise<SetData[]> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/sets`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.sets;
+        } else {
+          return Promise.reject(res.error);
+        }
+      })
+  }
+
+  public getMessages(subsetId: string, before: string | undefined = undefined, limit = 25): Promise<MessageData[]> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/messages`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        subset: subsetId,
+        before,
+        limit
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        let messages = res.messages;
+        messages.reverse();
+        res.messages = messages;
+        return res;
+      })
+      .then(res => res.messages.map((m: any) => {
+        return {
+          id: m.id,
+          text: m.content,
+          author: {
+            id: m.author_id,
+            name: m.author_name,
+            image: m.author_image || DEFAULT_PROFILE_IMAGE,
+          },
+          timestamp: m.send_time * 1000
+        }
+      }));
   }
 
   public getUserByUid(uid: string): Promise<UserData> {
@@ -85,7 +153,7 @@ class Api {
         default: return resolve({
           id: uid,
           name: "Unknown User",
-          image: "https://cdn.landesa.org/wp-content/uploads/default-user-image.png"
+          image: DEFAULT_PROFILE_IMAGE
         });
       }
     });

@@ -8,7 +8,8 @@ interface SetData {
 interface SubsetData {
   id: string,
   name: string,
-  messages?: MessageData[]
+  messages?: MessageData[],
+  loadedToTop?: boolean
 }
 
 interface UserData {

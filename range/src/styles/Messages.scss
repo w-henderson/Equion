@@ -29,5 +29,10 @@ div.Messages {
     :first-child {
       margin-top: auto;
     }
+
+    p {
+      text-align: center;
+      opacity: 0.5;
+    }
   }
 }

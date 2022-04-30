@@ -3,6 +3,7 @@ import './styles/App.scss';
 
 import { MathJaxContext } from 'better-react-mathjax';
 import { Toaster } from 'react-hot-toast';
+import * as immutable from 'object-path-immutable';
 
 import ApiContext from './api/ApiContext';
 import Api from './api/Api';
@@ -28,6 +29,9 @@ class App extends React.Component<{}, AppState> {
 
     this.api = new Api();
 
+    this.api.onMessage = this.onMessage;
+    this.api.onSubset = this.onSubset;
+
     this.state = {
       init: false,
       authenticated: false,
@@ -36,9 +40,12 @@ class App extends React.Component<{}, AppState> {
       selectedSubset: null
     }
 
+    this.onMessage = this.onMessage.bind(this);
+    this.onSubset = this.onSubset.bind(this);
     this.selectSet = this.selectSet.bind(this);
     this.selectSubset = this.selectSubset.bind(this);
     this.authComplete = this.authComplete.bind(this);
+    this.requestMoreMessages = this.requestMoreMessages.bind(this);
   }
 
   componentDidMount() {
@@ -49,21 +56,91 @@ class App extends React.Component<{}, AppState> {
   }
 
   authComplete() {
-    this.setState({
-      authenticated: true
-    });
+    this.api.getSets().then(sets => {
+      this.setState({
+        sets,
+        authenticated: true
+      }, () => {
+        for (let set of sets) {
+          this.api.subscriber.subscribe(this.api.token!, set.id);
+        }
+      });
+    })
   }
+
+  onMessage(message: MessageData) { }
+
+  onSubset(subset: SubsetData) { }
 
   selectSet(id: string) {
-    let set = this.state.sets.find(set => set.id === id)!;
-    this.setState({
-      selectedSet: id,
-      selectedSubset: set.subsets[0].id
+    let setIndex = this.state.sets.findIndex(set => set.id === id)!;
+
+    this.selectSubset(id, this.state.sets[setIndex].subsets[0].id);
+  }
+
+  async selectSubset(set: string, subset: string) {
+    let setIndex = this.state.sets.findIndex(s => s.id === set)!;
+    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
+
+    if (this.state.sets[setIndex].subsets[subsetIndex].messages !== undefined) {
+      this.setState({
+        selectedSet: set,
+        selectedSubset: subset
+      });
+      return;
+    }
+
+    let messages = await this.api.getMessages(subset);
+
+    this.setState(state => {
+      let newState = immutable
+        .wrap(state)
+        .set("selectedSet", set)
+        .set("selectedSubset", subset);
+
+      if (messages.length < 25) {
+        newState.set(["sets", setIndex, "subsets", subsetIndex, "loadedToTop"], true);
+      }
+
+      // Add newly-loaded messages to the start
+      let newMessages = [
+        ...messages,
+        ...(state.sets[setIndex].subsets[subsetIndex].messages || [])
+      ];
+
+      newState.set(["sets", setIndex, "subsets", subsetIndex, "messages"], newMessages);
+
+      return newState.value();
     });
   }
 
-  selectSubset(id: string) {
-    this.setState({ selectedSubset: id });
+  async requestMoreMessages() {
+    let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet)!;
+    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset)!;
+
+    let oldest = this.state.sets[setIndex].subsets[subsetIndex].messages![0].id;
+
+    let messages = await this.api.getMessages(this.state.selectedSubset!, oldest);
+
+    return new Promise<void>((resolve, _) => {
+      this.setState(state => {
+        let newState = immutable.wrap(state);
+
+        if (messages.length < 25) {
+          newState.set(["sets", setIndex, "subsets", subsetIndex, "loadedToTop"], true);
+        }
+
+        // Add newly-loaded messages to the start
+        let newMessages = [
+          ...messages,
+          ...(state.sets[setIndex].subsets[subsetIndex].messages || [])
+        ];
+
+        newState.set(["sets", setIndex, "subsets", subsetIndex, "messages"], newMessages);
+
+        return newState.value();
+      }, resolve);
+    });
   }
 
   render() {
@@ -82,10 +159,11 @@ class App extends React.Component<{}, AppState> {
             <Subsets
               set={selectedSet}
               selectedSubset={this.state.selectedSubset}
-              selectCallback={this.selectSubset} />
+              selectCallback={(s) => this.selectSubset(this.state.selectedSet!, s)} />
 
             <Messages
-              subset={selectedSubset} />
+              subset={selectedSubset}
+              requestMoreMessages={this.requestMoreMessages} />
           </>
         }
 
