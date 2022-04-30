@@ -303,6 +303,7 @@ Sent when a new subset is created.
 ```json
 {
   "event": "v1/newSubset",
+  "set": "",
   "subset": {
     "id": "",
     "name": "",
@@ -316,6 +317,8 @@ Sent when a new message is sent to a subset.
 ```json
 {
   "event": "v1/newMessage",
+  "set": "",
+  "subset": "",
   "message": {
     "id": "",
     "content": "",

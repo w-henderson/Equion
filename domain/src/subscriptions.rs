@@ -106,6 +106,7 @@ impl State {
         let message = Message::new(
             json!({
                 "event": "v1/newSubset",
+                "set": (set.as_ref()),
                 "subset": {
                     "id": (id.as_ref()),
                     "name": (name.as_ref())
@@ -124,12 +125,19 @@ impl State {
         }
     }
 
-    pub fn broadcast_new_message(&self, set: impl AsRef<str>, message: messages::Message) {
+    pub fn broadcast_new_message(
+        &self,
+        set: impl AsRef<str>,
+        subset: impl AsRef<str>,
+        message: messages::Message,
+    ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
                 "event": "v1/newMessage",
+                "set": (set.as_ref()),
+                "subset": (subset.as_ref()),
                 "message": message
             })
             .serialize(),

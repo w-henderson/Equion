@@ -160,7 +160,7 @@ impl State {
             send_time,
         };
 
-        self.broadcast_new_message(set_id, message);
+        self.broadcast_new_message(set_id, subset, message);
 
         Ok(())
     }
