@@ -2,6 +2,7 @@ import React from 'react';
 import './styles/App.scss';
 
 import { MathJaxContext } from 'better-react-mathjax';
+import { Toaster } from 'react-hot-toast';
 
 import ApiContext from './api/ApiContext';
 import Api from './api/Api';
@@ -37,6 +38,7 @@ class App extends React.Component<{}, AppState> {
 
     this.selectSet = this.selectSet.bind(this);
     this.selectSubset = this.selectSubset.bind(this);
+    this.authComplete = this.authComplete.bind(this);
   }
 
   componentDidMount() {
@@ -44,6 +46,12 @@ class App extends React.Component<{}, AppState> {
       init: true,
       authenticated
     }));
+  }
+
+  authComplete() {
+    this.setState({
+      authenticated: true
+    });
   }
 
   selectSet(id: string) {
@@ -59,10 +67,31 @@ class App extends React.Component<{}, AppState> {
   }
 
   render() {
-    if (!this.state.init) return <div></div>;
+    let selectedSet = this.state.sets.find(set => set.id === this.state.selectedSet);
+    let selectedSubset = selectedSet?.subsets.find(subset => subset.id === this.state.selectedSubset);
 
-    if (!this.state.authenticated) {
-      return (
+    let inner = (
+      <div className="App">
+        <Sets
+          sets={this.state.sets}
+          selectedSet={this.state.selectedSet}
+          selectCallback={this.selectSet} />
+
+        <Subsets
+          set={selectedSet}
+          selectedSubset={this.state.selectedSubset}
+          selectCallback={this.selectSubset} />
+
+        <Messages
+          subset={selectedSubset} />
+      </div>
+    );
+    ;
+
+    if (!this.state.init) inner = <div className="App" />;
+
+    if (this.state.init && !this.state.authenticated) {
+      inner = (
         <ApiContext.Provider value={this.api}>
           <div className="App">
             <Sets
@@ -70,14 +99,11 @@ class App extends React.Component<{}, AppState> {
               selectedSet={null}
               selectCallback={() => { }} />
 
-            <AuthDialog />
+            <AuthDialog authComplete={this.authComplete} />
           </div>
         </ApiContext.Provider>
       )
     }
-
-    let selectedSet = this.state.sets.find(set => set.id === this.state.selectedSet);
-    let selectedSubset = selectedSet?.subsets.find(subset => subset.id === this.state.selectedSubset);
 
     return (
       <ApiContext.Provider value={this.api}>
@@ -89,20 +115,17 @@ class App extends React.Component<{}, AppState> {
               enableMenu: false
             }
           }}>
-          <div className="App">
-            <Sets
-              sets={this.state.sets}
-              selectedSet={this.state.selectedSet}
-              selectCallback={this.selectSet} />
 
-            <Subsets
-              set={selectedSet}
-              selectedSubset={this.state.selectedSubset}
-              selectCallback={this.selectSubset} />
+          {inner}
 
-            <Messages
-              subset={selectedSubset} />
-          </div>
+          <Toaster position="bottom-center" toastOptions={{
+            style: {
+              background: "#293f55", // var(--accent)
+              color: "#fff",
+              minWidth: "350px",
+              maxWidth: "1000px"
+            }
+          }} />
         </MathJaxContext>
       </ApiContext.Provider>
     );
