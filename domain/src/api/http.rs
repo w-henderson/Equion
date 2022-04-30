@@ -41,4 +41,5 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
     Response::empty(status_code)
         .with_bytes(response_body.serialize())
         .with_header(ResponseHeader::ContentType, "application/json".to_string())
+        .with_header(ResponseHeader::AccessControlAllowOrigin, "*".to_string())
 }
