@@ -7,7 +7,7 @@ import SetIcon from './SetIcon';
 
 interface SetsProps {
   sets: SetData[],
-  selectedSet: string,
+  selectedSet: string | null,
   selectCallback: (id: string) => void
 }
 

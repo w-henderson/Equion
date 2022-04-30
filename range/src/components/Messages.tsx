@@ -5,59 +5,36 @@ import Message from "./Message";
 import MessageBox from './MessageBox';
 
 interface MessagesProps {
-  subset: SubsetData
+  subset: SubsetData | undefined
 }
 
-interface MessagesState {
-  messages: MessageData[]
-}
-
-class Messages extends React.Component<MessagesProps, MessagesState> {
-  constructor(props: MessagesProps) {
-    super(props);
-
-    this.state = {
-      messages: [
-        {
-          id: "1",
-          author: {
-            id: "1",
-            name: "Unknown User",
-            image: "https://cdn.landesa.org/wp-content/uploads/default-user-image.png"
-          },
-          text: "An extremely long message goes here which will have to wrap around!",
-          timestamp: 1651003806648
-        },
-        {
-          id: "2",
-          author: {
-            id: "12345678-9abc-def0-1234-56789abcdef0",
-            name: "William Henderson",
-            image: "https://avatars.githubusercontent.com/u/58106291"
-          },
-          text: "\\[\\frac{10}{4x} \\approx 2^{12}\\]",
-          timestamp: 1651003806648
-        }
-      ]
-    };
-  }
-
+class Messages extends React.Component<MessagesProps> {
   render() {
-    return (
-      <div className="Messages">
-        <div data-tauri-drag-region className="title">
-          <h1>{this.props.subset.name}</h1>
-        </div>
+    if (this.props.subset !== undefined) {
+      return (
+        <div className="Messages">
+          <div data-tauri-drag-region className="title">
+            <h1>{this.props.subset.name}</h1>
+          </div>
 
-        <div className="messageList">
-          {this.state.messages.map(message =>
-            <Message message={message} key={message.id} />
-          )}
-        </div>
+          <div className="messageList">
+            {(this.props.subset.messages || []).map(message =>
+              <Message message={message} key={message.id} />
+            )}
+          </div>
 
-        <MessageBox />
-      </div>
-    )
+          <MessageBox />
+        </div>
+      )
+    } else {
+      return (
+        <div className="Messages">
+          <div data-tauri-drag-region className="title">
+            <h1></h1>
+          </div>
+        </div>
+      )
+    }
   }
 }
 

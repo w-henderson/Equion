@@ -1,0 +1,67 @@
+div.AuthDialog {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  place-items: center;
+  place-content: center;
+
+  img {
+    width: 96px;
+    height: 96px;
+    pointer-events: none;
+  }
+
+  form {
+    input {
+      display: block;
+      padding: 12px;
+      margin-bottom: 8px;
+
+      font-family: Inter;
+      font-size: 16px;
+
+      outline: none;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+
+      color: white;
+      background-color: var(--mid);
+
+      transition: background-color 200ms;
+
+      &:focus,
+      &:hover {
+        background-color: var(--accent-dark);
+      }
+
+      &[type="submit"],
+      &[type="button"] {
+        width: 100%;
+        cursor: pointer;
+      }
+    }
+
+    ::-ms-reveal {
+      filter: invert(100%);
+    }
+
+    div {
+      display: flex;
+      gap: 8px;
+
+      input {
+        flex: 1;
+      }
+    }
+  }
+
+  span {
+    display: block;
+    margin-top: 8px;
+    text-decoration: underline solid rgba(255, 255, 255, 0.5) 1px;
+    opacity: 0.5;
+    font-size: 0.8em;
+    font-weight: 200;
+    cursor: pointer;
+  }
+}

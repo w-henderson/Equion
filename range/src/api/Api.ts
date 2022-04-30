@@ -1,6 +1,26 @@
+import { forage } from "@tauri-apps/tauri-forage";
+
 class Api {
+  uid: string | null;
+  token: string | null;
+  ready: boolean;
+
+  constructor() {
+    this.ready = false;
+    this.uid = null;
+    this.token = null;
+  }
+
+  async init(): Promise<boolean> {
+    this.uid = await forage.getItem({ key: "uid" })();
+    this.token = await forage.getItem({ key: "token" })();
+    this.ready = true;
+
+    return false;
+  }
+
   public getUid(): string {
-    return "12345678-9abc-def0-1234-56789abcdef0";
+    return this.uid || "";
   }
 
   public getUserByUid(uid: string): Promise<UserData> {
