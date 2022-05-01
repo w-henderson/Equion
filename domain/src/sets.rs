@@ -150,9 +150,14 @@ impl State {
         let new_set_id = Uuid::new_v4().to_string();
         let new_membership_id = Uuid::new_v4().to_string();
 
-        let icon = icon.unwrap_or_else(|| {
-            get_greek_letter(name.as_ref().chars().next().unwrap_or(' ')).to_string()
-        });
+        let icon = icon
+            .unwrap_or_else(|| {
+                get_greek_letter(name.as_ref().chars().next().unwrap_or(' ')).to_string()
+            })
+            .chars()
+            .next()
+            .unwrap_or('α')
+            .to_string();
 
         conn.exec_drop(
             "INSERT INTO sets (id, name, icon) VALUES (?, ?, ?)",
@@ -165,6 +170,12 @@ impl State {
             (&new_membership_id, &user_id, &new_set_id),
         )
         .map_err(|_| "Could not add new membership".to_string())?;
+
+        conn.exec_drop(
+            "INSERT INTO subsets (id, name, set_id) VALUES (uuid(), \"General\", ?)",
+            (&new_set_id,),
+        )
+        .map_err(|_| "Could not add General subset".to_string())?;
 
         Ok(new_set_id)
     }
