@@ -141,6 +141,27 @@ class Api {
       }));
   }
 
+  public sendMessage(subsetId: string, text: string): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/sendMessage`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        subset: subsetId,
+        message: text
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      })
+  }
+
   public getUserByUid(uid: string): Promise<UserData> {
     return new Promise<UserData>((resolve, reject) => {
       switch (uid) {

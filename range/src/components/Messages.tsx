@@ -88,7 +88,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             )}
           </div>
 
-          <MessageBox />
+          <MessageBox subsetId={this.props.subset.id} />
         </div>
       )
     } else {
