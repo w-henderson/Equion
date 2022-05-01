@@ -31,8 +31,12 @@ pub struct State {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let db_url = std::env::var("EQUION_DATABASE_URL").unwrap_or_else(|_| String::from(DB_URL));
+
     // Connect to the database.
-    let pool = Pool::new(Opts::from_url(DB_URL)?)?;
+    let pool = Pool::new(Opts::from_url(&db_url)?)?;
+
+    println!("[DB]   Connected to MySQL database at {}", db_url);
 
     // Initialise the app's state.
     // At the moment, everything is in `Arc`s due to limitations with Humphrey's API, but this should be fixed in the future.
@@ -57,7 +61,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_route("/api/*", http::handler)
         .with_websocket_route("/ws", async_websocket_handler(hook));
 
-    spawn(move || ws_app.run());
+    spawn(move || {
+        println!("[WS]   Started WebSocket service");
+        ws_app.run();
+    });
+
+    println!("[HTTP] Started HTTP server on port 80");
 
     app.run("0.0.0.0:80")
 }

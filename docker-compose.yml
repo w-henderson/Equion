@@ -1,0 +1,19 @@
+services:
+
+  server:
+    build: ./domain
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      EQUION_DATABASE_URL: "mysql://root:hunter2@db:3306/equion"
+
+  db:
+    image: mysql:latest
+    restart: always
+    volumes:
+      - ./domain/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: hunter2

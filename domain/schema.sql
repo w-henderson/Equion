@@ -1,3 +1,6 @@
+CREATE DATABASE equion;
+USE equion;
+
 CREATE TABLE `users`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `username` VARCHAR(255) NOT NULL,
