@@ -28,6 +28,12 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
     this.messageSend = this.messageSend.bind(this);
   }
 
+  componentDidUpdate() {
+    if (this.box.current) {
+      this.box.current.focus();
+    }
+  }
+
   messageChange(e: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       message: e.target.value
