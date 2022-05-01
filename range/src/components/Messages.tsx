@@ -9,13 +9,21 @@ interface MessagesProps {
   requestMoreMessages: () => Promise<void>,
 }
 
-class Messages extends React.Component<MessagesProps> {
+interface MessagesState {
+  waitingForMessages: boolean
+}
+
+class Messages extends React.Component<MessagesProps, MessagesState> {
   messages: React.RefObject<HTMLDivElement>;
   lastId: string | null;
   lastMessageId: string | null;
 
   constructor(props: MessagesProps) {
     super(props);
+
+    this.state = {
+      waitingForMessages: false
+    }
 
     this.lastId = null;
     this.lastMessageId = null;
@@ -30,12 +38,15 @@ class Messages extends React.Component<MessagesProps> {
     }
   }
 
-  handleScroll() {
-    if (this.messages.current!.scrollTop === 0) {
+  handleScroll(e: React.WheelEvent<HTMLDivElement>) {
+    if (e.deltaY < 0 && this.messages.current!.scrollTop === 0 && !this.state.waitingForMessages) {
       let oldScrollHeight = this.messages.current!.scrollHeight;
-      this.props.requestMoreMessages().then(() => {
-        let newScrollHeight = this.messages.current!.scrollHeight;
-        this.messages.current!.scrollTop = newScrollHeight - oldScrollHeight;
+      this.setState({ waitingForMessages: true }, () => {
+        this.props.requestMoreMessages().then(() => {
+          let newScrollHeight = this.messages.current!.scrollHeight;
+          this.messages.current!.scrollTop = newScrollHeight - oldScrollHeight;
+          this.setState({ waitingForMessages: false });
+        });
       });
     }
   }
@@ -49,7 +60,7 @@ class Messages extends React.Component<MessagesProps> {
 
     // Scroll to the bottom if a message has been sent
     let messagesCount = this.props.subset?.messages?.length;
-    if (messagesCount !== undefined && this.lastMessageId !== this.props.subset!.messages![messagesCount - 1].id) {
+    if (messagesCount !== undefined && messagesCount > 0 && this.lastMessageId !== this.props.subset!.messages![messagesCount - 1].id) {
       this.lastMessageId = this.props.subset!.messages![messagesCount - 1].id;
       this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
     }
@@ -63,13 +74,13 @@ class Messages extends React.Component<MessagesProps> {
             <h1>{this.props.subset.name}</h1>
           </div>
 
-          <div className="messageList" ref={this.messages} onScroll={this.handleScroll}>
+          <div className="messageList" ref={this.messages} onWheel={this.handleScroll}>
             {this.props.subset.loadedToTop &&
-              <p>That's all the messages we have.</p>
+              <p key={this.props.subset.id}>That's all the messages we have.</p>
             }
 
             {!this.props.subset.loadedToTop &&
-              <p>Loading more messages...</p>
+              <p key={this.props.subset.id}>Loading more messages...</p>
             }
 
             {(this.props.subset.messages || []).map(message =>

@@ -107,35 +107,13 @@ class App extends React.Component<{}, AppState> {
     let setIndex = this.state.sets.findIndex(s => s.id === set)!;
     let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
 
-    if (this.state.sets[setIndex].subsets[subsetIndex].messages !== undefined) {
-      this.setState({
-        selectedSet: set,
-        selectedSubset: subset
-      });
-      return;
-    }
-
-    let messages = await this.api.getMessages(subset);
-
-    this.setState(state => {
-      let newState = immutable
-        .wrap(state)
-        .set("selectedSet", set)
-        .set("selectedSubset", subset);
-
-      if (messages.length < 25) {
-        newState.set(["sets", setIndex, "subsets", subsetIndex, "loadedToTop"], true);
+    this.setState({
+      selectedSet: set,
+      selectedSubset: subset
+    }, () => {
+      if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined) {
+        this.requestMoreMessages();
       }
-
-      // Add newly-loaded messages to the start
-      let newMessages = [
-        ...messages,
-        ...(state.sets[setIndex].subsets[subsetIndex].messages || [])
-      ];
-
-      newState.set(["sets", setIndex, "subsets", subsetIndex, "messages"], newMessages);
-
-      return newState.value();
     });
   }
 
@@ -143,7 +121,10 @@ class App extends React.Component<{}, AppState> {
     let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet)!;
     let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset)!;
 
-    let oldest = this.state.sets[setIndex].subsets[subsetIndex].messages![0].id;
+    let oldest = undefined;
+    if (this.state.sets[setIndex].subsets[subsetIndex].messages?.length !== 0) {
+      oldest = this.state.sets[setIndex].subsets[subsetIndex].messages?.[0].id;
+    }
 
     let messages = await this.api.getMessages(this.state.selectedSubset!, oldest);
 

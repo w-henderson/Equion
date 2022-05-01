@@ -50,7 +50,8 @@ class Subscriber {
     } else if (data.event === "v1/newSubset") {
       this.onSubset(data.subset, data.set);
     } else {
-      toast.error(`Unknown event: ${data.event}`);
+      // Ignore invalid events
+      // toast.error(`Unknown event: ${data.event}`);
     }
   }
 }
