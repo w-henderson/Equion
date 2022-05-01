@@ -9,7 +9,8 @@ CREATE TABLE `users`(
     `image` VARCHAR(255) NULL,
     `bio` TEXT NULL,
     `password` VARCHAR(255) NOT NULL,
-    `token` VARCHAR(255) NULL
+    `token` VARCHAR(255) NULL,
+    `creation_date` DATETIME NOT NULL
 );
 ALTER TABLE
     `users` ADD INDEX `users_username_index`(`username`);
@@ -20,12 +21,14 @@ ALTER TABLE
 CREATE TABLE `sets`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
-    `icon` CHAR(255) NOT NULL
+    `icon` CHAR(255) NOT NULL,
+    `creation_date` DATETIME NOT NULL
 );
 CREATE TABLE `subsets`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
-    `set_id` CHAR(36) NOT NULL
+    `set_id` CHAR(36) NOT NULL,
+    `creation_date` DATETIME NOT NULL
 );
 ALTER TABLE
     `subsets` ADD INDEX `subsets_set_index`(`set_id`);
@@ -33,7 +36,8 @@ CREATE TABLE `memberships`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `user_id` CHAR(36) NOT NULL,
     `set_id` CHAR(36) NOT NULL,
-    `admin` TINYINT(1) NOT NULL
+    `admin` TINYINT(1) NOT NULL,
+    `creation_date` DATETIME NOT NULL
 );
 ALTER TABLE
     `memberships` ADD INDEX `memberships_user_index`(`user_id`);

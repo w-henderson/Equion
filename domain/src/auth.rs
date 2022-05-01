@@ -52,7 +52,7 @@ impl State {
 
         conn
             .exec_drop(
-                "INSERT INTO users (id, username, password, display_name, email, token) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO users (id, username, password, display_name, email, token, creation_date) VALUES (?, ?, ?, ?, ?, ?, NOW())",
                 (
                     &uid,
                     username.as_ref(),

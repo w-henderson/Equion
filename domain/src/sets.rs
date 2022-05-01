@@ -52,7 +52,8 @@ impl State {
                 "SELECT sets.id, sets.name, sets.icon FROM sets
                     JOIN memberships ON sets.id = memberships.set_id
                     JOIN users ON memberships.user_id = users.id
-                    WHERE users.token = ?",
+                    WHERE users.token = ?
+                    ORDER BY memberships.creation_date ASC",
                 (token.as_ref(),),
             )
             .map_err(|_| "Could not execute query".to_string())?;
@@ -61,7 +62,10 @@ impl State {
 
         for (id, name, icon) in sets {
             let subsets: Vec<Subset> = conn
-                .exec("SELECT id, name FROM subsets WHERE set_id = ?", (&id,))
+                .exec(
+                    "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
+                    (&id,),
+                )
                 .map_err(|_| "Could not execute query".to_string())?
                 .into_iter()
                 .map(|(id, name)| Subset { id, name })
@@ -112,7 +116,10 @@ impl State {
 
         if let Some(mut set) = set {
             let subsets: Vec<Subset> = conn
-                .exec("SELECT id, name FROM subsets WHERE set_id = ?", (&set.id,))
+                .exec(
+                    "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
+                    (&set.id,),
+                )
                 .map_err(|_| "Could not execute query".to_string())?
                 .into_iter()
                 .map(|(id, name)| Subset { id, name })
@@ -160,19 +167,19 @@ impl State {
             .to_string();
 
         conn.exec_drop(
-            "INSERT INTO sets (id, name, icon) VALUES (?, ?, ?)",
+            "INSERT INTO sets (id, name, icon, creation_date) VALUES (?, ?, ?, NOW())",
             (&new_set_id, name.as_ref(), icon),
         )
         .map_err(|_| "Could not add new set".to_string())?;
 
         conn.exec_drop(
-            "INSERT INTO memberships (id, user_id, set_id, admin) VALUES (?, ?, ?, 1)",
+            "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 1, NOW())",
             (&new_membership_id, &user_id, &new_set_id),
         )
         .map_err(|_| "Could not add new membership".to_string())?;
 
         conn.exec_drop(
-            "INSERT INTO subsets (id, name, set_id) VALUES (uuid(), \"General\", ?)",
+            "INSERT INTO subsets (id, name, set_id, creation_date) VALUES (UUID(), \"General\", ?, NOW())",
             (&new_set_id,),
         )
         .map_err(|_| "Could not add General subset".to_string())?;
@@ -207,7 +214,7 @@ impl State {
         let new_subset_id = Uuid::new_v4().to_string();
 
         conn.exec_drop(
-            "INSERT INTO subsets (id, set_id, name) VALUES (?, ?, ?)",
+            "INSERT INTO subsets (id, set_id, name, creation_date) VALUES (?, ?, ?, NOW())",
             (&new_subset_id, set.as_ref(), name.as_ref()),
         )
         .map_err(|_| "Could not add new subset".to_string())?;
@@ -247,7 +254,7 @@ impl State {
         let new_membership_id = Uuid::new_v4().to_string();
 
         conn.exec_drop(
-            "INSERT INTO memberships (id, user_id, set_id, admin) VALUES (?, ?, ?, 0)",
+            "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 0, NOW())",
             (&new_membership_id, &user_id, set.as_ref()),
         )
         .map_err(|_| "Could not add new membership".to_string())?;
