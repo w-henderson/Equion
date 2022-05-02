@@ -26,4 +26,16 @@ div.Subsets {
     overflow: hidden auto;
     flex: 1;
   }
+
+  div.Modal>div>form {
+    input[type="text"] {
+      padding-left: 36px;
+    }
+
+    >div {
+      position: absolute;
+      top: calc(50% - 6px);
+      left: calc(50% - 112px);
+    }
+  }
 }

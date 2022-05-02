@@ -29,5 +29,81 @@ div.Modal {
     background-color: var(--darkest);
     box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
+
+    padding: 32px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 10;
+
+    h1 {
+      margin: 0 0 1em 0;
+    }
+
+    div.input {
+      display: flex;
+      width: 256px;
+      height: 46px;
+      margin-bottom: 8px;
+
+      div {
+        display: flex !important;
+        place-items: center;
+        place-content: center;
+        height: 100%;
+        padding: 0 !important;
+        flex: 1;
+        cursor: pointer;
+      }
+
+      input {
+        pointer-events: none;
+        text-align: center;
+        font-size: 24px;
+        width: 192px;
+        height: 100%;
+        margin: 0 8px;
+
+        &.placeholder {
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+
+    input,
+    div.input>div {
+      display: block;
+      padding: 12px;
+      margin-bottom: 8px;
+      width: 256px;
+
+      font-family: Inter;
+      font-size: 16px;
+
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+
+      color: white;
+      background-color: var(--mid);
+
+      transition: background-color 200ms;
+
+      &:focus:not(:disabled),
+      &:hover:not(:disabled) {
+        background-color: var(--accent-dark);
+      }
+
+      &[type="submit"],
+      &[type="button"] {
+        width: 100%;
+        cursor: pointer;
+
+        &:disabled {
+          color: rgba(255, 255, 255, 0.5);
+          cursor: default;
+        }
+      }
+    }
   }
 }

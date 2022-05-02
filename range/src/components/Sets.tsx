@@ -131,7 +131,6 @@ class Sets extends React.Component<SetsProps, SetsState> {
 
         <Modal
           visible={this.state.creatingSet}
-          className="createSetModal"
           close={() => { if (!this.state.loading) this.setState({ creatingSet: false }) }}>
           <h1>Create a Set</h1>
 

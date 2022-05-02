@@ -6,8 +6,23 @@ div.Subset {
   margin-bottom: 12px;
   border-radius: 4px;
   cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
   transition: opacity 100ms, background-color 100ms;
+
+  &.add {
+    opacity: 0.25;
+    border: none;
+
+    &::before {
+      content: "+";
+    }
+
+    &:hover {
+      opacity: 0.5;
+      background-color: transparent;
+    }
+  }
 
   &::before {
     content: "ζ";
