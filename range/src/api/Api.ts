@@ -105,7 +105,49 @@ class Api {
         } else {
           return Promise.reject(res.error);
         }
+      });
+  }
+
+  public getSet(id: string): Promise<SetData> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/set`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        id
       })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.set;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  public createSet(name: string, icon?: string): Promise<SetData> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/createSet`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        name,
+        icon
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.id;
+        } else {
+          return Promise.reject(res.error);
+        }
+      })
+      .then(this.getSet.bind(this));
   }
 
   public getMessages(subsetId: string, before: string | undefined = undefined, limit = 25): Promise<MessageData[]> {
@@ -178,6 +220,38 @@ class Api {
         });
       }
     });
+  }
+
+  public getGreekLetter(char: string): string {
+    switch (char) {
+      case 'a': return 'α';
+      case 'b': return 'β';
+      case 'c': return 'χ';
+      case 'd': return 'δ';
+      case 'e': return 'ε';
+      case 'f': return 'φ';
+      case 'g': return 'γ';
+      case 'h': return 'η';
+      case 'i': return 'ι';
+      case 'j': return 'ψ';
+      case 'k': return 'κ';
+      case 'l': return 'λ';
+      case 'm': return 'μ';
+      case 'n': return 'ν';
+      case 'o': return 'ο';
+      case 'p': return 'π';
+      case 'q': return 'ς';
+      case 'r': return 'ρ';
+      case 's': return 'σ';
+      case 't': return 'τ';
+      case 'u': return 'υ';
+      case 'v': return 'ν';
+      case 'w': return 'ω';
+      case 'x': return 'ξ';
+      case 'y': return 'ψ';
+      case 'z': return 'ζ';
+      default: return 'λ';
+    }
   }
 }
 

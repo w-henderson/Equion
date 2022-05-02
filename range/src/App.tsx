@@ -45,6 +45,7 @@ class App extends React.Component<{}, AppState> {
     this.selectSet = this.selectSet.bind(this);
     this.selectSubset = this.selectSubset.bind(this);
     this.authComplete = this.authComplete.bind(this);
+    this.createdSet = this.createdSet.bind(this);
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
   }
 
@@ -66,6 +67,18 @@ class App extends React.Component<{}, AppState> {
         }
       });
     })
+  }
+
+  createdSet(set: SetData) {
+    this.setState(state => {
+      return {
+        ...state,
+        sets: [...state.sets, set]
+      }
+    }, () => {
+      this.api.subscriber.subscribe(this.api.token!, set.id);
+      this.selectSet(set.id);
+    });
   }
 
   onMessage(message: MessageData, set: string, subset: string) {
@@ -158,7 +171,8 @@ class App extends React.Component<{}, AppState> {
         <Sets
           sets={this.state.sets}
           selectedSet={this.state.selectedSet}
-          selectCallback={this.selectSet} />
+          selectCallback={this.selectSet}
+          createdCallback={this.createdSet} />
 
         {selectedSet &&
           <>

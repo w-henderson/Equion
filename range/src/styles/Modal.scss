@@ -1,0 +1,33 @@
+div.Modal {
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  place-content: center;
+  overflow: hidden;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background-color: rgba(0, 0, 0, 0.5);
+
+  transition: opacity 200ms;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+
+    >div {
+      transform: scale(0.8) translateY(100px);
+    }
+  }
+
+  >div {
+    transition: transform 200ms;
+    background-color: var(--darkest);
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

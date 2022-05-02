@@ -10,7 +10,7 @@ div.SetIcon {
   font-weight: 800;
   background-color: var(--accent);
   border-radius: 32px;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   cursor: pointer;
 
   transition: transform 250ms, background-color 250ms, border 250ms;
@@ -28,6 +28,7 @@ div.SetIcon {
   &.add {
     font-size: 48px;
     font-weight: 200;
+    padding-bottom: 8px;
     background-color: transparent;
     border: 4px solid var(--accent);
 
