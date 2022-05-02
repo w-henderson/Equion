@@ -33,3 +33,17 @@ body,
 * {
   box-sizing: border-box;
 }
+
+@keyframes placeholder {
+  0% {
+    background-color: var(--dark);
+  }
+
+  50% {
+    background-color: var(--mid);
+  }
+
+  100% {
+    background-color: var(--dark);
+  }
+}

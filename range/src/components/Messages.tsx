@@ -1,6 +1,8 @@
 import React from 'react';
+import { DEFAULT_PROFILE_IMAGE } from '../api/Api';
 import ApiContext from '../api/ApiContext';
 import '../styles/Messages.scss';
+import '../styles/UserInfo.scss';
 
 import Message from "./Message";
 import MessageBox from './MessageBox';
@@ -14,7 +16,7 @@ interface MessagesProps {
 interface MessagesState {
   waitingForMessages: boolean,
   userPopup: string | null,
-  userPopupLoaded: boolean
+  userPopupDetail: UserData | null
 }
 
 class Messages extends React.Component<MessagesProps, MessagesState> {
@@ -29,7 +31,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     this.state = {
       waitingForMessages: false,
       userPopup: null,
-      userPopupLoaded: false
+      userPopupDetail: null
     }
 
     this.lastId = null;
@@ -47,12 +49,18 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     }
   }
 
-  showUser(id: string) { }
+  showUser(id: string) {
+    this.setState({
+      userPopup: id,
+      userPopupDetail: null
+    }, () => {
+      this.context.getUserByUid(id).then(user => this.setState({ userPopupDetail: user }));
+    });
+  }
 
   hideUser() {
     this.setState({
-      userPopup: null,
-      userPopupLoaded: false
+      userPopup: null
     })
   }
 
@@ -114,8 +122,36 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
 
           <Modal
             visible={this.state.userPopup !== null}
-            close={this.hideUser}>
+            close={this.hideUser}
+            className="UserInfo">
 
+            {this.state.userPopupDetail !== null &&
+              <>
+                <img src={this.state.userPopupDetail.image} alt="Profile" />
+
+                <h1>{this.state.userPopupDetail.displayName}</h1>
+                <span>@{this.state.userPopupDetail.username}</span>
+
+                <div>
+                  <h2>About</h2>
+                  {this.state.userPopupDetail.bio || <i>Not available.</i>}
+                </div>
+              </>
+            }
+
+            {this.state.userPopupDetail === null &&
+              <>
+                <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
+
+                <h1 className="placeholder">Loading...</h1>
+
+                <div>
+                  <p className="placeholder">Loading (this text is long)...</p>
+                  <p className="placeholder">Loading short...</p>
+                  <p className="placeholder">Loading medium......</p>
+                </div>
+              </>
+            }
           </Modal>
         </div>
       )

@@ -1,0 +1,39 @@
+div.UserInfo {
+  position: relative;
+  width: 400px;
+  margin-top: 64px;
+  padding-top: 92px !important;
+
+  img {
+    width: 128px;
+    height: 128px;
+    border-radius: 64px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+
+    position: absolute;
+    top: -64px;
+    left: calc(50% - 64px);
+  }
+
+  h1 {
+    margin: 0 0 4px 0 !important;
+  }
+
+  span {
+    opacity: 0.5;
+    font-weight: 200;
+  }
+
+  h2 {
+    margin: 24px 0 8px 0;
+  }
+
+  .placeholder {
+    animation: placeholder 1s infinite;
+    color: transparent;
+  }
+
+  p.placeholder {
+    width: max-content;
+  }
+}
