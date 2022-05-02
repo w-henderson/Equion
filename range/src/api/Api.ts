@@ -196,7 +196,8 @@ class Api {
           text: m.content,
           author: {
             id: m.author_id,
-            name: m.author_name,
+            username: "",
+            displayName: m.author_name,
             image: m.author_image || DEFAULT_PROFILE_IMAGE,
           },
           timestamp: m.send_time * 1000
@@ -226,21 +227,24 @@ class Api {
   }
 
   public getUserByUid(uid: string): Promise<UserData> {
-    return new Promise<UserData>((resolve, reject) => {
-      switch (uid) {
-        case "12345678-9abc-def0-1234-56789abcdef0": return resolve({
-          id: "12345678-9abc-def0-1234-56789abcdef0",
-          name: "William Henderson",
-          image: "https://avatars.githubusercontent.com/u/58106291"
-        });
-
-        default: return resolve({
-          id: uid,
-          name: "Unknown User",
-          image: DEFAULT_PROFILE_IMAGE
-        });
-      }
-    });
+    return fetch(`${API_ROUTE}/user`, {
+      method: "POST",
+      body: JSON.stringify({ uid })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return {
+            id: res.user.id,
+            username: res.user.username,
+            displayName: res.user.display_name,
+            image: res.user.image || DEFAULT_PROFILE_IMAGE,
+            bio: res.user.bio
+          }
+        } else {
+          return Promise.reject(res.error);
+        }
+      })
   }
 
   public getGreekLetter(char: string): string {

@@ -42,7 +42,8 @@ class Subscriber {
         text: data.message.content,
         author: {
           id: data.message.author_id,
-          name: data.message.author_name,
+          username: "",
+          displayName: data.message.author_name,
           image: data.message.author_image || DEFAULT_PROFILE_IMAGE,
         },
         timestamp: data.message.send_time * 1000

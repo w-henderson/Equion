@@ -5,7 +5,9 @@ import ApiContext from '../api/ApiContext';
 import { MathJax } from 'better-react-mathjax';
 
 interface MessageProps {
-  message: MessageData
+  message: MessageData,
+  scrollCallback: () => void,
+  showUserCallback: (id: string) => void,
 }
 
 class Message extends React.Component<MessageProps> {
@@ -19,16 +21,19 @@ class Message extends React.Component<MessageProps> {
 
     return (
       <div className={isLocalSender ? "Message local" : "Message"}>
-        <img src={this.props.message.author.image} alt="Profile" />
+        <img
+          src={this.props.message.author.image}
+          alt="Profile"
+          onClick={() => this.props.showUserCallback(this.props.message.author.id)} />
 
         <div className="content">
           <div className="meta">
-            <span className="name">{this.props.message.author.name}</span>
+            <span className="name">{this.props.message.author.displayName}</span>
             <span className="date">{sendDateString}</span>
           </div>
 
           <div className="text">
-            <MathJax>
+            <MathJax onTypeset={this.props.scrollCallback}>
               {this.props.message.text}
             </MathJax>
           </div>
