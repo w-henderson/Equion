@@ -1,8 +1,18 @@
 FROM rust:latest
 
-WORKDIR /usr/src/equion
-COPY . .
+RUN USER=root cargo new --bin equion
 
+WORKDIR /equion
+
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
+
+RUN cargo build --release
+RUN rm src/*.rs
+
+COPY ./src ./src
+
+RUN rm ./target/release/deps/equion*
 RUN cargo build --release
 
 EXPOSE 80
