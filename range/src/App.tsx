@@ -12,13 +12,15 @@ import Sets from './components/Sets';
 import Subsets from './components/Subsets';
 import Messages from './components/Messages';
 import AuthDialog from './components/AuthDialog';
+import UserInfo from './components/UserInfo';
 
 interface AppState {
   init: boolean,
   authenticated: boolean,
   sets: SetData[],
   selectedSet: string | null,
-  selectedSubset: string | null
+  selectedSubset: string | null,
+  shownUser: string | null
 }
 
 class App extends React.Component<{}, AppState> {
@@ -37,9 +39,11 @@ class App extends React.Component<{}, AppState> {
       authenticated: false,
       sets: [],
       selectedSet: null,
-      selectedSubset: null
+      selectedSubset: null,
+      shownUser: null
     }
 
+    this.showUser = this.showUser.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onSubset = this.onSubset.bind(this);
     this.selectSet = this.selectSet.bind(this);
@@ -67,6 +71,12 @@ class App extends React.Component<{}, AppState> {
         }
       });
     })
+  }
+
+  showUser(id: string) {
+    this.setState({
+      shownUser: id
+    });
   }
 
   createdSet(set: SetData) {
@@ -183,7 +193,12 @@ class App extends React.Component<{}, AppState> {
 
             <Messages
               subset={selectedSubset}
-              requestMoreMessages={this.requestMoreMessages} />
+              requestMoreMessages={this.requestMoreMessages}
+              showUser={this.showUser} />
+
+            <UserInfo
+              id={this.state.shownUser}
+              hideCallback={() => this.setState({ shownUser: null })} />
           </>
         }
 

@@ -1,26 +1,21 @@
 import React from 'react';
-import { DEFAULT_PROFILE_IMAGE } from '../api/Api';
-import ApiContext from '../api/ApiContext';
 import '../styles/Messages.scss';
 import '../styles/UserInfo.scss';
 
 import Message from "./Message";
 import MessageBox from './MessageBox';
-import Modal from './Modal';
 
 interface MessagesProps {
   subset: SubsetData | undefined,
+  showUser: (id: string) => void,
   requestMoreMessages: () => Promise<void>,
 }
 
 interface MessagesState {
   waitingForMessages: boolean,
-  userPopup: string | null,
-  userPopupDetail: UserData | null
 }
 
 class Messages extends React.Component<MessagesProps, MessagesState> {
-  context!: React.ContextType<typeof ApiContext>;
   messages: React.RefObject<HTMLDivElement>;
   lastId: string | null;
   lastMessageId: string | null;
@@ -29,16 +24,12 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     super(props);
 
     this.state = {
-      waitingForMessages: false,
-      userPopup: null,
-      userPopupDetail: null
+      waitingForMessages: false
     }
 
     this.lastId = null;
     this.lastMessageId = null;
 
-    this.showUser = this.showUser.bind(this);
-    this.hideUser = this.hideUser.bind(this);
     this.handleScroll = this.handleScroll.bind(this);
     this.messages = React.createRef();
   }
@@ -47,21 +38,6 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     if (this.messages.current) {
       this.messages.current.scrollTop = this.messages.current.scrollHeight;
     }
-  }
-
-  showUser(id: string) {
-    this.setState({
-      userPopup: id,
-      userPopupDetail: null
-    }, () => {
-      this.context.getUserByUid(id).then(user => this.setState({ userPopupDetail: user }));
-    });
-  }
-
-  hideUser() {
-    this.setState({
-      userPopup: null
-    })
   }
 
   handleScroll(e: React.WheelEvent<HTMLDivElement>) {
@@ -113,46 +89,12 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
               <Message
                 message={message}
                 key={message.id}
-                showUserCallback={this.showUser}
+                showUserCallback={this.props.showUser}
                 scrollCallback={() => { this.messages.current!.scrollTop = this.messages.current!.scrollHeight }} />
             )}
           </div>
 
           <MessageBox subsetId={this.props.subset.id} />
-
-          <Modal
-            visible={this.state.userPopup !== null}
-            close={this.hideUser}
-            className="UserInfo">
-
-            {this.state.userPopupDetail !== null &&
-              <>
-                <img src={this.state.userPopupDetail.image} alt="Profile" />
-
-                <h1>{this.state.userPopupDetail.displayName}</h1>
-                <span>@{this.state.userPopupDetail.username}</span>
-
-                <div>
-                  <h2>About</h2>
-                  {this.state.userPopupDetail.bio || <i>Not available.</i>}
-                </div>
-              </>
-            }
-
-            {this.state.userPopupDetail === null &&
-              <>
-                <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
-
-                <h1 className="placeholder">Loading...</h1>
-
-                <div>
-                  <p className="placeholder">Loading (this text is long)...</p>
-                  <p className="placeholder">Loading short...</p>
-                  <p className="placeholder">Loading medium......</p>
-                </div>
-              </>
-            }
-          </Modal>
         </div>
       )
     } else {
@@ -166,7 +108,5 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     }
   }
 }
-
-Messages.contextType = ApiContext;
 
 export default Messages;
