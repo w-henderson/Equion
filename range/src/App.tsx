@@ -213,7 +213,6 @@ class App extends React.Component<{}, AppState> {
     return (
       <ApiContext.Provider value={this.api}>
         <MathJaxContext
-          hideUntilTypeset="every"
           version={3}
           config={{
             options: {
