@@ -7,7 +7,13 @@ div.Subsets {
   background: var(--dark-mid);
 
   div.title {
+    display: flex;
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+    background: var(--mid);
+
     h1 {
+      flex: 1;
       white-space: nowrap;
       text-overflow: ellipsis;
       font-size: 20px;
@@ -16,9 +22,16 @@ div.Subsets {
       pointer-events: none;
     }
 
-    padding: 18px 24px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-    background: var(--mid);
+    svg {
+      cursor: pointer;
+      opacity: 0.2;
+      transition: opacity 200ms, transform 200ms;
+
+      &:hover {
+        opacity: 1;
+        transform: scale(1.05) translateY(-2px);
+      }
+    }
   }
 
   div.setList {
