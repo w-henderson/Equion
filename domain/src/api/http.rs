@@ -1,7 +1,7 @@
 use crate::api::{matcher, not_found};
 use crate::State;
 
-use humphrey::http::headers::ResponseHeader;
+use humphrey::http::headers::HeaderType;
 use humphrey::http::{Request, Response, StatusCode};
 
 use humphrey_json::prelude::*;
@@ -40,6 +40,6 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
 
     Response::empty(status_code)
         .with_bytes(response_body.serialize())
-        .with_header(ResponseHeader::ContentType, "application/json".to_string())
-        .with_header(ResponseHeader::AccessControlAllowOrigin, "*".to_string())
+        .with_header(HeaderType::ContentType, "application/json")
+        .with_header(HeaderType::AccessControlAllowOrigin, "*")
 }
