@@ -27,6 +27,10 @@ class Message extends React.Component<MessageProps, MessageState> {
     this.scroll = this.scroll.bind(this);
   }
 
+  shouldComponentUpdate(nextProps: MessageProps, nextState: MessageState): boolean {
+    return !this.state.alreadyLoaded;
+  }
+
   scroll() {
     this.props.scrollCallback();
     this.setState({ alreadyLoaded: true });

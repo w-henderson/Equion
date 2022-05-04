@@ -204,10 +204,16 @@ class App extends React.Component<{}, AppState> {
         }
 
         {!selectedSet &&
-          <div className="noSetSelected">
-            <h1>Welcome to Equion</h1>
-            <p>Select, join or create a set on the left to get started.</p>
-          </div>
+          <>
+            <div className="noSetSelected">
+              <h1>Welcome to Equion</h1>
+              <p>Select, join or create a set on the left to get started.</p>
+            </div>
+
+            <UserInfo
+              id={this.state.shownUser}
+              hideCallback={() => this.setState({ shownUser: null })} />
+          </>
         }
 
       </div>
