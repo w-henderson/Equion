@@ -10,6 +10,7 @@ export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads
 class Api {
   uid: string | null;
   token: string | null;
+  image: string | null;
   ready: boolean;
   subscriber: Subscriber;
   onMessage: (message: MessageData, set: string, subset: string) => void;
@@ -19,6 +20,7 @@ class Api {
     this.ready = false;
     this.uid = null;
     this.token = null;
+    this.image = null;
 
     this.subscriber = new Subscriber(WS_ROUTE);
     this.onMessage = () => { };
@@ -35,9 +37,10 @@ class Api {
     return false;
   }
 
-  public finishAuth(uid: string, token: string) {
+  public async finishAuth(uid: string, token: string) {
     this.uid = uid;
     this.token = token;
+    this.image = await this.getUserByUid(uid).then(res => res.image);
   }
 
   public errorHandler(e: string) {
@@ -56,7 +59,7 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          this.finishAuth(res.uid, res.token);
+          return this.finishAuth(res.uid, res.token);
 
           /*forage.setItem({ key: "uid", value: res.uid })();
           forage.setItem({ key: "token", value: res.token })();*/
@@ -79,7 +82,7 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          this.finishAuth(res.uid, res.token);
+          return this.finishAuth(res.uid, res.token);
 
           /*forage.setItem({ key: "uid", value: res.uid })();
           forage.setItem({ key: "token", value: res.token })();*/

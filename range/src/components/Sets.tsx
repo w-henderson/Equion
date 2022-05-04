@@ -2,6 +2,7 @@ import React from 'react';
 import '../styles/Sets.scss';
 
 import ApiContext from '../api/ApiContext';
+import { DEFAULT_PROFILE_IMAGE } from '../api/Api';
 import { appWindow } from '@tauri-apps/api/window';
 import toast from 'react-hot-toast';
 
@@ -13,6 +14,7 @@ import SetManager from './SetManager';
 interface SetsProps {
   sets: SetData[],
   selectedSet: string | null,
+  showUserCallback: (id: string) => void,
   selectCallback: (id: string) => void,
   createdCallback: (set: SetData) => void
 }
@@ -109,6 +111,13 @@ class Sets extends React.Component<SetsProps, SetsState> {
               loading: false
             });
           }} />
+        </div>
+
+        <div className="userButton">
+          <img
+            src={this.context.image || DEFAULT_PROFILE_IMAGE}
+            alt="Profile"
+            onClick={() => this.props.showUserCallback(this.context.uid!)} />
         </div>
 
         <Modal

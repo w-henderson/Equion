@@ -181,6 +181,7 @@ class App extends React.Component<{}, AppState> {
         <Sets
           sets={this.state.sets}
           selectedSet={this.state.selectedSet}
+          showUserCallback={this.showUser}
           selectCallback={this.selectSet}
           createdCallback={this.createdSet} />
 

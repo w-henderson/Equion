@@ -10,6 +10,27 @@ div.Sets {
     overflow: auto;
     flex: 1;
   }
+
+  div.userButton {
+    display: flex;
+    place-items: center;
+    place-content: center;
+    height: 116px;
+    border-top: 1px solid rgba(0, 0, 0, 0.5);
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: transform 200ms, box-shadow 200ms;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      }
+    }
+  }
 }
 
 div.windowButtons {

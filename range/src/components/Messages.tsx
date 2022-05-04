@@ -41,7 +41,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
   }
 
   handleScroll(e: React.WheelEvent<HTMLDivElement>) {
-    if (e.deltaY < 0 && this.messages.current!.scrollTop === 0 && !this.state.waitingForMessages) {
+    if (e.deltaY < 0 && this.messages.current!.scrollTop === 0 && !this.state.waitingForMessages && !this.props.subset?.loadedToTop) {
       let oldScrollHeight = this.messages.current!.scrollHeight;
       this.setState({ waitingForMessages: true }, () => {
         this.props.requestMoreMessages().then(() => {
@@ -85,12 +85,14 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
               <p key={this.props.subset.id}>Loading more messages...</p>
             }
 
-            {(this.props.subset.messages || []).map(message =>
+            {(this.props.subset.messages || []).map((message, index, array) =>
               <Message
                 message={message}
                 key={message.id}
                 showUserCallback={this.props.showUser}
-                scrollCallback={() => { this.messages.current!.scrollTop = this.messages.current!.scrollHeight }} />
+                scrollCallback={index === array.length - 1 ? () => {
+                  this.messages.current!.scrollTop = this.messages.current!.scrollHeight
+                } : () => { }} />
             )}
           </div>
 

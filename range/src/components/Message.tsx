@@ -10,8 +10,27 @@ interface MessageProps {
   showUserCallback: (id: string) => void,
 }
 
-class Message extends React.Component<MessageProps> {
+interface MessageState {
+  alreadyLoaded: boolean
+}
+
+class Message extends React.Component<MessageProps, MessageState> {
   context!: React.ContextType<typeof ApiContext>;
+
+  constructor(props: MessageProps) {
+    super(props);
+
+    this.state = {
+      alreadyLoaded: false
+    }
+
+    this.scroll = this.scroll.bind(this);
+  }
+
+  scroll() {
+    this.props.scrollCallback();
+    this.setState({ alreadyLoaded: true });
+  }
 
   render() {
     let sendDate = new Date(this.props.message.timestamp);
@@ -33,7 +52,7 @@ class Message extends React.Component<MessageProps> {
           </div>
 
           <div className="text">
-            <MathJax onTypeset={this.props.scrollCallback}>
+            <MathJax onTypeset={!this.state.alreadyLoaded ? this.scroll : undefined}>
               {this.props.message.text}
             </MathJax>
           </div>
