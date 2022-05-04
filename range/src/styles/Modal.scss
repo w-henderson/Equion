@@ -109,4 +109,20 @@ div.Modal {
       }
     }
   }
+
+  span {
+    display: block;
+    margin-top: 16px;
+    text-decoration: underline solid rgba(255, 255, 255, 0.5) 1px;
+    opacity: 0.5;
+    font-size: 0.8em;
+    font-weight: 200;
+    cursor: pointer;
+
+    transition: opacity 200ms;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 }

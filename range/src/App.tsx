@@ -2,7 +2,7 @@ import React from 'react';
 import './styles/App.scss';
 
 import { MathJaxContext } from 'better-react-mathjax';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import * as immutable from 'object-path-immutable';
 
 import ApiContext from './api/ApiContext';
