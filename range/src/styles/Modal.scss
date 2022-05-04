@@ -74,7 +74,8 @@ div.Modal {
     }
 
     input,
-    div.input>div {
+    div.input>div,
+    textarea {
       display: block;
       padding: 12px;
       margin-bottom: 8px;

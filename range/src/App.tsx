@@ -44,6 +44,7 @@ class App extends React.Component<{}, AppState> {
     }
 
     this.showUser = this.showUser.bind(this);
+    this.refresh = this.refresh.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onSubset = this.onSubset.bind(this);
     this.selectSet = this.selectSet.bind(this);
@@ -70,6 +71,12 @@ class App extends React.Component<{}, AppState> {
           this.api.subscriber.subscribe(this.api.token!, set.id);
         }
       });
+    })
+  }
+
+  refresh() {
+    this.api.getSets().then(sets => {
+      this.setState({ sets }, this.requestMoreMessages);
     })
   }
 
@@ -199,7 +206,8 @@ class App extends React.Component<{}, AppState> {
 
             <UserInfo
               id={this.state.shownUser}
-              hideCallback={() => this.setState({ shownUser: null })} />
+              hideCallback={() => this.setState({ shownUser: null })}
+              refreshCallback={this.refresh} />
           </>
         }
 
@@ -212,7 +220,8 @@ class App extends React.Component<{}, AppState> {
 
             <UserInfo
               id={this.state.shownUser}
-              hideCallback={() => this.setState({ shownUser: null })} />
+              hideCallback={() => this.setState({ shownUser: null })}
+              refreshCallback={this.refresh} />
           </>
         }
 

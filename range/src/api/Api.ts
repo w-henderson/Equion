@@ -259,7 +259,7 @@ class Api {
       .then(res => {
         if (res.success) {
           return {
-            id: res.user.id,
+            id: res.user.uid,
             username: res.user.username,
             displayName: res.user.display_name,
             image: res.user.image || DEFAULT_PROFILE_IMAGE,
@@ -269,6 +269,28 @@ class Api {
           return Promise.reject(res.error);
         }
       })
+  }
+
+  public updateUser(displayName?: string, bio?: string, image?: string): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/updateUser`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        display_name: displayName,
+        bio,
+        image
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
   }
 
   public getGreekLetter(char: string): string {

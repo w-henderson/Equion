@@ -4,6 +4,39 @@ div.UserInfo {
   margin-top: 64px;
   padding-top: 92px !important;
 
+  div.editButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 8px 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    background-color: var(--mid);
+
+    cursor: pointer;
+
+    transition: background-color 150ms;
+
+    &:hover {
+      background-color: var(--accent-dark);
+    }
+  }
+
+  input {
+    width: 100% !important;
+    font-weight: 800;
+    font-size: 24px !important;
+    text-align: center;
+  }
+
+  textarea {
+    width: 100% !important;
+    height: 100px;
+    margin-top: 16px;
+    resize: none;
+  }
+
   img {
     width: 128px;
     height: 128px;
@@ -13,6 +46,17 @@ div.UserInfo {
     position: absolute;
     top: -64px;
     left: calc(50% - 64px);
+  }
+
+  &.editing {
+    img {
+      transition: filter 200ms;
+      cursor: pointer;
+
+      &:hover {
+        filter: brightness(0.5) contrast(1.1);
+      }
+    }
   }
 
   h1 {
