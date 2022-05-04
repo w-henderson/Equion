@@ -18,12 +18,32 @@ div.Sets {
     height: 116px;
     border-top: 1px solid rgba(0, 0, 0, 0.5);
 
-    img {
-      width: 60px;
-      height: 60px;
+    div {
+      position: relative;
       border-radius: 30px;
-      cursor: pointer;
-      transition: transform 200ms, box-shadow 200ms;
+
+      img {
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        cursor: pointer;
+      }
+
+      aside {
+        position: absolute;
+        display: block;
+        bottom: -6px;
+        right: -6px;
+        width: 28px;
+        height: 28px;
+
+        background-color: var(--green);
+        border-radius: 14px;
+        border: 6px solid var(--mid);
+      }
+
+      transition: transform 200ms,
+      box-shadow 200ms;
 
       &:hover {
         transform: translateY(-4px);

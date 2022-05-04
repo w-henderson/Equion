@@ -13,6 +13,7 @@ interface UserInfoProps {
 
 interface UserInfoState {
   loading: boolean,
+  editing: boolean,
   data: UserData | null
 }
 
@@ -24,6 +25,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
 
     this.state = {
       loading: false,
+      editing: true,
       data: null
     }
 
@@ -46,41 +48,59 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
   }
 
   render() {
-    return (
+    if (this.state.editing) {
+      return (
+        <Modal
+          visible={this.props.id !== null}
+          close={this.close}
+          className="UserInfo">
+
+          {this.state.data !== null &&
+            <>
+              <img src={this.state.data.image} alt="Profile" />
+
+              <h1>{this.state.data.displayName}</h1>
+              <span className="username">@{this.state.data.username}</span>
+
+              <div>
+                <h2>About</h2>
+                {this.state.data.bio || <i>Not available.</i>}
+              </div>
+            </>
+          }
+
+          {this.state.data === null &&
+            <>
+              <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
+
+              <h1 className="placeholder">Loading...</h1>
+
+              <div>
+                <p className="placeholder">Loading (this text is long)...</p>
+                <p className="placeholder">Loading short...</p>
+                <p className="placeholder">Loading medium......</p>
+              </div>
+            </>
+          }
+        </Modal>
+      )
+    } else {
       <Modal
         visible={this.props.id !== null}
         close={this.close}
         className="UserInfo">
 
-        {this.state.data !== null &&
-          <>
-            <img src={this.state.data.image} alt="Profile" />
+        <img src={this.state.data!.image} alt="Profile" />
 
-            <h1>{this.state.data.displayName}</h1>
-            <span className="username">@{this.state.data.username}</span>
+        <h1>{this.state.data!.displayName}</h1>
+        <span className="username">@{this.state.data!.username}</span>
 
-            <div>
-              <h2>About</h2>
-              {this.state.data.bio || <i>Not available.</i>}
-            </div>
-          </>
-        }
-
-        {this.state.data === null &&
-          <>
-            <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
-
-            <h1 className="placeholder">Loading...</h1>
-
-            <div>
-              <p className="placeholder">Loading (this text is long)...</p>
-              <p className="placeholder">Loading short...</p>
-              <p className="placeholder">Loading medium......</p>
-            </div>
-          </>
-        }
+        <div>
+          <h2>About</h2>
+          {this.state.data!.bio || <i>Not available.</i>}
+        </div>
       </Modal>
-    )
+    }
   }
 }
 

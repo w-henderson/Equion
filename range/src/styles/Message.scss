@@ -26,7 +26,7 @@ div.Message {
   div.content {
     display: inline-block;
     padding: 12px;
-    background-color: var(--accent-dark);
+    background-color: var(--mid-light);
     border-radius: 16px 16px 16px 0;
 
     div.meta {
@@ -61,6 +61,7 @@ div.Message {
     div.content {
       order: 1;
       border-radius: 16px 16px 0 16px;
+      background-color: var(--accent-dark);
     }
   }
 }

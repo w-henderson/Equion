@@ -114,10 +114,13 @@ class Sets extends React.Component<SetsProps, SetsState> {
         </div>
 
         <div className="userButton">
-          <img
-            src={this.context.image || DEFAULT_PROFILE_IMAGE}
-            alt="Profile"
-            onClick={() => this.props.showUserCallback(this.context.uid!)} />
+          <div>
+            <img
+              src={this.context.image || DEFAULT_PROFILE_IMAGE}
+              alt="Profile"
+              onClick={() => this.props.showUserCallback(this.context.uid!)} />
+            <aside />
+          </div>
         </div>
 
         <Modal
