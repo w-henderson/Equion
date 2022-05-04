@@ -2,6 +2,7 @@ interface SetData {
   id: string,
   name: string,
   icon: string,
+  admin: boolean,
   subsets: SubsetData[]
 }
 

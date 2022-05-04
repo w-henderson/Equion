@@ -67,6 +67,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
     }).then(_ => {
       this.setState({
         creatingSubset: false,
+        subsetName: "",
         loading: false,
       });
     }, () => {
@@ -115,7 +116,9 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
                 key={subset.id} />
             )}
 
-            <AddSubset onClick={() => this.setState({ creatingSubset: true })} />
+            {this.props.set.admin &&
+              <AddSubset onClick={() => this.setState({ creatingSubset: true })} />
+            }
           </div>
 
           <Modal
