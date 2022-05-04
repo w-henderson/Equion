@@ -9,6 +9,7 @@ pub struct Set {
     pub id: String,
     pub name: String,
     pub icon: String,
+    pub admin: bool,
     pub subsets: Vec<Subset>,
 }
 
@@ -22,6 +23,7 @@ json_map! {
     id => "id",
     name => "name",
     icon => "icon",
+    admin => "admin",
     subsets => "subsets"
 }
 
@@ -47,9 +49,9 @@ impl State {
             return Err("Invalid token".to_string());
         }
 
-        let sets: Vec<(String, String, String)> = conn
+        let sets: Vec<(String, String, String, bool)> = conn
             .exec(
-                "SELECT sets.id, sets.name, sets.icon FROM sets
+                "SELECT sets.id, sets.name, sets.icon, memberships.admin FROM sets
                     JOIN memberships ON sets.id = memberships.set_id
                     JOIN users ON memberships.user_id = users.id
                     WHERE users.token = ?
@@ -60,7 +62,7 @@ impl State {
 
         let mut full_sets: Vec<Set> = Vec::new();
 
-        for (id, name, icon) in sets {
+        for (id, name, icon, admin) in sets {
             let subsets: Vec<Subset> = conn
                 .exec(
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
@@ -75,6 +77,7 @@ impl State {
                 id,
                 name,
                 icon,
+                admin,
                 subsets,
             });
         }
@@ -88,16 +91,16 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let has_membership: Option<u8> = conn
+        let is_admin: Option<bool> = conn
             .exec_first(
-                "SELECT 1 FROM memberships
+                "SELECT memberships.admin FROM memberships
                     JOIN users ON users.id = memberships.user_id
                     WHERE users.token = ? AND memberships.set_id = ?",
                 (token.as_ref(), id.as_ref()),
             )
             .map_err(|_| "Could not verify membership".to_string())?;
 
-        if has_membership.unwrap_or(0) == 0 {
+        if is_admin.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -111,6 +114,7 @@ impl State {
                 id,
                 name,
                 icon,
+                admin: is_admin.unwrap(),
                 subsets: Vec::new(),
             });
 

@@ -108,6 +108,7 @@ Output:
       "id": "",
       "name": "",
       "icon": "",
+      "admin": false,
       "subsets": [
         {
           "id": "",
@@ -135,6 +136,7 @@ Output:
     "id": "",
     "name": "",
     "icon": "",
+    "admin": false,
     "subsets": [
       {
         "id": "",
