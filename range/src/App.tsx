@@ -205,7 +205,7 @@ class App extends React.Component<{}, AppState> {
         {!selectedSet &&
           <div className="noSetSelected">
             <h1>Welcome to Equion</h1>
-            <p>Select a set from the list or create one to get started.</p>
+            <p>Select, join or create a set on the left to get started.</p>
           </div>
         }
 

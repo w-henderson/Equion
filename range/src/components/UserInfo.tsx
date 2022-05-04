@@ -57,7 +57,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
             <img src={this.state.data.image} alt="Profile" />
 
             <h1>{this.state.data.displayName}</h1>
-            <span>@{this.state.data.username}</span>
+            <span className="username">@{this.state.data.username}</span>
 
             <div>
               <h2>About</h2>

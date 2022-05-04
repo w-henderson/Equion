@@ -110,7 +110,7 @@ div.Modal {
     }
   }
 
-  span {
+  span:not(.username) {
     display: block;
     margin-top: 16px;
     text-decoration: underline solid rgba(255, 255, 255, 0.5) 1px;

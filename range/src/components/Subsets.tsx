@@ -120,7 +120,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
 
           <Modal
             visible={this.state.creatingSubset}
-            close={() => { if (!this.state.loading) this.setState({ creatingSubset: false }) }}>
+            close={() => { if (!this.state.loading) this.setState({ creatingSubset: false, subsetName: "" }) }}>
             <h1>Create a Subset</h1>
 
             <form onSubmit={this.createSubset}>
