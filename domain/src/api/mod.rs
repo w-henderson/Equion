@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod files;
 pub mod http;
 pub mod messages;
 pub mod sets;

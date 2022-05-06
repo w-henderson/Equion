@@ -1,5 +1,6 @@
 mod api;
 mod auth;
+mod files;
 mod messages;
 mod sets;
 mod subscriptions;

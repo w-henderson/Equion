@@ -24,10 +24,9 @@ pub fn update_user(state: Arc<State>, json: Value) -> Value {
         let token = get_string(&json, "token")?;
         let display_name = get_string(&json, "display_name").ok();
         let email = get_string(&json, "email").ok();
-        let image = get_string(&json, "image").ok();
         let bio = get_string(&json, "bio").ok();
 
-        state.update_user(token, display_name, email, image, bio)?;
+        state.update_user(token, display_name, email, bio)?;
 
         Ok(json!({
             "success": true

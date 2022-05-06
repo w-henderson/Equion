@@ -1,4 +1,4 @@
-use crate::api::{matcher, not_found};
+use crate::api::{files, matcher, not_found};
 use crate::State;
 
 use humphrey::http::headers::HeaderType;
@@ -11,6 +11,10 @@ use std::sync::Arc;
 
 pub fn handler(request: Request, state: Arc<State>) -> Response {
     let route = request.uri.strip_prefix("/api/").unwrap();
+
+    if route.starts_with("v1/files/") || route == "v1/updateUserImage" {
+        return files::handler(request, state);
+    }
 
     let json = request
         .content
