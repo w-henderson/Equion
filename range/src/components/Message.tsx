@@ -45,7 +45,7 @@ class Message extends React.Component<MessageProps, MessageState> {
     return (
       <div className={isLocalSender ? "Message local" : "Message"}>
         <img
-          src={this.props.message.author.image}
+          src={this.context.getFileURL(this.props.message.author.image)}
           alt="Profile"
           onClick={() => this.props.showUserCallback(this.props.message.author.id)} />
 

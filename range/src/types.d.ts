@@ -17,7 +17,7 @@ interface UserData {
   id: string,
   username: string,
   displayName: string,
-  image: string,
+  image?: string,
   bio?: string,
 }
 

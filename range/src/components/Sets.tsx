@@ -116,7 +116,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
         <div className="userButton">
           <div>
             <img
-              src={this.context.image || DEFAULT_PROFILE_IMAGE}
+              src={this.context.getFileURL(this.context.image)}
               alt="Profile"
               onClick={() => this.props.showUserCallback(this.context.uid!)} />
             <aside />
