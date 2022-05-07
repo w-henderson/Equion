@@ -21,7 +21,7 @@ interface SetsProps {
 
 interface SetsState {
   creatingSet: boolean,
-  loading: boolean
+  loading: boolean,
 }
 
 class Sets extends React.Component<SetsProps, SetsState> {

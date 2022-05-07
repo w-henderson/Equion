@@ -25,6 +25,7 @@ interface AppState {
 
 class App extends React.Component<{}, AppState> {
   api: Api;
+  sets: React.RefObject<Sets>;
 
   constructor(props: {}) {
     super(props);
@@ -42,6 +43,8 @@ class App extends React.Component<{}, AppState> {
       selectedSubset: null,
       shownUser: null
     }
+
+    this.sets = React.createRef();
 
     this.showUser = this.showUser.bind(this);
     this.refresh = this.refresh.bind(this);
@@ -75,9 +78,13 @@ class App extends React.Component<{}, AppState> {
   }
 
   refresh() {
+    this.api.getUserByUid(this.api.uid!).then(user => {
+      this.api.image = user.image;
+    });
+
     this.api.getSets().then(sets => {
       this.setState({ sets }, this.requestMoreMessages);
-    })
+    });
   }
 
   showUser(id: string) {
@@ -148,8 +155,10 @@ class App extends React.Component<{}, AppState> {
   }
 
   async requestMoreMessages() {
-    let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet)!;
-    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset)!;
+    let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet);
+    if (setIndex === -1) return;
+    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset);
+    if (subsetIndex === -1) return;
 
     let oldest = undefined;
     if (this.state.sets[setIndex].subsets[subsetIndex].messages?.length !== 0) {
@@ -186,6 +195,7 @@ class App extends React.Component<{}, AppState> {
     let inner = (
       <div className="App">
         <Sets
+          ref={this.sets}
           sets={this.state.sets}
           selectedSet={this.state.selectedSet}
           showUserCallback={this.showUser}
