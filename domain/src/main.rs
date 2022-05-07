@@ -9,6 +9,7 @@ mod util;
 
 use crate::api::{http, ws};
 
+use humphrey::http::cors::Cors;
 use humphrey::App;
 
 use humphrey_ws::async_app::AsyncSender;
@@ -59,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Initialise the HTTP app for the standard API.
     let app: App<State> = App::new_with_config(32, state)
+        .with_cors(Cors::wildcard())
         .with_route("/api/*", http::handler)
         .with_websocket_route("/ws", async_websocket_handler(hook));
 

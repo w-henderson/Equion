@@ -504,9 +504,9 @@ dependencies = [
 
 [[package]]
 name = "humphrey"
-version = "0.6.1"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9789b285c653c93b9fa866c482db3802eccce31545fd267e84616bee23e4ddc1"
+checksum = "27f97da0b1abf80c8a68ea22de6e1f52b2c9ea04ff805c8d007f08c3f7dff1f4"
 
 [[package]]
 name = "humphrey_json"
