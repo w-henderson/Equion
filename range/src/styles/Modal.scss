@@ -109,6 +109,10 @@ div.Modal {
         }
       }
     }
+
+    input[hidden] {
+      display: none;
+    }
   }
 
   span:not(.username) {

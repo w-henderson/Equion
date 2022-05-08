@@ -10,7 +10,7 @@ export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads
 class Api {
   uid: string | null;
   token: string | null;
-  image: string | null;
+  image: string | null | undefined;
   ready: boolean;
   subscriber: Subscriber;
   onMessage: (message: MessageData, set: string, subset: string) => void;
@@ -222,7 +222,7 @@ class Api {
             id: m.author_id,
             username: "",
             displayName: m.author_name,
-            image: m.author_image || DEFAULT_PROFILE_IMAGE,
+            image: m.author_image,
           },
           timestamp: m.send_time * 1000
         }
@@ -262,7 +262,7 @@ class Api {
             id: res.user.uid,
             username: res.user.username,
             displayName: res.user.display_name,
-            image: res.user.image || DEFAULT_PROFILE_IMAGE,
+            image: res.user.image,
             bio: res.user.bio
           }
         } else {
@@ -271,26 +271,47 @@ class Api {
       })
   }
 
-  public updateUser(displayName?: string, bio?: string, image?: string): Promise<void> {
+  public updateUser(displayName?: string, bio?: string, image?: File): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/updateUser`, {
-      method: "POST",
-      body: JSON.stringify({
-        token: this.token,
-        display_name: displayName,
-        bio,
-        image
+    let promises = [];
+
+    if (displayName !== undefined || bio !== undefined) {
+      promises.push(fetch(`${API_ROUTE}/updateUser`, {
+        method: "POST",
+        body: JSON.stringify({
+          token: this.token,
+          display_name: displayName,
+          bio
+        })
       })
-    })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) {
-          return;
-        } else {
-          return Promise.reject(res.error);
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            return;
+          } else {
+            return Promise.reject(res.error);
+          }
+        }));
+    }
+
+    if (image !== undefined) {
+      promises.push(fetch(`${API_ROUTE}/updateUserImage`, {
+        method: "POST",
+        body: image,
+        headers: {
+          "X-Equion-Token": this.token,
+          "X-File-Name": image.name
         }
-      });
+      }));
+    }
+
+    return Promise.all(promises).then(() => { });
+  }
+
+  public getFileURL(id: string | null | undefined): string {
+    if (id === null || id === undefined) return DEFAULT_PROFILE_IMAGE;
+    return `${API_ROUTE}/files/${id}`;
   }
 
   public getGreekLetter(char: string): string {

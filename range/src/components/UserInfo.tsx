@@ -19,10 +19,13 @@ interface UserInfoState {
   data: UserData | null,
   displayName: string,
   about: string,
+  imageFile: File | null,
+  displayedImage: string,
 }
 
 class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
   context!: React.ContextType<typeof ApiContext>;
+  fileInput: React.RefObject<HTMLInputElement>;
 
   constructor(props: UserInfoProps) {
     super(props);
@@ -33,11 +36,16 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
       data: null,
       displayName: "",
       about: "",
+      imageFile: null,
+      displayedImage: ""
     }
+
+    this.fileInput = React.createRef();
 
     this.setEditing = this.setEditing.bind(this);
     this.save = this.save.bind(this);
     this.close = this.close.bind(this);
+    this.changedImage = this.changedImage.bind(this);
   }
 
   componentDidUpdate() {
@@ -53,12 +61,14 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
       editing: true,
       displayName: this.state.data!.displayName,
       about: this.state.data!.bio || "",
+      imageFile: null,
+      displayedImage: this.context.getFileURL(this.state.data!.image)
     })
   }
 
   save() {
     toast.promise(
-      this.context.updateUser(this.state.displayName, this.state.about).then(() => this.context.getUserByUid(this.props.id!)),
+      this.context.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined).then(() => this.context.getUserByUid(this.props.id!)),
       {
         loading: "Updating profile...",
         success: "Profile updated!",
@@ -81,6 +91,28 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
         editing: false,
         displayName: "",
         about: "",
+        imageFile: null,
+        displayedImage: ""
+      });
+    }
+  }
+
+  changedImage(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      let url = URL.createObjectURL(e.target.files[0]);
+      this.setState({
+        imageFile: e.target.files[0],
+        displayedImage: url
+      });
+    } else {
+      this.setState(state => {
+        URL.revokeObjectURL(state.displayedImage);
+
+        return {
+          ...state,
+          imageFile: null,
+          displayedImage: this.context.getFileURL(this.state.data!.image)
+        }
       });
     }
   }
@@ -103,7 +135,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
 
           {this.state.data !== null &&
             <>
-              <img src={this.state.data.image} alt="Profile" />
+              <img src={this.context.getFileURL(this.state.data.image)} alt="Profile" />
 
               <h1>{this.state.data.displayName}</h1>
               <span className="username">@{this.state.data.username}</span>
@@ -146,14 +178,21 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
           </div>
 
           <img
-            src={this.state.data!.image}
+            src={this.state.displayedImage}
             alt="Profile"
-            onClick={() => toast.error("You cannot yet change your profile picture")} />
+            onClick={() => this.fileInput.current!.click()} />
 
           <input
             type="text"
             value={this.state.displayName}
             onChange={e => this.setState({ displayName: e.target.value })} />
+
+          <input
+            type="file"
+            accept="image/*"
+            hidden={true}
+            ref={this.fileInput}
+            onChange={this.changedImage} />
 
           <span className="username" title="You cannot currently change your username">@{this.state.data!.username}</span>
 

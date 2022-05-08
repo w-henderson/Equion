@@ -6,7 +6,7 @@ CREATE TABLE `users`(
     `username` VARCHAR(255) NOT NULL,
     `display_name` VARCHAR(255) NOT NULL,
     `email` VARCHAR(255) NOT NULL,
-    `image` VARCHAR(255) NULL,
+    `image` CHAR(36) NULL,
     `bio` TEXT NULL,
     `password` VARCHAR(255) NOT NULL,
     `token` VARCHAR(255) NULL,
@@ -31,7 +31,7 @@ CREATE TABLE `subsets`(
     `creation_date` DATETIME NOT NULL
 );
 ALTER TABLE
-    `subsets` ADD INDEX `subsets_set_index`(`set_id`);
+    `subsets` ADD INDEX `subsets_set_id_index`(`set_id`);
 CREATE TABLE `memberships`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `user_id` CHAR(36) NOT NULL,
@@ -40,9 +40,9 @@ CREATE TABLE `memberships`(
     `creation_date` DATETIME NOT NULL
 );
 ALTER TABLE
-    `memberships` ADD INDEX `memberships_user_index`(`user_id`);
+    `memberships` ADD INDEX `memberships_user_id_index`(`user_id`);
 ALTER TABLE
-    `memberships` ADD INDEX `memberships_set_index`(`set_id`);
+    `memberships` ADD INDEX `memberships_set_id_index`(`set_id`);
 CREATE TABLE `messages`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `content` TEXT NOT NULL,
@@ -54,13 +54,23 @@ ALTER TABLE
     `messages` ADD INDEX `messages_subset_index`(`subset`);
 ALTER TABLE
     `messages` ADD INDEX `messages_send_time_index`(`send_time`);
+CREATE TABLE `files`(
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `content` MEDIUMBLOB NOT NULL,
+    `owner` CHAR(36) NOT NULL
+);
 ALTER TABLE
-    `subsets` ADD CONSTRAINT `subsets_set_foreign` FOREIGN KEY(`set_id`) REFERENCES `sets`(`id`);
+    `users` ADD CONSTRAINT `users_image_foreign` FOREIGN KEY(`image`) REFERENCES `files`(`id`);
 ALTER TABLE
-    `memberships` ADD CONSTRAINT `memberships_user_foreign` FOREIGN KEY(`user_id`) REFERENCES `users`(`id`);
+    `subsets` ADD CONSTRAINT `subsets_set_id_foreign` FOREIGN KEY(`set_id`) REFERENCES `sets`(`id`);
 ALTER TABLE
-    `memberships` ADD CONSTRAINT `memberships_set_foreign` FOREIGN KEY(`set_id`) REFERENCES `sets`(`id`);
+    `memberships` ADD CONSTRAINT `memberships_user_id_foreign` FOREIGN KEY(`user_id`) REFERENCES `users`(`id`);
+ALTER TABLE
+    `memberships` ADD CONSTRAINT `memberships_set_id_foreign` FOREIGN KEY(`set_id`) REFERENCES `sets`(`id`);
 ALTER TABLE
     `messages` ADD CONSTRAINT `messages_subset_foreign` FOREIGN KEY(`subset`) REFERENCES `subsets`(`id`);
 ALTER TABLE
     `messages` ADD CONSTRAINT `messages_sender_foreign` FOREIGN KEY(`sender`) REFERENCES `users`(`id`);
+ALTER TABLE
+    `files` ADD CONSTRAINT `files_owner_foreign` FOREIGN KEY(`owner`) REFERENCES `users`(`id`);

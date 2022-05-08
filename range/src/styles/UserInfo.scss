@@ -40,6 +40,8 @@ div.UserInfo {
   img {
     width: 128px;
     height: 128px;
+    object-fit: cover;
+    background-color: var(--darkest);
     border-radius: 64px;
     border: 1px solid rgba(255, 255, 255, 0.5);
 

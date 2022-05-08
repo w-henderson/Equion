@@ -61,7 +61,6 @@ impl State {
         token: impl AsRef<str>,
         display_name: Option<String>,
         email: Option<String>,
-        image: Option<String>,
         bio: Option<String>,
     ) -> Result<(), String> {
         let mut conn = self
@@ -85,14 +84,6 @@ impl State {
             .map_err(|_| "Could not update email in database".to_string())?;
         }
 
-        if let Some(image) = image {
-            conn.exec_drop(
-                "UPDATE users SET image = ? WHERE token = ?",
-                (image, token.as_ref()),
-            )
-            .map_err(|_| "Could not update image in database".to_string())?;
-        }
-
         if let Some(bio) = bio {
             conn.exec_drop(
                 "UPDATE users SET bio = ? WHERE token = ?",
@@ -100,6 +91,33 @@ impl State {
             )
             .map_err(|_| "Could not update bio in database".to_string())?;
         }
+
+        Ok(())
+    }
+
+    pub fn update_user_image(
+        &self,
+        token: impl AsRef<str>,
+        name: impl AsRef<str>,
+        image: Vec<u8>,
+    ) -> Result<(), String> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())?;
+
+        let uid: String = conn
+            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
+            .map_err(|_| "Could not get user id from database".to_string())?
+            .ok_or_else(|| "User not found".to_string())?;
+
+        let file_id = self.set_file(name, image, &uid)?;
+
+        conn.exec_drop(
+            "UPDATE users SET image = ? WHERE token = ?",
+            (file_id, token.as_ref()),
+        )
+        .map_err(|_| "Could not update image in database".to_string())?;
 
         Ok(())
     }

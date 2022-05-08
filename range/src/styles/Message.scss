@@ -9,6 +9,8 @@ div.Message {
     min-height: 40px;
     max-width: 40px;
     max-height: 40px;
+    object-fit: cover;
+    background-color: var(--darkest);
     border-radius: 20px;
     display: inline-block;
     margin: 0 16px 0 0;
