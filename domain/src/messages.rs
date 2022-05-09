@@ -84,7 +84,7 @@ impl State {
             "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
                 JOIN users ON messages.sender = users.id
                 JOIN subsets ON messages.subset = subsets.id
-                JOIN files ON messages.attachment = files.id
+                LEFT JOIN files ON messages.attachment = files.id
                 WHERE subsets.id = ? AND messages.send_time < (
                     SELECT send_time FROM messages WHERE id = ?
                 )
@@ -96,7 +96,7 @@ impl State {
                 "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
                     JOIN users ON messages.sender = users.id
                     JOIN subsets ON messages.subset = subsets.id
-                    JOIN files ON messages.attachment = files.id
+                    LEFT JOIN files ON messages.attachment = files.id
                     WHERE subsets.id = ?
                     ORDER BY messages.send_time DESC
                     LIMIT ?",
