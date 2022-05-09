@@ -2,9 +2,9 @@ use crate::State;
 
 use humphrey::http::mime::MimeType;
 use humphrey_json::prelude::*;
-use mysql::{prelude::*, Value};
 
 use chrono::{TimeZone, Utc};
+use mysql::{prelude::*, Value};
 use uuid::Uuid;
 
 pub struct Message {
@@ -153,6 +153,7 @@ impl State {
         token: impl AsRef<str>,
         subset: impl AsRef<str>,
         content: impl AsRef<str>,
+        attachment: Option<(String, String)>,
     ) -> Result<(), String> {
         let mut conn = self
             .pool
@@ -175,15 +176,27 @@ impl State {
         }
 
         let (set_id, user_id, author_name, author_image) = meta.unwrap();
+
+        let attachment_id = if let Some((attachment_name, attachment_content)) = attachment.as_ref()
+        {
+            let attachment_content = base64::decode(attachment_content)
+                .map_err(|_| "Could not decode attachment".to_string())?;
+
+            Some(self.set_file(attachment_name, attachment_content, &user_id)?)
+        } else {
+            None
+        };
+
         let new_message_id = Uuid::new_v4().to_string();
 
         conn.exec_drop(
-            "INSERT INTO messages (id, content, subset, sender, send_time) VALUES (?, ?, ?, ?, NOW())",
+            "INSERT INTO messages (id, content, subset, sender, send_time, attachment) VALUES (?, ?, ?, ?, NOW(), ?)",
             (
                 &new_message_id,
                 content.as_ref(),
                 subset.as_ref(),
                 &user_id,
+                &attachment_id
             ),
         )
         .map_err(|_| "Could not send message".to_string())?;
@@ -197,7 +210,11 @@ impl State {
             author_name,
             author_image,
             send_time,
-            attachment: None,
+            attachment: attachment.map(|(name, _)| Attachment {
+                id: attachment_id.unwrap(),
+                name: name.clone(),
+                type_: MimeType::from_extension(name.split('.').last().unwrap_or("")).to_string(),
+            }),
         };
 
         self.broadcast_new_message(set_id, subset, message);

@@ -28,7 +28,13 @@ pub fn send_message(state: Arc<State>, json: Value) -> Value {
         let subset = get_string(&json, "subset")?;
         let content = get_string(&json, "message")?;
 
-        state.send_message(token, subset, content)?;
+        let attachment_name = get_string(&json, "attachment.name").ok();
+        let attachment_content = get_string(&json, "attachment.data").ok();
+
+        let attachment =
+            attachment_name.and_then(|name| attachment_content.map(|content| (name, content)));
+
+        state.send_message(token, subset, content, attachment)?;
 
         Ok(json!({
             "success": true

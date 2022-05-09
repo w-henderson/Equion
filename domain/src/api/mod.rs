@@ -56,15 +56,29 @@ pub fn not_found() -> Value {
 }
 
 pub fn get_string(json: &Value, key: &str) -> Result<String, String> {
-    json.get(key)
+    deep_index(json, key)
         .ok_or_else(|| format!("Missing {}", key))
         .and_then(|v| v.as_str().ok_or_else(|| format!("Invalid {}", key)))
         .map(|s| s.to_string())
 }
 
 pub fn get_int(json: &Value, key: &str) -> Result<u64, String> {
-    json.get(key)
+    deep_index(json, key)
         .ok_or_else(|| format!("Missing {}", key))
         .and_then(|v| v.as_number().ok_or_else(|| format!("Invalid {}", key)))
         .map(|n| n as u64)
+}
+
+/// From [https://github.com/w-henderson/JasonDB/blob/master/jasondb/src/util/indexing.rs]
+fn deep_index<'a>(json: &'a Value, index: &str) -> Option<&'a Value> {
+    let indexing_path = index.split('.');
+    let mut current_json = json;
+    for index in indexing_path {
+        match current_json.get(index) {
+            Some(value) => current_json = value,
+            None => return None,
+        }
+    }
+
+    Some(current_json)
 }
