@@ -1,5 +1,6 @@
 use crate::State;
 
+use humphrey::http::mime::MimeType;
 use humphrey_json::prelude::*;
 use mysql::{prelude::*, Value};
 
@@ -12,7 +13,14 @@ pub struct Message {
     pub author_id: String,
     pub author_name: String,
     pub author_image: Option<String>,
+    pub attachment: Option<Attachment>,
     pub send_time: u64,
+}
+
+pub struct Attachment {
+    pub id: String,
+    pub name: String,
+    pub type_: String,
 }
 
 json_map! {
@@ -22,7 +30,15 @@ json_map! {
     author_id => "author_id",
     author_name => "author_name",
     author_image => "author_image",
+    attachment => "attachment",
     send_time => "send_time"
+}
+
+json_map! {
+    Attachment,
+    id => "id",
+    name => "name",
+    type_ => "type"
 }
 
 impl State {
@@ -54,17 +70,21 @@ impl State {
             return Err("Insufficient permissions".to_string());
         }
 
+        #[allow(clippy::type_complexity)]
         let messages: Vec<(
-            String,
-            String,
-            String,
-            String,
-            Option<String>,
-            Value
+            String,          // Message ID
+            String,          // Message content
+            String,          // Message author ID
+            String,          // Message author name
+            Option<String>,  // Message author image
+            Value,           // Message send time
+            Option<String>,  // Attachment ID
+            Option<String>   // Attachment name
         )> = if let Some(before) = before { conn.exec(
-            "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time FROM messages
+            "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
                 JOIN users ON messages.sender = users.id
                 JOIN subsets ON messages.subset = subsets.id
+                JOIN files ON messages.attachment = files.id
                 WHERE subsets.id = ? AND messages.send_time < (
                     SELECT send_time FROM messages WHERE id = ?
                 )
@@ -73,9 +93,10 @@ impl State {
                 (subset.as_ref(), before, limit.unwrap_or(25)),
         ) } else {
             conn.exec(
-                "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time FROM messages
+                "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
                     JOIN users ON messages.sender = users.id
                     JOIN subsets ON messages.subset = subsets.id
+                    JOIN files ON messages.attachment = files.id
                     WHERE subsets.id = ?
                     ORDER BY messages.send_time DESC
                     LIMIT ?",
@@ -86,12 +107,30 @@ impl State {
         let messages: Vec<Message> = messages
             .into_iter()
             .map(
-                |(id, content, author_id, author_name, author_image, send_time)| Message {
+                |(
                     id,
                     content,
                     author_id,
                     author_name,
                     author_image,
+                    send_time,
+                    attachment_id,
+                    attachment_name,
+                )| Message {
+                    id,
+                    content,
+                    author_id,
+                    author_name,
+                    author_image,
+                    attachment: attachment_id.map(|id| {
+                        let name = attachment_name.unwrap();
+                        Attachment {
+                            id,
+                            name: name.clone(),
+                            type_: MimeType::from_extension(name.split('.').last().unwrap_or(""))
+                                .to_string(),
+                        }
+                    }),
                     send_time: match send_time {
                         Value::Date(year, month, day, hour, min, sec, micro) => {
                             let dt = Utc
@@ -158,6 +197,7 @@ impl State {
             author_name,
             author_image,
             send_time,
+            attachment: None,
         };
 
         self.broadcast_new_message(set_id, subset, message);
