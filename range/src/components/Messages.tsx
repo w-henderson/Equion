@@ -1,5 +1,7 @@
 import React from 'react';
 import ApiContext from '../api/ApiContext';
+import { open } from '@tauri-apps/api/shell';
+
 import '../styles/Messages.scss';
 import '../styles/UserInfo.scss';
 
@@ -117,7 +119,9 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             visible={this.state.shownAttachment}
             className="noStyle"
             close={() => this.setState({ shownAttachment: false })}>
-            <img src={this.context.getFileURL(this.state.shownAttachmentId)} />
+            <img
+              src={this.context.getFileURL(this.state.shownAttachmentId)}
+              onClick={() => open(this.context.getFileURL(this.state.shownAttachmentId))} />
           </Modal>
         </div>
       )

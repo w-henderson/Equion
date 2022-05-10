@@ -1,9 +1,10 @@
 import React from 'react';
+import ApiContext from '../api/ApiContext';
+import { open } from '@tauri-apps/api/shell';
+import { MathJax } from 'better-react-mathjax';
+
 import defaultAttachment from '../images/default_attachment.jpg';
 import '../styles/Message.scss';
-
-import ApiContext from '../api/ApiContext';
-import { MathJax } from 'better-react-mathjax';
 
 interface MessageProps {
   message: MessageData,
@@ -63,7 +64,9 @@ class Message extends React.Component<MessageProps, MessageState> {
         <div className="attachment">
           <img src={defaultAttachment} alt="Attachment" />
 
-          <div className="attachmentInfo">
+          <div
+            className="attachmentInfo"
+            onClick={() => open(this.context.getFileURL(this.props.message.attachment!.id))}>
             <span className="attachmentName">{this.props.message.attachment.name}</span>
           </div>
         </div>
