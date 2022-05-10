@@ -215,7 +215,9 @@ class Api {
         return res;
       })
       .then(res => res.messages.map((m: any) => {
-        return {
+        let hasAttachment = m.attachment !== null;
+
+        let result: MessageData = {
           id: m.id,
           text: m.content,
           author: {
@@ -224,8 +226,15 @@ class Api {
             displayName: m.author_name,
             image: m.author_image,
           },
+          attachment: hasAttachment ? {
+            id: m.attachment.id,
+            name: m.attachment.name,
+            type: m.attachment.type
+          } : null,
           timestamp: m.send_time * 1000
         }
+
+        return result;
       }));
   }
 

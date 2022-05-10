@@ -25,5 +25,12 @@ interface MessageData {
   id: string,
   text: string,
   author: UserData,
+  attachment: AttachmentData | null,
   timestamp: number
+}
+
+interface AttachmentData {
+  id: string,
+  name: string,
+  type: string
 }

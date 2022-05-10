@@ -42,6 +42,22 @@ class Message extends React.Component<MessageProps, MessageState> {
 
     let isLocalSender = this.props.message.author.id === this.context.getUid();
 
+    let attachment = undefined;
+
+    if (this.props.message.attachment !== null && this.props.message.attachment.type.startsWith("image/")) {
+      attachment = (
+        <div className="attachment">
+          <img src={this.context.getFileURL(this.props.message.attachment.id)} alt="Attachment" />
+
+          <div className="attachmentInfo">
+            <span className="attachmentName">{this.props.message.attachment.name}</span>
+          </div>
+        </div>
+      )
+    } else if (this.props.message.attachment !== null) {
+
+    }
+
     return (
       <div className={isLocalSender ? "Message local" : "Message"}>
         <img
@@ -50,6 +66,8 @@ class Message extends React.Component<MessageProps, MessageState> {
           onClick={() => this.props.showUserCallback(this.props.message.author.id)} />
 
         <div className="content">
+          {attachment}
+
           <div className="meta">
             <span className="name">{this.props.message.author.displayName}</span>
             <span className="date">{sendDateString}</span>

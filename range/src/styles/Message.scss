@@ -4,7 +4,7 @@ div.Message {
   max-width: 80%;
   margin-top: 16px;
 
-  img {
+  >img {
     min-width: 40px;
     min-height: 40px;
     max-width: 40px;
@@ -27,13 +27,62 @@ div.Message {
 
   div.content {
     display: inline-block;
-    padding: 12px;
     background-color: var(--mid-light);
     border-radius: 16px 16px 16px 0;
+
+    div.attachment {
+      display: flex;
+      justify-content: flex-end;
+      position: relative;
+
+      width: 100%;
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
+
+      img {
+        object-fit: cover;
+        width: 100%;
+        height: 128px;
+      }
+
+      div.attachmentInfo {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        place-items: center;
+        place-content: center;
+        flex-direction: column;
+
+        background-color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+
+        transition: background-color 200ms;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        span {
+          max-width: 90%;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+
+          font-size: 18px;
+          font-weight: 200;
+          text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+      }
+    }
 
     div.meta {
       font-size: 12px;
       margin-bottom: 4px;
+      padding: 12px 12px 0;
 
       span.date {
         float: right;
@@ -44,6 +93,7 @@ div.Message {
     }
 
     div.text {
+      padding: 0 12px 12px;
       user-select: text;
 
       mjx-container[jax="CHTML"][display="true"] {
@@ -55,7 +105,7 @@ div.Message {
   &.local {
     align-self: flex-end;
 
-    img {
+    >img {
       order: 2;
       margin: 0 0 0 16px;
     }
