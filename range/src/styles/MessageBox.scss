@@ -1,11 +1,41 @@
 div.MessageBox {
+  position: relative;
+  display: flex;
+  place-items: center;
   height: 60px;
   background-color: var(--dark-mid);
   border-top: 1px solid rgba(0, 0, 0, 0.5);
 
+  div.attachButton {
+    width: 32px;
+    height: 32px;
+    margin-left: 16px;
+    display: flex;
+    place-items: center;
+    place-content: center;
+    padding-bottom: 4px;
+
+    font-size: 32px;
+    font-weight: 200;
+    opacity: 0.5;
+    border-radius: 16px;
+    background-color: var(--accent);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+
+    transition: background-color 150ms, opacity 150ms, transform 150ms;
+
+    &:hover {
+      background-color: var(--accent-light);
+      transform: translateY(-2px);
+      opacity: 1;
+    }
+  }
+
   form {
     height: 100%;
     padding: 16px;
+    flex: 1;
 
     input {
       width: 100%;
@@ -19,6 +49,63 @@ div.MessageBox {
 
       &:focus {
         outline: none;
+      }
+    }
+  }
+
+  div.attachDialog {
+    position: absolute;
+    display: flex;
+    bottom: 60px;
+    left: 0;
+    height: 48px;
+    overflow: hidden;
+    border-width: 1px 1px 0 0;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.5);
+    border-radius: 0 8px 0 0;
+    background-color: var(--mid);
+
+    will-change: height, border-width;
+    transition: height 200ms, border-width 200ms;
+
+    &.hidden {
+      height: 0px;
+      border-width: 0 0 0 0;
+    }
+
+    svg {
+      margin: 12px 0 12px 12px;
+    }
+
+    div.text {
+      margin: 13px 16px 13px 12px;
+
+      span:last-child {
+        font-weight: 200;
+        opacity: 0.8;
+        margin-left: 8px;
+      }
+    }
+
+    div.x {
+      display: flex;
+      place-items: center;
+      place-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      margin: 14px 12px 12px 0;
+      padding-bottom: 2px;
+      opacity: 0.5;
+      cursor: pointer;
+
+      background-color: var(--accent);
+
+      transition: opacity 150ms;
+
+      &:hover {
+        opacity: 1;
       }
     }
   }

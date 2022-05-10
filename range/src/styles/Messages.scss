@@ -3,6 +3,11 @@ div.Messages {
   flex-direction: column;
   flex: 1;
 
+  img.limitSize {
+    max-width: 70vw;
+    max-height: 70vh;
+  }
+
   div.title {
     h1 {
       white-space: nowrap;

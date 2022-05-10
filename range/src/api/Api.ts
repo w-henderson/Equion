@@ -1,4 +1,6 @@
 import { forage } from "@tauri-apps/tauri-forage";
+import { readBinaryFile } from "@tauri-apps/api/fs";
+import { Buffer } from "buffer";
 import toast from "react-hot-toast";
 
 import Subscriber from "./Subscriber";
@@ -238,15 +240,28 @@ class Api {
       }));
   }
 
-  public sendMessage(subsetId: string, text: string): Promise<void> {
+  public async sendMessage(subsetId: string, text: string, attachmentPath?: string): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
+
+    let attachment = undefined;
+    if (attachmentPath !== undefined) {
+      let name = attachmentPath.split('\\').pop()!.split('/').pop()!;
+      let file = await readBinaryFile(attachmentPath);
+      let data = Buffer.from(file).toString("base64");
+
+      attachment = {
+        name,
+        data
+      }
+    }
 
     return fetch(`${API_ROUTE}/sendMessage`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
         subset: subsetId,
-        message: text
+        message: text,
+        attachment
       })
     })
       .then(res => res.json())
