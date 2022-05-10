@@ -9,6 +9,7 @@ interface MessageProps {
   message: MessageData,
   scrollCallback: () => void,
   showUserCallback: (id: string) => void,
+  showAttachmentCallback: (id: string) => void
 }
 
 interface MessageState {
@@ -50,7 +51,9 @@ class Message extends React.Component<MessageProps, MessageState> {
         <div className="attachment">
           <img src={this.context.getFileURL(this.props.message.attachment.id)} alt="Attachment" />
 
-          <div className="attachmentInfo">
+          <div
+            className="attachmentInfo"
+            onClick={() => this.props.showAttachmentCallback(this.props.message.attachment!.id)}>
             <span className="attachmentName">{this.props.message.attachment.name}</span>
           </div>
         </div>
