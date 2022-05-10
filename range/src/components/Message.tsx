@@ -1,4 +1,5 @@
 import React from 'react';
+import defaultAttachment from '../images/default_attachment.jpg';
 import '../styles/Message.scss';
 
 import ApiContext from '../api/ApiContext';
@@ -55,7 +56,15 @@ class Message extends React.Component<MessageProps, MessageState> {
         </div>
       )
     } else if (this.props.message.attachment !== null) {
+      attachment = (
+        <div className="attachment">
+          <img src={defaultAttachment} alt="Attachment" />
 
+          <div className="attachmentInfo">
+            <span className="attachmentName">{this.props.message.attachment.name}</span>
+          </div>
+        </div>
+      )
     }
 
     return (
