@@ -44,7 +44,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
       title: "Attach a file",
       multiple: false,
     }).then(path => {
-      if (!Array.isArray(path)) {
+      if (!Array.isArray(path) && path) {
         this.setState({ attachment: path });
       }
     })
