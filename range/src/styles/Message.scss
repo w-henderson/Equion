@@ -30,6 +30,14 @@ div.Message {
     background-color: var(--mid-light);
     border-radius: 16px 16px 16px 0;
 
+    &.pingsMe {
+      background: linear-gradient(to bottom right, var(--accent-light), var(--accent-mid)) !important;
+
+      span.ping {
+        background-color: var(--accent-light) !important;
+      }
+    }
+
     div.attachment {
       display: flex;
       justify-content: flex-end;
@@ -96,6 +104,47 @@ div.Message {
     div.text {
       padding: 0 12px 12px;
       user-select: text;
+
+      span.ping {
+        display: inline-block;
+        background-color: var(--accent);
+        border-radius: 4px;
+        font-weight: 200;
+        padding: 1px 2px;
+
+        &:not(.invalid) {
+          cursor: pointer;
+          transition: background-color 150ms;
+
+          &:hover:not(.invalid) {
+            background-color: var(--accent-light);
+          }
+        }
+
+        &.invalid {
+          opacity: 0.5;
+        }
+
+        >div {
+          display: inline-block;
+          width: 100px;
+          height: 16px;
+          background-color: rgba(0, 0, 0, 0.25);
+          color: transparent;
+          margin: 2px 4px -2px 4px;
+          border-radius: 4px;
+
+          animation: placeholder-light 1s linear infinite;
+        }
+      }
+
+      .inlineLatex {
+        display: inline-block !important;
+
+        mjx-container[jax="CHTML"][display="true"] {
+          margin: 0 !important;
+        }
+      }
 
       mjx-container[jax="CHTML"][display="true"] {
         margin: 16px 0 !important;

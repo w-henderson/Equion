@@ -338,6 +338,10 @@ class Api {
     return `${API_ROUTE}/files/${id}`;
   }
 
+  public doesMessagePingMe(message: string): boolean {
+    return message.includes(`<@${this.uid}>`);
+  }
+
   public getGreekLetter(char: string): string {
     switch (char) {
       case 'a': return 'α';

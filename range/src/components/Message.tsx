@@ -1,42 +1,28 @@
 import React from 'react';
 import ApiContext from '../api/ApiContext';
+import { MessageParser } from '../api/MessageParser';
 import { open } from '@tauri-apps/api/shell';
-import { MathJax } from 'better-react-mathjax';
 
-import defaultAttachment from '../images/default_attachment.jpg';
 import '../styles/Message.scss';
+import defaultAttachment from '../images/default_attachment.jpg';
+import MessageSegment from './MessageSegment';
 
 interface MessageProps {
   message: MessageData,
-  scrollCallback: () => void,
+  scrollCallback: (override?: boolean) => void,
   showUserCallback: (id: string) => void,
   showAttachmentCallback: (id: string) => void
 }
 
-interface MessageState {
-  alreadyLoaded: boolean
-}
-
-class Message extends React.Component<MessageProps, MessageState> {
+class Message extends React.Component<MessageProps> {
   context!: React.ContextType<typeof ApiContext>;
 
   constructor(props: MessageProps) {
     super(props);
-
-    this.state = {
-      alreadyLoaded: false
-    }
-
-    this.scroll = this.scroll.bind(this);
   }
 
-  shouldComponentUpdate(nextProps: MessageProps, nextState: MessageState): boolean {
-    return !this.state.alreadyLoaded;
-  }
-
-  scroll() {
-    this.props.scrollCallback();
-    this.setState({ alreadyLoaded: true });
+  shouldComponentUpdate(nextProps: MessageProps, nextState: {}): boolean {
+    return this.props.message !== nextProps.message;
   }
 
   render() {
@@ -44,6 +30,8 @@ class Message extends React.Component<MessageProps, MessageState> {
     let sendDateString = sendDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     let isLocalSender = this.props.message.author.id === this.context.getUid();
+
+    let parsedMessage = new MessageParser(this.props.message.text).parse();
 
     let attachment = undefined;
 
@@ -80,7 +68,7 @@ class Message extends React.Component<MessageProps, MessageState> {
           alt="Profile"
           onClick={() => this.props.showUserCallback(this.props.message.author.id)} />
 
-        <div className="content">
+        <div className={this.context.doesMessagePingMe(this.props.message.text) ? "content pingsMe" : "content"}>
           {attachment}
 
           <div className="meta">
@@ -89,9 +77,13 @@ class Message extends React.Component<MessageProps, MessageState> {
           </div>
 
           <div className="text">
-            <MathJax onTypeset={!this.state.alreadyLoaded ? this.scroll : undefined}>
-              {this.props.message.text}
-            </MathJax>
+            {parsedMessage.map((el, i) =>
+              <MessageSegment
+                segment={el}
+                key={i}
+                scrollCallback={this.props.scrollCallback}
+                userCallback={() => this.props.showUserCallback(el.value)} />
+            )}
           </div>
         </div>
       </div>

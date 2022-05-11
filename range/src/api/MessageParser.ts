@@ -9,7 +9,7 @@ const SEGMENT_REGEX = {
 }
 
 export class MessageParser {
-  message: MessageSegment[];
+  private message: MessageSegment[];
 
   constructor(message: string) {
     this.message = [{
@@ -26,7 +26,7 @@ export class MessageParser {
     return this.message;
   }
 
-  performPass() {
+  private performPass() {
     this.message = this.message.map(segment => {
       if (segment.type === "unparsed") {
         // If the segment is yet to be parsed, parse it.

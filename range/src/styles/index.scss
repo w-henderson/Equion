@@ -13,6 +13,7 @@ body {
   --mid-light: #22242b;
   --accent-dark: #1e293a;
   --accent: #293f55;
+  --accent-mid: #2e6fc5;
   --accent-light: #4295ff;
 
   --green: #47ff51;
@@ -46,5 +47,19 @@ body,
 
   100% {
     background-color: var(--dark);
+  }
+}
+
+@keyframes placeholder-light {
+  0% {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  50% {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  100% {
+    background-color: rgba(0, 0, 0, 0.2);
   }
 }
