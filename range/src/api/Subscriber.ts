@@ -37,6 +37,8 @@ class Subscriber {
     let data = JSON.parse(e.data);
 
     if (data.event === "v1/newMessage") {
+      let hasAttachment = data.message.attachment !== null;
+
       this.onMessage({
         id: data.message.id,
         text: data.message.content,
@@ -44,8 +46,13 @@ class Subscriber {
           id: data.message.author_id,
           username: "",
           displayName: data.message.author_name,
-          image: data.message.author_image || DEFAULT_PROFILE_IMAGE,
+          image: data.message.author_image,
         },
+        attachment: hasAttachment ? {
+          id: data.message.attachment.id,
+          name: data.message.attachment.name,
+          type: data.message.attachment.type
+        } : null,
         timestamp: data.message.send_time * 1000
       }, data.set, data.subset);
     } else if (data.event === "v1/newSubset") {

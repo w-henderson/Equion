@@ -251,6 +251,11 @@ Output:
       "author_id": "",
       "author_name": "",
       "author_image?": "",
+      "attachment?": {
+        "id": "",
+        "name": "",
+        "type": "",
+      },
       "send_time": "",
     }
   ]
@@ -265,7 +270,11 @@ Input:
 {
   "token": "",
   "subset": "",
-  "message": ""
+  "message": "",
+  "attachment?": {
+    "name": "",
+    "data": "<base64>"
+  }
 }
 ```
 
@@ -339,6 +348,11 @@ Sent when a new message is sent to a subset.
     "author_id": "",
     "author_name": "",
     "author_image?": "",
+    "attachment?": {
+      "id": "",
+      "name": "",
+      "type": "",
+    },
     "send_time": "",
   }
 }

@@ -48,7 +48,8 @@ CREATE TABLE `messages`(
     `content` TEXT NOT NULL,
     `subset` CHAR(36) NOT NULL,
     `sender` CHAR(36) NOT NULL,
-    `send_time` DATETIME NOT NULL
+    `send_time` DATETIME NOT NULL,
+    `attachment` CHAR(36) NULL
 );
 ALTER TABLE
     `messages` ADD INDEX `messages_subset_index`(`subset`);
@@ -72,5 +73,7 @@ ALTER TABLE
     `messages` ADD CONSTRAINT `messages_subset_foreign` FOREIGN KEY(`subset`) REFERENCES `subsets`(`id`);
 ALTER TABLE
     `messages` ADD CONSTRAINT `messages_sender_foreign` FOREIGN KEY(`sender`) REFERENCES `users`(`id`);
+ALTER TABLE
+    `messages` ADD CONSTRAINT `messages_attachment_foreign` FOREIGN KEY(`attachment`) REFERENCES `files`(`id`);
 ALTER TABLE
     `files` ADD CONSTRAINT `files_owner_foreign` FOREIGN KEY(`owner`) REFERENCES `users`(`id`);

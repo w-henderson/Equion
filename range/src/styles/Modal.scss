@@ -29,6 +29,19 @@ div.Modal {
   >div {
     transition: transform 200ms;
     will-change: transform;
+
+    &.noStyle {
+      display: flex;
+      place-items: center;
+      place-content: center;
+
+      img {
+        cursor: pointer;
+      }
+    }
+  }
+
+  >div:not(.noStyle) {
     background-color: var(--darkest);
     box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);

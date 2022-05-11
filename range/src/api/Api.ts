@@ -1,4 +1,5 @@
 import { forage } from "@tauri-apps/tauri-forage";
+import { invoke } from "@tauri-apps/api/tauri";
 import toast from "react-hot-toast";
 
 import Subscriber from "./Subscriber";
@@ -215,7 +216,9 @@ class Api {
         return res;
       })
       .then(res => res.messages.map((m: any) => {
-        return {
+        let hasAttachment = m.attachment !== null;
+
+        let result: MessageData = {
           id: m.id,
           text: m.content,
           author: {
@@ -224,20 +227,41 @@ class Api {
             displayName: m.author_name,
             image: m.author_image,
           },
+          attachment: hasAttachment ? {
+            id: m.attachment.id,
+            name: m.attachment.name,
+            type: m.attachment.type
+          } : null,
           timestamp: m.send_time * 1000
         }
+
+        return result;
       }));
   }
 
-  public sendMessage(subsetId: string, text: string): Promise<void> {
+  public async sendMessage(subsetId: string, text: string, attachmentPath?: string): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
+
+    let attachment = undefined;
+    if (attachmentPath !== undefined) {
+      let name = attachmentPath.split('\\').pop()!.split('/').pop()!;
+      let data: string = await invoke("get_base64_file", {
+        path: attachmentPath
+      });
+
+      attachment = {
+        name,
+        data
+      }
+    }
 
     return fetch(`${API_ROUTE}/sendMessage`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
         subset: subsetId,
-        message: text
+        message: text,
+        attachment
       })
     })
       .then(res => res.json())

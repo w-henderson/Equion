@@ -1,9 +1,13 @@
 import React from 'react';
+import ApiContext from '../api/ApiContext';
+import { open } from '@tauri-apps/api/shell';
+
 import '../styles/Messages.scss';
 import '../styles/UserInfo.scss';
 
 import Message from "./Message";
 import MessageBox from './MessageBox';
+import Modal from './Modal';
 
 interface MessagesProps {
   subset: SubsetData | undefined,
@@ -13,9 +17,12 @@ interface MessagesProps {
 
 interface MessagesState {
   waitingForMessages: boolean,
+  shownAttachment: boolean,
+  shownAttachmentId?: string,
 }
 
 class Messages extends React.Component<MessagesProps, MessagesState> {
+  context!: React.ContextType<typeof ApiContext>;
   messages: React.RefObject<HTMLDivElement>;
   lastId: string | null;
   lastMessageId: string | null;
@@ -24,13 +31,15 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     super(props);
 
     this.state = {
-      waitingForMessages: false
+      waitingForMessages: false,
+      shownAttachment: false
     }
 
     this.lastId = null;
     this.lastMessageId = null;
 
     this.handleScroll = this.handleScroll.bind(this);
+    this.showAttachment = this.showAttachment.bind(this);
     this.messages = React.createRef();
   }
 
@@ -51,6 +60,13 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
         });
       });
     }
+  }
+
+  showAttachment(id: string) {
+    this.setState({
+      shownAttachment: true,
+      shownAttachmentId: id
+    });
   }
 
   componentDidUpdate() {
@@ -90,6 +106,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
                 message={message}
                 key={message.id}
                 showUserCallback={this.props.showUser}
+                showAttachmentCallback={this.showAttachment}
                 scrollCallback={index === array.length - 1 ? () => {
                   this.messages.current!.scrollTop = this.messages.current!.scrollHeight
                 } : () => { }} />
@@ -97,6 +114,16 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
           </div>
 
           <MessageBox subsetId={this.props.subset.id} />
+
+          <Modal
+            visible={this.state.shownAttachment}
+            className="noStyle"
+            close={() => this.setState({ shownAttachment: false })}>
+            <img
+              src={this.context.getFileURL(this.state.shownAttachmentId)}
+              onClick={() => open(this.context.getFileURL(this.state.shownAttachmentId))}
+              className="limitSize" />
+          </Modal>
         </div>
       )
     } else {
@@ -110,5 +137,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     }
   }
 }
+
+Messages.contextType = ApiContext;
 
 export default Messages;

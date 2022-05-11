@@ -1,13 +1,16 @@
 import React from 'react';
-import '../styles/Message.scss';
-
 import ApiContext from '../api/ApiContext';
+import { open } from '@tauri-apps/api/shell';
 import { MathJax } from 'better-react-mathjax';
+
+import defaultAttachment from '../images/default_attachment.jpg';
+import '../styles/Message.scss';
 
 interface MessageProps {
   message: MessageData,
   scrollCallback: () => void,
   showUserCallback: (id: string) => void,
+  showAttachmentCallback: (id: string) => void
 }
 
 interface MessageState {
@@ -42,6 +45,34 @@ class Message extends React.Component<MessageProps, MessageState> {
 
     let isLocalSender = this.props.message.author.id === this.context.getUid();
 
+    let attachment = undefined;
+
+    if (this.props.message.attachment !== null && this.props.message.attachment.type.startsWith("image/")) {
+      attachment = (
+        <div className="attachment">
+          <img src={this.context.getFileURL(this.props.message.attachment.id)} alt="Attachment" />
+
+          <div
+            className="attachmentInfo"
+            onClick={() => this.props.showAttachmentCallback(this.props.message.attachment!.id)}>
+            <span className="attachmentName">{this.props.message.attachment.name}</span>
+          </div>
+        </div>
+      )
+    } else if (this.props.message.attachment !== null) {
+      attachment = (
+        <div className="attachment">
+          <img src={defaultAttachment} alt="Attachment" />
+
+          <div
+            className="attachmentInfo"
+            onClick={() => open(this.context.getFileURL(this.props.message.attachment!.id))}>
+            <span className="attachmentName">{this.props.message.attachment.name}</span>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className={isLocalSender ? "Message local" : "Message"}>
         <img
@@ -50,6 +81,8 @@ class Message extends React.Component<MessageProps, MessageState> {
           onClick={() => this.props.showUserCallback(this.props.message.author.id)} />
 
         <div className="content">
+          {attachment}
+
           <div className="meta">
             <span className="name">{this.props.message.author.displayName}</span>
             <span className="date">{sendDateString}</span>
