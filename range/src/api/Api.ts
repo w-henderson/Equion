@@ -1,6 +1,5 @@
 import { forage } from "@tauri-apps/tauri-forage";
-import { readBinaryFile } from "@tauri-apps/api/fs";
-import { Buffer } from "buffer";
+import { invoke } from "@tauri-apps/api/tauri";
 import toast from "react-hot-toast";
 
 import Subscriber from "./Subscriber";
@@ -246,8 +245,9 @@ class Api {
     let attachment = undefined;
     if (attachmentPath !== undefined) {
       let name = attachmentPath.split('\\').pop()!.split('/').pop()!;
-      let file = await readBinaryFile(attachmentPath);
-      let data = Buffer.from(file).toString("base64");
+      let data: string = await invoke("get_base64_file", {
+        path: attachmentPath
+      });
 
       attachment = {
         name,
