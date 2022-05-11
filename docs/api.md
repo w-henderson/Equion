@@ -126,6 +126,16 @@ Output:
           "id": "",
           "name": "",
         }
+      ],
+      "members": [
+        {
+          "uid": "",
+          "username": "",
+          "display_name": "",
+          "email": "",
+          "image?": "",
+          "bio?": ""
+        }
       ]
     }
   ]
@@ -153,6 +163,16 @@ Output:
       {
         "id": "",
         "name": "",
+      }
+    ],
+    "members": [
+      {
+        "uid": "",
+        "username": "",
+        "display_name": "",
+        "email": "",
+        "image?": "",
+        "bio?": ""
       }
     ]
   }
@@ -356,3 +376,22 @@ Sent when a new message is sent to a subset.
     "send_time": "",
   }
 }
+```
+
+### `v1/newUser`: New user joined a set
+Sent when a new user joins a set.
+
+```json
+{
+  "event": "v1/newUser",
+  "set": "",
+  "user": {
+    "uid": "",
+    "username": "",
+    "display_name": "",
+    "email": "",
+    "image?": "",
+    "bio?": ""
+  }
+}
+```

@@ -1,4 +1,5 @@
 use crate::messages;
+use crate::user::User;
 use crate::State;
 
 use humphrey_ws::Message;
@@ -139,6 +140,28 @@ impl State {
                 "set": (set.as_ref()),
                 "subset": (subset.as_ref()),
                 "message": message
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
+
+    pub fn broadcast_new_user(&self, set: impl AsRef<str>, user: User) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/newUser",
+                "set": (set.as_ref()),
+                "user": user
             })
             .serialize(),
         );
