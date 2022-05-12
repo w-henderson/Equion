@@ -13,6 +13,7 @@ import Subsets from './components/Subsets';
 import Messages from './components/Messages';
 import AuthDialog from './components/AuthDialog';
 import UserInfo from './components/UserInfo';
+import Members from './components/Members';
 
 interface AppState {
   init: boolean,
@@ -214,10 +215,9 @@ class App extends React.Component<{}, AppState> {
               requestMoreMessages={this.requestMoreMessages}
               showUser={this.showUser} />
 
-            <UserInfo
-              id={this.state.shownUser}
-              hideCallback={() => this.setState({ shownUser: null })}
-              refreshCallback={this.refresh} />
+            <Members
+              set={selectedSet}
+              userCallback={this.showUser} />
           </>
         }
 
@@ -227,13 +227,13 @@ class App extends React.Component<{}, AppState> {
               <h1>Welcome to Equion</h1>
               <p>Select, join or create a set on the left to get started.</p>
             </div>
-
-            <UserInfo
-              id={this.state.shownUser}
-              hideCallback={() => this.setState({ shownUser: null })}
-              refreshCallback={this.refresh} />
           </>
         }
+
+        <UserInfo
+          id={this.state.shownUser}
+          hideCallback={() => this.setState({ shownUser: null })}
+          refreshCallback={this.refresh} />
 
       </div>
     );

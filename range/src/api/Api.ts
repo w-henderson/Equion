@@ -105,7 +105,18 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          return res.sets;
+          return res.sets.map((set: SetData) => {
+            return {
+              ...set,
+              members: set.members.map((member: any) => {
+                return {
+                  ...member,
+                  displayName: member.display_name,
+                  id: member.uid
+                }
+              })
+            }
+          });
         } else {
           return Promise.reject(res.error);
         }
@@ -125,7 +136,16 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          return res.set;
+          return {
+            ...res.set,
+            members: res.set.members.map((member: any) => {
+              return {
+                ...member,
+                displayName: member.display_name,
+                id: member.uid
+              }
+            })
+          };
         } else {
           return Promise.reject(res.error);
         }
