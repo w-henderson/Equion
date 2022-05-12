@@ -71,19 +71,19 @@ impl State {
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
                     (&id,),
                 )
-                .map_err(|_| "Could not execute query".to_string())?
+                .map_err(|_| "Could not get subsets".to_string())?
                 .into_iter()
                 .map(|(id, name)| Subset { id, name })
                 .collect();
 
             let members: Vec<User> = conn
                 .exec(
-                    "SELECT id, username, display_name, email, image, bio FROM users
-                    JOIN memberships ON users.id = memberships.users_id
+                    "SELECT users.id, username, display_name, email, image, bio FROM users
+                    JOIN memberships ON users.id = memberships.user_id
                     WHERE memberships.set_id = ?",
                     (&id,),
                 )
-                .map_err(|_| "Invalid token".to_string())?
+                .map_err(|_| "Could not get members".to_string())?
                 .into_iter()
                 .map(|(uid, username, display_name, email, image, bio)| User {
                     uid,
@@ -148,19 +148,19 @@ impl State {
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
                     (&set.id,),
                 )
-                .map_err(|_| "Could not execute query".to_string())?
+                .map_err(|_| "Could not get subsets".to_string())?
                 .into_iter()
                 .map(|(id, name)| Subset { id, name })
                 .collect();
 
             let members: Vec<User> = conn
                 .exec(
-                    "SELECT id, username, display_name, email, image, bio FROM users
-                    JOIN memberships ON users.id = memberships.users_id
+                    "SELECT users.id, username, display_name, email, image, bio FROM users
+                    JOIN memberships ON users.id = memberships.user_id
                     WHERE memberships.set_id = ?",
                     (&set.id,),
                 )
-                .map_err(|_| "Invalid token".to_string())?
+                .map_err(|_| "Could not get members".to_string())?
                 .into_iter()
                 .map(|(uid, username, display_name, email, image, bio)| User {
                     uid,
