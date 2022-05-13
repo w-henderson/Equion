@@ -21,6 +21,17 @@ div.Members {
       margin: 0;
       pointer-events: none;
     }
+
+    svg {
+      cursor: pointer;
+      opacity: 0.2;
+      transition: opacity 200ms, transform 200ms;
+
+      &:hover {
+        opacity: 1;
+        transform: scale(1.05) translateY(-2px);
+      }
+    }
   }
 
   div.list {

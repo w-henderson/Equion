@@ -190,6 +190,26 @@ class Api {
       .then(this.getSet.bind(this));
   }
 
+  public leaveSet(id: string): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/leaveSet`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        set: id
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
   public createSubset(name: string, set: string): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
 

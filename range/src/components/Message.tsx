@@ -17,11 +17,7 @@ interface MessageProps {
 class Message extends React.Component<MessageProps> {
   context!: React.ContextType<typeof ApiContext>;
 
-  constructor(props: MessageProps) {
-    super(props);
-  }
-
-  shouldComponentUpdate(nextProps: MessageProps, nextState: {}): boolean {
+  shouldComponentUpdate(nextProps: MessageProps, _: {}): boolean {
     return this.props.message !== nextProps.message;
   }
 

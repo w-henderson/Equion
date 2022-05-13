@@ -1,8 +1,9 @@
 import React from 'react';
 import './styles/App.scss';
 
+import { confirm } from '@tauri-apps/api/dialog';
 import { MathJaxContext } from 'better-react-mathjax';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import * as immutable from 'object-path-immutable';
 
 import ApiContext from './api/ApiContext';
@@ -57,6 +58,7 @@ class App extends React.Component<{}, AppState> {
     this.selectSubset = this.selectSubset.bind(this);
     this.authComplete = this.authComplete.bind(this);
     this.createdSet = this.createdSet.bind(this);
+    this.leaveSet = this.leaveSet.bind(this);
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
   }
 
@@ -86,7 +88,15 @@ class App extends React.Component<{}, AppState> {
     });
 
     this.api.getSets().then(sets => {
-      this.setState({ sets }, this.requestMoreMessages);
+      if (sets.findIndex(s => s.id === this.state.selectedSet) === -1) {
+        this.setState({
+          sets,
+          selectedSet: null,
+          selectedSubset: null
+        });
+      } else {
+        this.setState({ sets }, this.requestMoreMessages);
+      }
     });
   }
 
@@ -105,6 +115,16 @@ class App extends React.Component<{}, AppState> {
     }, () => {
       this.api.subscriber.subscribe(this.api.token!, set.id);
       this.selectSet(set.id);
+    });
+  }
+
+  leaveSet(id: string) {
+    confirm("Are you sure you want to leave this set? You will not be able to rejoin unless invited.", "Leave set?").then(ok => {
+      if (ok) {
+        this.api.leaveSet(id).then(this.refresh, (e) => {
+          toast.error(e);
+        });
+      }
     });
   }
 
@@ -249,7 +269,8 @@ class App extends React.Component<{}, AppState> {
 
             <Members
               set={selectedSet}
-              userCallback={this.showUser} />
+              userCallback={this.showUser}
+              leaveCallback={() => this.leaveSet(selectedSet!.id)} />
           </>
         }
 
