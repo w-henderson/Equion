@@ -159,9 +159,70 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/newUser",
+                "event": "v1/updateUser",
                 "set": (set.as_ref()),
                 "user": user
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
+
+    pub fn broadcast_update_user(&self, user: User) -> Option<()> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())
+            .ok()?;
+
+        let set_ids: Vec<String> = conn
+            .exec(
+                "SELECT set_id FROM memberships WHERE user_id = ?",
+                (&user.uid,),
+            )
+            .ok()?;
+
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        for set in set_ids {
+            let message = Message::new(
+                json!({
+                    "event": "v1/updateUser",
+                    "set": (&set),
+                    "user": (user.clone())
+                })
+                .serialize(),
+            );
+
+            if let Some(subscriptions) = subscriptions.get(&set) {
+                let locked_sender = self.global_sender.lock().unwrap();
+                let sender = locked_sender.as_ref().unwrap();
+
+                for subscriber in subscriptions {
+                    sender.send(*subscriber, message.clone());
+                }
+            }
+        }
+
+        Some(())
+    }
+
+    pub fn broadcast_left_user(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/leftUser",
+                "set": (set.as_ref()),
+                "uid": (uid.as_ref())
             })
             .serialize(),
         );

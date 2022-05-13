@@ -24,7 +24,7 @@ Signs up a user with the given details. Further customisation should be done thr
 
 Input:
 ```json
-{ "username": "", "password": "", "display_name": "", "email": "" }
+{ "username": "", "password": "", "displayName": "", "email": "" }
 ```
 
 Output:
@@ -62,7 +62,7 @@ Output:
   "user": {
     "uid": "",
     "username": "",
-    "display_name": "",
+    "displayName": "",
     "email": "",
     "image?": "",
     "bio?": ""
@@ -77,7 +77,7 @@ Input:
 ```json
 {
   "token": "",
-  "display_name?": "",
+  "displayName?": "",
   "email?": "",
   "bio?": ""
 }
@@ -131,7 +131,7 @@ Output:
         {
           "uid": "",
           "username": "",
-          "display_name": "",
+          "displayName": "",
           "email": "",
           "image?": "",
           "bio?": ""
@@ -169,7 +169,7 @@ Output:
       {
         "uid": "",
         "username": "",
-        "display_name": "",
+        "displayName": "",
         "email": "",
         "image?": "",
         "bio?": ""
@@ -268,15 +268,15 @@ Output:
     {
       "id": "",
       "content": "",
-      "author_id": "",
-      "author_name": "",
-      "author_image?": "",
+      "authorId": "",
+      "authorName": "",
+      "authorImage?": "",
       "attachment?": {
         "id": "",
         "name": "",
         "type": "",
       },
-      "send_time": "",
+      "sendTime": "",
     }
   ]
 }
@@ -365,33 +365,44 @@ Sent when a new message is sent to a subset.
   "message": {
     "id": "",
     "content": "",
-    "author_id": "",
-    "author_name": "",
-    "author_image?": "",
+    "authorId": "",
+    "authorName": "",
+    "authorImage?": "",
     "attachment?": {
       "id": "",
       "name": "",
       "type": "",
     },
-    "send_time": "",
+    "sendTime": "",
   }
 }
 ```
 
-### `v1/newUser`: New user joined a set
-Sent when a new user joins a set.
+### `v1/updateUser`: Update user in a set
+Sent when a new user joins a set or an existing user's details are updated.
 
 ```json
 {
-  "event": "v1/newUser",
+  "event": "v1/updateUser",
   "set": "",
   "user": {
     "uid": "",
     "username": "",
-    "display_name": "",
+    "displayName": "",
     "email": "",
     "image?": "",
     "bio?": ""
   }
+}
+```
+
+### `v1/leftUser`: User left a set
+Sent when a user leaves a set.
+
+```json
+{
+  "event": "v1/leftUser",
+  "set": "",
+  "uid": ""
 }
 ```

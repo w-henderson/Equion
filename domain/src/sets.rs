@@ -80,7 +80,8 @@ impl State {
                 .exec(
                     "SELECT users.id, username, display_name, email, image, bio FROM users
                     JOIN memberships ON users.id = memberships.user_id
-                    WHERE memberships.set_id = ?",
+                    WHERE memberships.set_id = ?
+                    ORDER BY display_name ASC",
                     (&id,),
                 )
                 .map_err(|_| "Could not get members".to_string())?
@@ -157,7 +158,8 @@ impl State {
                 .exec(
                     "SELECT users.id, username, display_name, email, image, bio FROM users
                     JOIN memberships ON users.id = memberships.user_id
-                    WHERE memberships.set_id = ?",
+                    WHERE memberships.set_id = ?
+                    ORDER BY display_name ASC",
                     (&set.id,),
                 )
                 .map_err(|_| "Could not get members".to_string())?
@@ -364,6 +366,8 @@ impl State {
             (&user_id, set.as_ref()),
         )
         .map_err(|_| "Could not remove membership".to_string())?;
+
+        self.broadcast_left_user(set, user_id);
 
         Ok(())
     }
