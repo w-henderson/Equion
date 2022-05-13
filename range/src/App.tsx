@@ -265,6 +265,7 @@ class App extends React.Component<{}, AppState> {
             <Messages
               subset={selectedSubset}
               requestMoreMessages={this.requestMoreMessages}
+              members={selectedSet.members}
               showUser={this.showUser} />
 
             <Members

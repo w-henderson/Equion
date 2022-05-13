@@ -4,8 +4,25 @@ const SEGMENT_REGEX = {
   bold: /\*\*(.*?)\*\*/g,
   italic: /(?<!\*)\*(?!\*)(.*?)\*/g,
   underline: /__(.*?)__/g,
-  strike: /\~\~(.*?)\~\~/g,
+  strike: /~~(.*?)~~/g,
   ping: /<@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>/g
+}
+
+export enum MessageSegmentType {
+  Plain = "plain",
+  BlockLatex = "blockLatex",
+  InlineLatex = "inlineLatex",
+  Bold = "bold",
+  Italic = "italic",
+  Underline = "underline",
+  Strike = "strike",
+  Ping = "ping",
+  Unparsed = "unparsed"
+}
+
+export interface MessageSegment {
+  type: MessageSegmentType,
+  value: string
 }
 
 export class MessageParser {
@@ -37,7 +54,7 @@ export class MessageParser {
 
         for (let [newType, newRegex] of Object.entries(SEGMENT_REGEX)) {
           let newLocation = segment.value.search(newRegex);
-          if (newLocation != -1) {
+          if (newLocation !== -1) {
             location = newLocation;
             regex = newRegex;
             type = newType;
@@ -84,19 +101,36 @@ export class MessageParser {
   }
 }
 
-export interface MessageSegment {
-  type: MessageSegmentType,
-  value: string
-}
+export function serializeMessage(message: MessageSegment[]): string {
+  let output = "";
 
-export enum MessageSegmentType {
-  Plain = "plain",
-  BlockLatex = "blockLatex",
-  InlineLatex = "inlineLatex",
-  Bold = "bold",
-  Italic = "italic",
-  Underline = "underline",
-  Strike = "strike",
-  Ping = "ping",
-  Unparsed = "unparsed"
+  for (let segment of message) {
+    switch (segment.type) {
+      case MessageSegmentType.BlockLatex:
+        output += `\\[${segment.value}\\]`;
+        break;
+      case MessageSegmentType.InlineLatex:
+        output += `\\(${segment.value}\\)`;
+        break;
+      case MessageSegmentType.Bold:
+        output += `**${segment.value}**`;
+        break;
+      case MessageSegmentType.Italic:
+        output += `*${segment.value}*`;
+        break;
+      case MessageSegmentType.Underline:
+        output += `__${segment.value}__`;
+        break;
+      case MessageSegmentType.Strike:
+        output += `~~${segment.value}~~`;
+        break;
+      case MessageSegmentType.Ping:
+        output += `<@${segment.value}>`;
+        break;
+      default:
+        output += segment.value;
+    }
+  }
+
+  return output;
 }
