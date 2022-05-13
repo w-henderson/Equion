@@ -16,6 +16,8 @@ class Api {
   subscriber: Subscriber;
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
+  onUpdateUser: (set: string, user: UserData) => void;
+  onLeftUser: (set: string, uid: string) => void;
 
   constructor() {
     this.ready = false;
@@ -26,15 +28,28 @@ class Api {
     this.subscriber = new Subscriber(WS_ROUTE);
     this.onMessage = () => { };
     this.onSubset = () => { };
+    this.onUpdateUser = () => { };
+    this.onLeftUser = () => { };
   }
 
   public async init(): Promise<boolean> {
     this.uid = await forage.getItem({ key: "uid" })();
     this.token = await forage.getItem({ key: "token" })();
+
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
+
+    this.subscriber.onUpdateUser = (set, user) => {
+      if (user.uid !== this.uid) this.onUpdateUser(set, user);
+    };
+
+    this.subscriber.onLeftUser = (set, uid) => {
+      if (uid !== this.uid) this.onLeftUser(set, uid);
+    }
+
     this.ready = true;
 
+    // Whether the user is already authenticated.
     return false;
   }
 
@@ -76,7 +91,7 @@ class Api {
       body: JSON.stringify({
         username,
         password,
-        display_name: displayName,
+        displayName,
         email
       }),
     })
@@ -175,6 +190,26 @@ class Api {
       .then(this.getSet.bind(this));
   }
 
+  public leaveSet(id: string): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/leaveSet`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        set: id
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
   public createSubset(name: string, set: string): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
 
@@ -222,17 +257,17 @@ class Api {
           id: m.id,
           text: m.content,
           author: {
-            id: m.author_id,
+            uid: m.authorId,
             username: "",
-            displayName: m.author_name,
-            image: m.author_image,
+            displayName: m.authorName,
+            image: m.authorImage,
           },
           attachment: hasAttachment ? {
             id: m.attachment.id,
             name: m.attachment.name,
             type: m.attachment.type
           } : null,
-          timestamp: m.send_time * 1000
+          timestamp: m.sendTime * 1000
         }
 
         return result;
@@ -282,13 +317,7 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          return {
-            id: res.user.uid,
-            username: res.user.username,
-            displayName: res.user.display_name,
-            image: res.user.image,
-            bio: res.user.bio
-          }
+          return res.user;
         } else {
           return Promise.reject(res.error);
         }
@@ -305,7 +334,7 @@ class Api {
         method: "POST",
         body: JSON.stringify({
           token: this.token,
-          display_name: displayName,
+          displayName,
           bio
         })
       })
@@ -336,6 +365,10 @@ class Api {
   public getFileURL(id: string | null | undefined): string {
     if (id === null || id === undefined) return DEFAULT_PROFILE_IMAGE;
     return `${API_ROUTE}/files/${id}`;
+  }
+
+  public doesMessagePingMe(message: string): boolean {
+    return message.includes(`<@${this.uid}>`);
   }
 
   public getGreekLetter(char: string): string {

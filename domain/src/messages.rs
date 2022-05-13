@@ -27,11 +27,11 @@ json_map! {
     Message,
     id => "id",
     content => "content",
-    author_id => "author_id",
-    author_name => "author_name",
-    author_image => "author_image",
+    author_id => "authorId",
+    author_name => "authorName",
+    author_image => "authorImage",
     attachment => "attachment",
-    send_time => "send_time"
+    send_time => "sendTime"
 }
 
 json_map! {

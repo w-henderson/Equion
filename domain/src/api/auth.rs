@@ -10,7 +10,7 @@ pub fn signup(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let username = get_string(&json, "username")?;
         let password = get_string(&json, "password")?;
-        let display_name = get_string(&json, "display_name")?;
+        let display_name = get_string(&json, "displayName")?;
         let email = get_string(&json, "email")?;
 
         let response = state.signup(username, password, display_name, email)?;

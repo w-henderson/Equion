@@ -1,8 +1,9 @@
 import React from 'react';
 import './styles/App.scss';
 
+import { confirm } from '@tauri-apps/api/dialog';
 import { MathJaxContext } from 'better-react-mathjax';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import * as immutable from 'object-path-immutable';
 
 import ApiContext from './api/ApiContext';
@@ -13,6 +14,7 @@ import Subsets from './components/Subsets';
 import Messages from './components/Messages';
 import AuthDialog from './components/AuthDialog';
 import UserInfo from './components/UserInfo';
+import Members from './components/Members';
 
 interface AppState {
   init: boolean,
@@ -34,6 +36,8 @@ class App extends React.Component<{}, AppState> {
 
     this.api.onMessage = this.onMessage.bind(this);
     this.api.onSubset = this.onSubset.bind(this);
+    this.api.onUpdateUser = this.onUpdateUser.bind(this);
+    this.api.onLeftUser = this.onLeftUser.bind(this);
 
     this.state = {
       init: false,
@@ -54,6 +58,7 @@ class App extends React.Component<{}, AppState> {
     this.selectSubset = this.selectSubset.bind(this);
     this.authComplete = this.authComplete.bind(this);
     this.createdSet = this.createdSet.bind(this);
+    this.leaveSet = this.leaveSet.bind(this);
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
   }
 
@@ -83,7 +88,15 @@ class App extends React.Component<{}, AppState> {
     });
 
     this.api.getSets().then(sets => {
-      this.setState({ sets }, this.requestMoreMessages);
+      if (sets.findIndex(s => s.id === this.state.selectedSet) === -1) {
+        this.setState({
+          sets,
+          selectedSet: null,
+          selectedSubset: null
+        });
+      } else {
+        this.setState({ sets }, this.requestMoreMessages);
+      }
     });
   }
 
@@ -102,6 +115,16 @@ class App extends React.Component<{}, AppState> {
     }, () => {
       this.api.subscriber.subscribe(this.api.token!, set.id);
       this.selectSet(set.id);
+    });
+  }
+
+  leaveSet(id: string) {
+    confirm("Are you sure you want to leave this set? You will not be able to rejoin unless invited.", "Leave set?").then(ok => {
+      if (ok) {
+        this.api.leaveSet(id).then(this.refresh, (e) => {
+          toast.error(e);
+        });
+      }
     });
   }
 
@@ -132,6 +155,36 @@ class App extends React.Component<{}, AppState> {
 
       return newState.value();
     });
+  }
+
+  onUpdateUser(set: string, user: UserData) {
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.id === set)!;
+      let memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === user.uid);
+
+      if (memberIndex === -1) {
+        newState.push(`sets.${setIndex}.members`, user);
+      } else {
+        newState.set(`sets.${setIndex}.members.${memberIndex}`, user);
+      }
+
+      return newState.value();
+    }) // could refresh but not for now
+  }
+
+  onLeftUser(set: string, uid: string) {
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.id === set)!;
+      let memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === uid);
+
+      newState.del(`sets.${setIndex}.members.${memberIndex}`);
+
+      return newState.value();
+    }) // could refresh but not for now
   }
 
   selectSet(id: string) {
@@ -212,12 +265,13 @@ class App extends React.Component<{}, AppState> {
             <Messages
               subset={selectedSubset}
               requestMoreMessages={this.requestMoreMessages}
+              members={selectedSet.members}
               showUser={this.showUser} />
 
-            <UserInfo
-              id={this.state.shownUser}
-              hideCallback={() => this.setState({ shownUser: null })}
-              refreshCallback={this.refresh} />
+            <Members
+              set={selectedSet}
+              userCallback={this.showUser}
+              leaveCallback={() => this.leaveSet(selectedSet!.id)} />
           </>
         }
 
@@ -227,13 +281,13 @@ class App extends React.Component<{}, AppState> {
               <h1>Welcome to Equion</h1>
               <p>Select, join or create a set on the left to get started.</p>
             </div>
-
-            <UserInfo
-              id={this.state.shownUser}
-              hideCallback={() => this.setState({ shownUser: null })}
-              refreshCallback={this.refresh} />
           </>
         }
+
+        <UserInfo
+          id={this.state.shownUser}
+          hideCallback={() => this.setState({ shownUser: null })}
+          refreshCallback={this.refresh} />
 
       </div>
     );

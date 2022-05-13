@@ -11,6 +11,7 @@ import Modal from './Modal';
 
 interface MessagesProps {
   subset: SubsetData | undefined,
+  members: UserData[],
   showUser: (id: string) => void,
   requestMoreMessages: () => Promise<void>,
 }
@@ -26,6 +27,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
   messages: React.RefObject<HTMLDivElement>;
   lastId: string | null;
   lastMessageId: string | null;
+  lastScrolledMessageTimestamp: number | null;
 
   constructor(props: MessagesProps) {
     super(props);
@@ -37,6 +39,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
 
     this.lastId = null;
     this.lastMessageId = null;
+    this.lastScrolledMessageTimestamp = null;
 
     this.handleScroll = this.handleScroll.bind(this);
     this.showAttachment = this.showAttachment.bind(this);
@@ -101,19 +104,24 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
               <p key={this.props.subset.id}>Loading more messages...</p>
             }
 
-            {(this.props.subset.messages || []).map((message, index, array) =>
+            {(this.props.subset.messages || []).map((message) =>
               <Message
                 message={message}
                 key={message.id}
                 showUserCallback={this.props.showUser}
                 showAttachmentCallback={this.showAttachment}
-                scrollCallback={index === array.length - 1 ? () => {
-                  this.messages.current!.scrollTop = this.messages.current!.scrollHeight
-                } : () => { }} />
+                scrollCallback={(override?: boolean) => {
+                  if (this.lastScrolledMessageTimestamp === null || this.lastScrolledMessageTimestamp < message.timestamp) {
+                    this.lastScrolledMessageTimestamp = message.timestamp;
+                    this.messages.current!.scrollTop = this.messages.current!.scrollHeight
+                  } else if (override === true) {
+                    this.messages.current!.scrollTop = this.messages.current!.scrollHeight
+                  }
+                }} />
             )}
           </div>
 
-          <MessageBox subsetId={this.props.subset.id} />
+          <MessageBox subsetId={this.props.subset.id} members={this.props.members} />
 
           <Modal
             visible={this.state.shownAttachment}
@@ -122,7 +130,8 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             <img
               src={this.context.getFileURL(this.state.shownAttachmentId)}
               onClick={() => open(this.context.getFileURL(this.state.shownAttachmentId))}
-              className="limitSize" />
+              className="limitSize"
+              alt="Attachment" />
           </Modal>
         </div>
       )
@@ -130,7 +139,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
       return (
         <div className="Messages">
           <div data-tauri-drag-region className="title">
-            <h1></h1>
+            <h1> </h1>
           </div>
         </div>
       )

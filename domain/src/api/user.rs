@@ -22,7 +22,7 @@ pub fn get_user(state: Arc<State>, json: Value) -> Value {
 pub fn update_user(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
-        let display_name = get_string(&json, "display_name").ok();
+        let display_name = get_string(&json, "displayName").ok();
         let email = get_string(&json, "email").ok();
         let bio = get_string(&json, "bio").ok();
 

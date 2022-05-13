@@ -3,7 +3,8 @@ interface SetData {
   name: string,
   icon: string,
   admin: boolean,
-  subsets: SubsetData[]
+  subsets: SubsetData[],
+  members: UserData[]
 }
 
 interface SubsetData {
@@ -14,7 +15,7 @@ interface SubsetData {
 }
 
 interface UserData {
-  id: string,
+  uid: string,
   username: string,
   displayName: string,
   image?: string,

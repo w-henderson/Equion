@@ -1,3 +1,4 @@
+use crate::user::User;
 use crate::util::get_greek_letter;
 use crate::State;
 
@@ -11,6 +12,7 @@ pub struct Set {
     pub icon: String,
     pub admin: bool,
     pub subsets: Vec<Subset>,
+    pub members: Vec<User>,
 }
 
 pub struct Subset {
@@ -24,7 +26,8 @@ json_map! {
     name => "name",
     icon => "icon",
     admin => "admin",
-    subsets => "subsets"
+    subsets => "subsets",
+    members => "members"
 }
 
 json_map! {
@@ -68,9 +71,29 @@ impl State {
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
                     (&id,),
                 )
-                .map_err(|_| "Could not execute query".to_string())?
+                .map_err(|_| "Could not get subsets".to_string())?
                 .into_iter()
                 .map(|(id, name)| Subset { id, name })
+                .collect();
+
+            let members: Vec<User> = conn
+                .exec(
+                    "SELECT users.id, username, display_name, email, image, bio FROM users
+                    JOIN memberships ON users.id = memberships.user_id
+                    WHERE memberships.set_id = ?
+                    ORDER BY display_name ASC",
+                    (&id,),
+                )
+                .map_err(|_| "Could not get members".to_string())?
+                .into_iter()
+                .map(|(uid, username, display_name, email, image, bio)| User {
+                    uid,
+                    username,
+                    display_name,
+                    email,
+                    image,
+                    bio,
+                })
                 .collect();
 
             full_sets.push(Set {
@@ -79,6 +102,7 @@ impl State {
                 icon,
                 admin,
                 subsets,
+                members,
             });
         }
 
@@ -116,6 +140,7 @@ impl State {
                 icon,
                 admin: is_admin.unwrap(),
                 subsets: Vec::new(),
+                members: Vec::new(),
             });
 
         if let Some(mut set) = set {
@@ -124,12 +149,33 @@ impl State {
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
                     (&set.id,),
                 )
-                .map_err(|_| "Could not execute query".to_string())?
+                .map_err(|_| "Could not get subsets".to_string())?
                 .into_iter()
                 .map(|(id, name)| Subset { id, name })
                 .collect();
 
+            let members: Vec<User> = conn
+                .exec(
+                    "SELECT users.id, username, display_name, email, image, bio FROM users
+                    JOIN memberships ON users.id = memberships.user_id
+                    WHERE memberships.set_id = ?
+                    ORDER BY display_name ASC",
+                    (&set.id,),
+                )
+                .map_err(|_| "Could not get members".to_string())?
+                .into_iter()
+                .map(|(uid, username, display_name, email, image, bio)| User {
+                    uid,
+                    username,
+                    display_name,
+                    email,
+                    image,
+                    bio,
+                })
+                .collect();
+
             set.subsets = subsets;
+            set.members = members;
 
             Ok(set)
         } else {
@@ -234,20 +280,40 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user_id: Option<String> = conn
-            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
-            .map_err(|_| "Could not get user by token".to_string())?;
+        #[allow(clippy::type_complexity)]
+        let user: Option<(
+            String,
+            String,
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+        )> = conn
+            .exec_first(
+                "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
+                (token.as_ref(),),
+            )
+            .map_err(|_| "Invalid token".to_string())?;
 
-        if user_id.is_none() {
+        let user = user.map(|(uid, username, display_name, email, image, bio)| User {
+            uid,
+            username,
+            display_name,
+            email,
+            image,
+            bio,
+        });
+
+        if user.is_none() {
             return Err("Invalid token".to_string());
         }
 
-        let user_id = user_id.unwrap();
+        let user = user.unwrap();
 
         let has_membership: Option<u8> = conn
             .exec_first(
                 "SELECT 1 FROM memberships WHERE user_id = ? AND set_id = ?",
-                (&user_id, set.as_ref()),
+                (&user.uid, set.as_ref()),
             )
             .map_err(|_| "Could not verify membership".to_string())?;
 
@@ -259,9 +325,11 @@ impl State {
 
         conn.exec_drop(
             "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 0, NOW())",
-            (&new_membership_id, &user_id, set.as_ref()),
+            (&new_membership_id, &user.uid, set.as_ref()),
         )
         .map_err(|_| "Could not add new membership".to_string())?;
+
+        self.broadcast_new_user(set, user);
 
         Ok(())
     }
@@ -298,6 +366,8 @@ impl State {
             (&user_id, set.as_ref()),
         )
         .map_err(|_| "Could not remove membership".to_string())?;
+
+        self.broadcast_left_user(set, user_id);
 
         Ok(())
     }

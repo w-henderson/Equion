@@ -4,11 +4,17 @@ import { open } from '@tauri-apps/api/dialog';
 import '../styles/MessageBox.scss';
 
 interface MessageBoxProps {
-  subsetId: string
+  subsetId: string,
+  members: UserData[]
 }
 
 interface MessageBoxState {
   message: string,
+  mentioning?: {
+    query: string,
+    highlighted: number
+  },
+  mentions: UserData[],
   attachment?: string,
   sending: boolean
 }
@@ -21,6 +27,8 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
     super(props);
 
     this.state = {
+      mentions: [],
+      mentioning: undefined,
       message: "",
       attachment: undefined,
       sending: false
@@ -29,6 +37,9 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
     this.box = React.createRef();
 
     this.addAttachment = this.addAttachment.bind(this);
+    this.handleButtonPress = this.handleButtonPress.bind(this);
+    this.changeHighlight = this.changeHighlight.bind(this);
+    this.addMention = this.addMention.bind(this);
     this.messageChange = this.messageChange.bind(this);
     this.messageSend = this.messageSend.bind(this);
   }
@@ -50,21 +61,128 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
     })
   }
 
+  handleButtonPress(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (this.state.mentioning !== undefined) {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        this.changeHighlight(-1);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        this.changeHighlight(1);
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        this.addMention();
+      }
+    }
+
+    if (
+      e.key === "Backspace" &&
+      (this.state.message.length === 0 ||
+        (this.box.current!.selectionStart === 0 &&
+          this.box.current!.selectionEnd === this.state.message.length))
+    ) {
+      this.setState(state => {
+        return {
+          ...state,
+          mentions: state.mentions.slice(0, state.mentions.length - 1)
+        }
+      })
+    }
+  }
+
+  changeHighlight(direction: number) {
+    let currentIndex = this.state.mentioning?.highlighted;
+
+    if (currentIndex !== undefined) {
+      let newIndex = currentIndex + direction;
+      let length = this.props.members.filter(user =>
+        user.displayName.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+        || user.username.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+      ).length;
+
+      if (newIndex < 0) {
+        newIndex = length - 1;
+      } else if (newIndex >= length) {
+        newIndex = 0;
+      }
+
+      this.setState({
+        mentioning: {
+          ...this.state.mentioning!,
+          highlighted: newIndex
+        }
+      })
+    }
+  }
+
+  addMention() {
+    let user = this.props.members.filter(user =>
+      user.displayName.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+      || user.username.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+    )[this.state.mentioning!.highlighted];
+
+    let words = this.state.message.split(" ");
+    let currentPosition = this.box.current!.selectionStart || 0;
+    let currentWordIndex = 0;
+
+    for (let word of words) {
+      currentPosition -= word.length + 1;
+      if (currentPosition < 0) break;
+      currentWordIndex++;
+    }
+
+    words.splice(currentWordIndex, 1);
+
+    this.setState(state => {
+      return {
+        ...state,
+        message: words.join(" "),
+        mentions: [...state.mentions, user],
+      }
+    })
+  }
+
   messageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({
-      message: e.target.value
-    });
+    let words = e.target.value.split(" ");
+    let currentPosition = e.target.selectionStart || 0;
+    let currentWordIndex = 0;
+
+    for (let word of words) {
+      currentPosition -= word.length + 1;
+      if (currentPosition < 0) break;
+      currentWordIndex++;
+    }
+
+    let currentWord = words[currentWordIndex];
+
+    if (currentWord.startsWith("@")) {
+      this.setState({
+        mentioning: {
+          query: currentWord.substring(1),
+          highlighted: 0
+        },
+        message: e.target.value
+      })
+    } else {
+      this.setState({
+        mentioning: undefined,
+        message: e.target.value
+      })
+    }
   }
 
   messageSend(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    let message = this.state.message;
+    let formattedMentions = this.state.mentions.map(user => "<@" + user.uid + ">").join(" ");
+    let message = (formattedMentions + " " + this.state.message).trim();
     let attachment = this.state.attachment;
 
-    if (message.length > 0) {
+    if (message.length > 0 || attachment) {
       this.setState({
         message: "",
+        mentioning: undefined,
+        mentions: [],
         attachment: undefined,
         sending: true
       }, () => {
@@ -89,10 +207,20 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
         </div>
 
         <form onSubmit={this.messageSend}>
+          <div className="mentions">
+            {this.state.mentions.map(user => (
+              <div className="mention" key={user.uid}>
+                {`@${user.displayName}`}
+              </div>
+            ))}
+          </div>
+
           <input
             type="text"
             value={this.state.message}
             onChange={this.messageChange}
+            onKeyDown={this.handleButtonPress}
+            onSelect={this.messageChange}
             placeholder={this.state.sending ? "Sending..." : "Type a message"}
             disabled={this.state.sending}
             ref={this.box} />
@@ -116,6 +244,30 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
             x
           </div>
         </div>
+
+        {this.state.mentioning !== undefined &&
+          <div className="pingDialog">
+            <div className="title">
+              <h2>Members matching <span>@{this.state.mentioning.query}</span></h2>
+            </div>
+
+            <div className="matches">
+              {this.props.members.filter(user =>
+                user.displayName.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+                || user.username.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+              ).map((user, i) => (
+                <div className={i === this.state.mentioning!.highlighted ? "match highlighted" : "match"} key={user.uid}>
+                  <img src={this.context.getFileURL(user.image)} alt="Member" />
+
+                  <div>
+                    <h2>{user.displayName}</h2>
+                    <span>@{user.username}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        }
       </div>
     )
   }
