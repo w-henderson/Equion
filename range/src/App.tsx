@@ -35,6 +35,8 @@ class App extends React.Component<{}, AppState> {
 
     this.api.onMessage = this.onMessage.bind(this);
     this.api.onSubset = this.onSubset.bind(this);
+    this.api.onUpdateUser = this.onUpdateUser.bind(this);
+    this.api.onLeftUser = this.onLeftUser.bind(this);
 
     this.state = {
       init: false,
@@ -133,6 +135,36 @@ class App extends React.Component<{}, AppState> {
 
       return newState.value();
     });
+  }
+
+  onUpdateUser(set: string, user: UserData) {
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.id === set)!;
+      let memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === user.uid);
+
+      if (memberIndex === -1) {
+        newState.push(`sets.${setIndex}.members`, user);
+      } else {
+        newState.set(`sets.${setIndex}.members.${memberIndex}`, user);
+      }
+
+      return newState.value();
+    }) // could refresh but not for now
+  }
+
+  onLeftUser(set: string, uid: string) {
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.id === set)!;
+      let memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === uid);
+
+      newState.del(`sets.${setIndex}.members.${memberIndex}`);
+
+      return newState.value();
+    }) // could refresh but not for now
   }
 
   selectSet(id: string) {

@@ -15,7 +15,7 @@ interface SubsetData {
 }
 
 interface UserData {
-  id: string,
+  uid: string,
   username: string,
   displayName: string,
   image?: string,

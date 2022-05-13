@@ -19,7 +19,7 @@ class Members extends React.Component<MembersProps> {
 
         <div className="list">
           {this.props.set.members.map(member =>
-            <div className="member" key={member.id} onClick={() => this.props.userCallback(member.id)}>
+            <div className="member" key={member.uid} onClick={() => this.props.userCallback(member.uid)}>
               <img src={this.context.getFileURL(member.image)} alt="Member" />
 
               <div>

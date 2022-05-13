@@ -29,7 +29,7 @@ class Message extends React.Component<MessageProps> {
     let sendDate = new Date(this.props.message.timestamp);
     let sendDateString = sendDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    let isLocalSender = this.props.message.author.id === this.context.getUid();
+    let isLocalSender = this.props.message.author.uid === this.context.getUid();
 
     let parsedMessage = new MessageParser(this.props.message.text).parse();
 
@@ -66,7 +66,7 @@ class Message extends React.Component<MessageProps> {
         <img
           src={this.context.getFileURL(this.props.message.author.image)}
           alt="Profile"
-          onClick={() => this.props.showUserCallback(this.props.message.author.id)} />
+          onClick={() => this.props.showUserCallback(this.props.message.author.uid)} />
 
         <div className={this.context.doesMessagePingMe(this.props.message.text) ? "content pingsMe" : "content"}>
           {attachment}

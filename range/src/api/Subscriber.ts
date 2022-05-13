@@ -1,11 +1,11 @@
 import toast from "react-hot-toast";
 
-import { DEFAULT_PROFILE_IMAGE } from "./Api";
-
 class Subscriber {
   ws: WebSocket;
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
+  onUpdateUser: (set: string, user: UserData) => void;
+  onLeftUser: (set: string, uid: string) => void;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
@@ -15,6 +15,8 @@ class Subscriber {
 
     this.onMessage = () => { };
     this.onSubset = () => { };
+    this.onUpdateUser = () => { };
+    this.onLeftUser = () => { };
   }
 
   subscribe(token: string, id: string) {
@@ -43,20 +45,24 @@ class Subscriber {
         id: data.message.id,
         text: data.message.content,
         author: {
-          id: data.message.author_id,
+          uid: data.message.authorId,
           username: "",
-          displayName: data.message.author_name,
-          image: data.message.author_image,
+          displayName: data.message.authorName,
+          image: data.message.authorImage,
         },
         attachment: hasAttachment ? {
           id: data.message.attachment.id,
           name: data.message.attachment.name,
           type: data.message.attachment.type
         } : null,
-        timestamp: data.message.send_time * 1000
+        timestamp: data.message.sendTime * 1000
       }, data.set, data.subset);
     } else if (data.event === "v1/newSubset") {
       this.onSubset(data.subset, data.set);
+    } else if (data.event === "v1/updateUser") {
+      this.onUpdateUser(data.set, data.user);
+    } else if (data.event === "v1/leftUser") {
+      this.onLeftUser(data.set, data.uid);
     } else {
       // Ignore invalid events
       // toast.error(`Unknown event: ${data.event}`);
