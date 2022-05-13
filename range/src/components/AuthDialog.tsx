@@ -92,7 +92,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
   render() {
     let windowButtons = <div className="windowButtons">
-      <div className="close" onClick={() => appWindow.close()} />
+      <div className="close" onClick={() => appWindow.hide()} />
       <div className="minimise" onClick={() => appWindow.minimize()} />
       <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
     </div>;
@@ -102,7 +102,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
         <div className="AuthDialog" data-tauri-drag-region>
           {windowButtons}
 
-          <img src={logo} />
+          <img src={logo} alt="Equion logo" />
 
           <h1>Welcome to Equion</h1>
 
@@ -136,7 +136,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
         <div className="AuthDialog" data-tauri-drag-region>
           {windowButtons}
 
-          <img src={logo} />
+          <img src={logo} alt="Equion logo" />
 
           <h1>Welcome to Equion</h1>
 

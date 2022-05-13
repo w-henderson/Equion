@@ -2,7 +2,6 @@ import React from 'react';
 import '../styles/Sets.scss';
 
 import ApiContext from '../api/ApiContext';
-import { DEFAULT_PROFILE_IMAGE } from '../api/Api';
 import { appWindow } from '@tauri-apps/api/window';
 import toast from 'react-hot-toast';
 
@@ -90,7 +89,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
     return (
       <div data-tauri-drag-region className="Sets">
         <div className="windowButtons">
-          <div className="close" onClick={() => appWindow.close()} />
+          <div className="close" onClick={() => appWindow.hide()} />
           <div className="minimise" onClick={() => appWindow.minimize()} />
           <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
         </div>
