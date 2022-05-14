@@ -11,7 +11,8 @@ interface SubsetData {
   id: string,
   name: string,
   messages?: MessageData[],
-  loadedToTop?: boolean
+  loadedToTop?: boolean,
+  unread?: boolean
 }
 
 interface UserData {

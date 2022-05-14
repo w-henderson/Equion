@@ -10,6 +10,23 @@ div.Subset {
 
   transition: opacity 100ms, background-color 100ms;
 
+  &.unread {
+    position: relative;
+    opacity: 1;
+
+    &::after {
+      display: block;
+      content: "";
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      background-color: var(--red);
+    }
+  }
+
   &.add {
     opacity: 0.25;
     border: none;

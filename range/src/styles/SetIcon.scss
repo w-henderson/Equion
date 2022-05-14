@@ -25,6 +25,22 @@ div.SetIcon {
     cursor: default;
   }
 
+  &.unread {
+    position: relative;
+
+    &::before {
+      display: block;
+      content: "";
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      background-color: var(--red);
+    }
+  }
+
   &.add {
     font-size: 48px;
     font-weight: 200;

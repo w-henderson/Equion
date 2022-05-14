@@ -42,6 +42,7 @@ fn tray_handler(app: &AppHandle, event: SystemTrayEvent) {
                 w.show().ok();
                 w.maximize().ok();
                 w.set_focus().ok();
+                w.emit("show", "").ok();
             }
         }
         SystemTrayEvent::MenuItemClick { id, .. } => {

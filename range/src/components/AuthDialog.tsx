@@ -92,7 +92,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
   render() {
     let windowButtons = <div className="windowButtons">
-      <div className="close" onClick={() => appWindow.hide()} />
+      <div className="close" onClick={() => this.context.minimiseToTray()} />
       <div className="minimise" onClick={() => appWindow.minimize()} />
       <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
     </div>;

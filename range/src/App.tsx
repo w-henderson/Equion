@@ -132,6 +132,10 @@ class App extends React.Component<{}, AppState> {
     let setIndex = this.state.sets.findIndex(s => s.id === set)!;
     let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
 
+    if (this.state.selectedSubset !== subset || this.api.minimisedToTray) {
+      this.api.notifier.notify(message);
+    }
+
     this.setState(state => {
       let newState = immutable.wrap(state);
 
@@ -139,6 +143,10 @@ class App extends React.Component<{}, AppState> {
         newState.set(`sets.${setIndex}.subsets.${subsetIndex}.messages`, [message]);
       } else {
         newState.push(`sets.${setIndex}.subsets.${subsetIndex}.messages`, message);
+      }
+
+      if (this.state.selectedSubset !== state.sets[setIndex].subsets[subsetIndex].id) {
+        newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, true);
       }
 
       return newState.value();
@@ -197,9 +205,14 @@ class App extends React.Component<{}, AppState> {
     let setIndex = this.state.sets.findIndex(s => s.id === set)!;
     let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
 
-    this.setState({
-      selectedSet: set,
-      selectedSubset: subset
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, false);
+      newState.set(`selectedSet`, set);
+      newState.set(`selectedSubset`, subset);
+
+      return newState.value();
     }, () => {
       if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined) {
         this.requestMoreMessages();

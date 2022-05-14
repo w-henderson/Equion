@@ -89,7 +89,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
     return (
       <div data-tauri-drag-region className="Sets">
         <div className="windowButtons">
-          <div className="close" onClick={() => appWindow.hide()} />
+          <div className="close" onClick={() => this.context.minimiseToTray()} />
           <div className="minimise" onClick={() => appWindow.minimize()} />
           <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
         </div>
