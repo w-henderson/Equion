@@ -27,7 +27,6 @@ pub fn get_base64_file(path: String) -> Result<String, String> {
 #[tauri::command]
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 pub fn set_notification_icon(app_handle: AppHandle, icon: String) {
-    println!("setting notification icon to {}", icon);
     let icon = if icon == "notification" {
         TrayIcon::Raw(NOTIFICATION_ICON.to_vec())
     } else {
