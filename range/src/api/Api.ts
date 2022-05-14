@@ -16,9 +16,14 @@ class Api {
   token: string | null;
   image: string | null | undefined;
   ready: boolean;
+
   minimisedToTray: boolean;
+  trayIcon: "default" | "notification";
+
   subscriber: Subscriber;
   notifier: Notifier;
+
+  onShow: () => void;
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
   onUpdateUser: (set: string, user: UserData) => void;
@@ -30,12 +35,12 @@ class Api {
     this.token = null;
     this.image = null;
     this.minimisedToTray = false;
+    this.trayIcon = "default";
 
     this.subscriber = new Subscriber(WS_ROUTE);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
 
-    listen("show", () => { this.minimisedToTray = false; });
-
+    this.onShow = () => { };
     this.onMessage = () => { };
     this.onSubset = () => { };
     this.onUpdateUser = () => { };
@@ -56,6 +61,13 @@ class Api {
     this.subscriber.onLeftUser = (set, uid) => {
       if (uid !== this.uid) this.onLeftUser(set, uid);
     }
+
+    listen("show", () => {
+      this.minimisedToTray = false;
+      this.onShow();
+    });
+
+    invoke("set_notification_icon", { icon: "default" });
 
     this.ready = true;
 
@@ -80,6 +92,13 @@ class Api {
   public minimiseToTray() {
     this.minimisedToTray = true;
     appWindow.hide();
+  }
+
+  public setTrayIcon(icon: "default" | "notification") {
+    if (this.trayIcon !== icon) {
+      this.trayIcon = icon;
+      invoke("set_notification_icon", { icon });
+    }
   }
 
   public login(username: string, password: string): Promise<void> {
