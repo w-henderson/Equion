@@ -214,7 +214,9 @@ class App extends React.Component<{}, AppState> {
 
       return newState.value();
     }, () => {
-      if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined) {
+      if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined
+        || (this.state.sets[setIndex].subsets[subsetIndex].messages!.length < 25
+          && this.state.sets[setIndex].subsets[subsetIndex].loadedToTop !== true)) {
         this.requestMoreMessages();
       }
     });
