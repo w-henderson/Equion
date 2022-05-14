@@ -1,4 +1,5 @@
 div.Messages {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -38,6 +39,28 @@ div.Messages {
     p {
       text-align: center;
       opacity: 0.5;
+    }
+  }
+
+  div.scrollDownButton {
+    position: absolute;
+    display: flex;
+    place-items: center;
+    place-content: center;
+    bottom: 78px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+
+    background-color: var(--accent);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+
+    transition: background-color 150ms;
+
+    &:hover {
+      background-color: var(--accent-light);
     }
   }
 }

@@ -18,6 +18,7 @@ interface MessagesProps {
 
 interface MessagesState {
   waitingForMessages: boolean,
+  scrollLockedToBottom: boolean,
   shownAttachment: boolean,
   shownAttachmentId?: string,
 }
@@ -34,6 +35,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
 
     this.state = {
       waitingForMessages: false,
+      scrollLockedToBottom: true,
       shownAttachment: false
     }
 
@@ -41,9 +43,11 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     this.lastMessageId = null;
     this.lastScrolledMessageTimestamp = null;
 
+    this.messages = React.createRef();
+
     this.handleScroll = this.handleScroll.bind(this);
     this.showAttachment = this.showAttachment.bind(this);
-    this.messages = React.createRef();
+    this.lockScroll = this.lockScroll.bind(this);
   }
 
   componentDidMount() {
@@ -53,16 +57,32 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
   }
 
   handleScroll(e: React.WheelEvent<HTMLDivElement>) {
-    if (e.deltaY < 0 && this.messages.current!.scrollTop === 0 && !this.state.waitingForMessages && !this.props.subset?.loadedToTop) {
+    let scrollTop = this.messages.current!.scrollTop + e.deltaY;
+    let scrollBottom = scrollTop + this.messages.current!.clientHeight;
+    let scrollHeight = this.messages.current!.scrollHeight;
+
+    if (scrollBottom >= scrollHeight) {
+      this.setState({ scrollLockedToBottom: true });
+    } else if (scrollTop <= 0 && !this.state.waitingForMessages && !this.props.subset?.loadedToTop) {
       let oldScrollHeight = this.messages.current!.scrollHeight;
-      this.setState({ waitingForMessages: true }, () => {
+
+      this.setState({
+        scrollLockedToBottom: false,
+        waitingForMessages: true
+      }, () => {
         this.props.requestMoreMessages().then(() => {
           let newScrollHeight = this.messages.current!.scrollHeight;
           this.messages.current!.scrollTop = newScrollHeight - oldScrollHeight;
           this.setState({ waitingForMessages: false });
         });
       });
+    } else {
+      this.setState({ scrollLockedToBottom: false });
     }
+  }
+
+  lockScroll() {
+    this.setState({ scrollLockedToBottom: true });
   }
 
   showAttachment(id: string) {
@@ -73,17 +93,17 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
   }
 
   componentDidUpdate() {
-    // Scroll to the bottom if the subset has changed
-    if (this.props.subset !== undefined && this.props.subset.id !== this.lastId) {
-      this.lastId = this.props.subset.id;
+    if (this.state.scrollLockedToBottom) {
       this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
     }
 
-    // Scroll to the bottom if a message has been sent
-    let messagesCount = this.props.subset?.messages?.length;
-    if (messagesCount !== undefined && messagesCount > 0 && this.lastMessageId !== this.props.subset!.messages![messagesCount - 1].id) {
-      this.lastMessageId = this.props.subset!.messages![messagesCount - 1].id;
-      this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
+    if (this.props.subset !== undefined) {
+      if (this.lastId !== this.props.subset.id) {
+        this.lastId = this.props.subset.id;
+        this.setState({ scrollLockedToBottom: true });
+      } else {
+        this.lastId = this.props.subset.id;
+      }
     }
   }
 
@@ -110,18 +130,28 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
                 key={message.id}
                 showUserCallback={this.props.showUser}
                 showAttachmentCallback={this.showAttachment}
-                scrollCallback={(override?: boolean) => {
-                  if (this.lastScrolledMessageTimestamp === null || this.lastScrolledMessageTimestamp < message.timestamp) {
-                    this.lastScrolledMessageTimestamp = message.timestamp;
-                    this.messages.current!.scrollTop = this.messages.current!.scrollHeight
-                  } else if (override === true) {
-                    this.messages.current!.scrollTop = this.messages.current!.scrollHeight
+                scrollCallback={() => {
+                  if (this.state.scrollLockedToBottom) {
+                    this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
                   }
                 }} />
             )}
           </div>
 
-          <MessageBox subsetId={this.props.subset.id} members={this.props.members} />
+          {!this.state.scrollLockedToBottom &&
+            <div className="scrollDownButton" onClick={this.lockScroll}>
+              <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.25 5.5V18M12.25 18L6.25 12M12.25 18L18.25 12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          }
+
+          <MessageBox
+            subsetId={this.props.subset.id}
+            members={this.props.members}
+            sendCallback={() => {
+              this.setState({ scrollLockedToBottom: true });
+            }} />
 
           <Modal
             visible={this.state.shownAttachment}

@@ -63,7 +63,7 @@
       "csp": null
     },
     "systemTray": {
-      "iconPath": "icons/icon.png"
+      "iconPath": "icons/tray_icon_normal.png"
     }
   }
 }

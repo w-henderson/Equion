@@ -5,7 +5,8 @@ import '../styles/MessageBox.scss';
 
 interface MessageBoxProps {
   subsetId: string,
-  members: UserData[]
+  members: UserData[],
+  sendCallback: () => void
 }
 
 interface MessageBoxState {
@@ -186,6 +187,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
         attachment: undefined,
         sending: true
       }, () => {
+        this.props.sendCallback();
         this.context.sendMessage(this.props.subsetId, message, attachment).then(() => {
           this.setState({ sending: false }, () => {
             this.box.current!.focus();

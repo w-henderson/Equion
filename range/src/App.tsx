@@ -34,6 +34,7 @@ class App extends React.Component<{}, AppState> {
 
     this.api = new Api();
 
+    this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
     this.api.onSubset = this.onSubset.bind(this);
     this.api.onUpdateUser = this.onUpdateUser.bind(this);
@@ -52,6 +53,7 @@ class App extends React.Component<{}, AppState> {
 
     this.showUser = this.showUser.bind(this);
     this.refresh = this.refresh.bind(this);
+    this.onShow = this.onShow.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onSubset = this.onSubset.bind(this);
     this.selectSet = this.selectSet.bind(this);
@@ -128,9 +130,37 @@ class App extends React.Component<{}, AppState> {
     });
   }
 
+  onShow() {
+    let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet);
+    if (setIndex === -1) return;
+    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset);
+    if (subsetIndex === -1) return;
+
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let subset = {
+        ...state.sets[setIndex].subsets[subsetIndex],
+        unread: false
+      }
+
+      newState.set(`sets.${setIndex}.subsets.${subsetIndex}`, subset);
+
+      return newState.value();
+    }, () => {
+      let unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
+
+      this.api.setTrayIcon(unreadMessages ? "notification" : "default");
+    });
+  }
+
   onMessage(message: MessageData, set: string, subset: string) {
     let setIndex = this.state.sets.findIndex(s => s.id === set)!;
     let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
+
+    if (this.state.selectedSubset !== subset || this.api.minimisedToTray) {
+      this.api.notifier.notify(message);
+    }
 
     this.setState(state => {
       let newState = immutable.wrap(state);
@@ -141,7 +171,15 @@ class App extends React.Component<{}, AppState> {
         newState.push(`sets.${setIndex}.subsets.${subsetIndex}.messages`, message);
       }
 
+      if (this.state.selectedSubset !== subset || this.api.minimisedToTray) {
+        newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, true);
+      }
+
       return newState.value();
+    }, () => {
+      let unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
+
+      this.api.setTrayIcon(unreadMessages ? "notification" : "default");
     });
   }
 
@@ -197,11 +235,18 @@ class App extends React.Component<{}, AppState> {
     let setIndex = this.state.sets.findIndex(s => s.id === set)!;
     let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
 
-    this.setState({
-      selectedSet: set,
-      selectedSubset: subset
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, false);
+      newState.set(`selectedSet`, set);
+      newState.set(`selectedSubset`, subset);
+
+      return newState.value();
     }, () => {
-      if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined) {
+      if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined
+        || (this.state.sets[setIndex].subsets[subsetIndex].messages!.length < 25
+          && this.state.sets[setIndex].subsets[subsetIndex].loadedToTop !== true)) {
         this.requestMoreMessages();
       }
     });

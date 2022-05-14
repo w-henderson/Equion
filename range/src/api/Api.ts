@@ -1,8 +1,11 @@
 import { forage } from "@tauri-apps/tauri-forage";
 import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
+import { appWindow } from "@tauri-apps/api/window";
 import toast from "react-hot-toast";
 
 import Subscriber from "./Subscriber";
+import Notifier from "./Notifier";
 
 const API_ROUTE = "http://localhost/api/v1";
 const WS_ROUTE = "ws://localhost/ws";
@@ -13,7 +16,14 @@ class Api {
   token: string | null;
   image: string | null | undefined;
   ready: boolean;
+
+  minimisedToTray: boolean;
+  trayIcon: "default" | "notification";
+
   subscriber: Subscriber;
+  notifier: Notifier;
+
+  onShow: () => void;
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
   onUpdateUser: (set: string, user: UserData) => void;
@@ -24,8 +34,13 @@ class Api {
     this.uid = null;
     this.token = null;
     this.image = null;
+    this.minimisedToTray = false;
+    this.trayIcon = "default";
 
     this.subscriber = new Subscriber(WS_ROUTE);
+    this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
+
+    this.onShow = () => { };
     this.onMessage = () => { };
     this.onSubset = () => { };
     this.onUpdateUser = () => { };
@@ -47,6 +62,13 @@ class Api {
       if (uid !== this.uid) this.onLeftUser(set, uid);
     }
 
+    listen("show", () => {
+      this.minimisedToTray = false;
+      this.onShow();
+    });
+
+    invoke("set_notification_icon", { icon: "default" });
+
     this.ready = true;
 
     // Whether the user is already authenticated.
@@ -65,6 +87,18 @@ class Api {
 
   public getUid(): string {
     return this.uid || "";
+  }
+
+  public minimiseToTray() {
+    this.minimisedToTray = true;
+    appWindow.hide();
+  }
+
+  public setTrayIcon(icon: "default" | "notification") {
+    if (this.trayIcon !== icon) {
+      this.trayIcon = icon;
+      invoke("set_notification_icon", { icon });
+    }
   }
 
   public login(username: string, password: string): Promise<void> {

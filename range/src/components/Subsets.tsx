@@ -112,6 +112,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
               <Subset
                 name={subset.name}
                 selected={subset.id === this.props.selectedSubset}
+                unread={subset.unread ?? false}
                 onClick={() => this.props.selectCallback(subset.id)}
                 key={subset.id} />
             )}
