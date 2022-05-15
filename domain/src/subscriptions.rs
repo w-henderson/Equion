@@ -236,4 +236,48 @@ impl State {
             }
         }
     }
+
+    pub fn broadcast_joined_vc(&self, set: impl AsRef<str>, user: User) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/userJoinedVoiceChannel",
+                "set": (set.as_ref()),
+                "user": user
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
+
+    pub fn broadcast_left_vc(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/userLeftVoiceChannel",
+                "set": (set.as_ref()),
+                "uid": (uid.as_ref())
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
 }

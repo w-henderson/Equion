@@ -1,4 +1,5 @@
 use crate::api::{error_context, get_string, matcher, not_found};
+use crate::voice;
 use crate::State;
 
 use humphrey_ws::{AsyncStream, Message};
@@ -28,6 +29,12 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
             None => match command.as_str() {
                 "v1/subscribe" => subscribe(state, json, addr),
                 "v1/unsubscribe" => unsubscribe(state, json, addr),
+                "v1/connectUserVoice" => voice::ws::connect_user_voice(state, json, addr),
+                "v1/disconnectUserVoice" => voice::ws::disconnect_user_voice(state, json, addr),
+                "v1/connectToVoiceChannel" => {
+                    voice::ws::connect_to_voice_channel(state, json, addr)
+                }
+                "v1/leaveVoiceChannel" => voice::ws::leave_voice_channel(state, json, addr),
                 _ => not_found(),
             },
         }
@@ -50,6 +57,26 @@ pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
     for subscriptions in subscriptions.values_mut() {
         if let Some(i) = subscriptions.iter().position(|a| a == &addr) {
             subscriptions.swap_remove(i);
+        }
+    }
+
+    let mut online_users = state.voice.online_users.write().unwrap();
+    let voice_user = online_users
+        .values()
+        .find(|u| u.socket_addr == addr)
+        .cloned();
+
+    if let Some(voice_user) = voice_user {
+        online_users.remove(&voice_user.uid);
+
+        if let Some(channel) = voice_user.channel_id {
+            let mut channels = state.voice.voice_channels.write().unwrap();
+
+            if let Some(channel) = channels.get_mut(&channel) {
+                if let Some(i) = channel.iter().position(|u| u == &voice_user.uid) {
+                    channel.swap_remove(i);
+                }
+            }
         }
     }
 }

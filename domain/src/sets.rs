@@ -13,6 +13,7 @@ pub struct Set {
     pub admin: bool,
     pub subsets: Vec<Subset>,
     pub members: Vec<User>,
+    pub voice_members: Vec<User>,
 }
 
 pub struct Subset {
@@ -27,7 +28,8 @@ json_map! {
     icon => "icon",
     admin => "admin",
     subsets => "subsets",
-    members => "members"
+    members => "members",
+    voice_members => "voiceMembers"
 }
 
 json_map! {
@@ -96,6 +98,14 @@ impl State {
                 })
                 .collect();
 
+            let voice_members = self.voice.get_channel_members(&id);
+
+            let voice_members: Vec<User> = members
+                .clone()
+                .into_iter()
+                .filter(|member| voice_members.contains(&member.uid))
+                .collect();
+
             full_sets.push(Set {
                 id,
                 name,
@@ -103,6 +113,7 @@ impl State {
                 admin,
                 subsets,
                 members,
+                voice_members,
             });
         }
 
@@ -141,6 +152,7 @@ impl State {
                 admin: is_admin.unwrap(),
                 subsets: Vec::new(),
                 members: Vec::new(),
+                voice_members: Vec::new(),
             });
 
         if let Some(mut set) = set {
@@ -174,8 +186,17 @@ impl State {
                 })
                 .collect();
 
+            let voice_members = self.voice.get_channel_members(&id);
+
+            let voice_members: Vec<User> = members
+                .clone()
+                .into_iter()
+                .filter(|member| voice_members.contains(&member.uid))
+                .collect();
+
             set.subsets = subsets;
             set.members = members;
+            set.voice_members = voice_members;
 
             Ok(set)
         } else {
