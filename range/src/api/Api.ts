@@ -28,6 +28,8 @@ class Api {
   onSubset: (subset: SubsetData, set: string) => void;
   onUpdateUser: (set: string, user: UserData) => void;
   onLeftUser: (set: string, uid: string) => void;
+  onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
+  onUserLeftVoiceChannel: (set: string, uid: string) => void;
 
   constructor() {
     this.ready = false;
@@ -45,6 +47,8 @@ class Api {
     this.onSubset = () => { };
     this.onUpdateUser = () => { };
     this.onLeftUser = () => { };
+    this.onUserJoinedVoiceChannel = () => { };
+    this.onUserLeftVoiceChannel = () => { };
   }
 
   public async init(): Promise<boolean> {
@@ -53,6 +57,8 @@ class Api {
 
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
+    this.subscriber.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel;
+    this.subscriber.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel;
 
     this.subscriber.onUpdateUser = (set, user) => {
       if (user.uid !== this.uid) this.onUpdateUser(set, user);
