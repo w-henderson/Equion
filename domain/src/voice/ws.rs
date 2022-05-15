@@ -1,4 +1,5 @@
 use crate::api::{error_context, get_string};
+use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 
 use humphrey_json::prelude::*;
@@ -10,9 +11,10 @@ use std::sync::Arc;
 pub fn connect_user_voice(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
+        let peer_id = get_string(&json, "peerId")?;
         let user = state.get_user_by_token(token)?;
 
-        state.voice.connect_user_voice(user.uid, addr);
+        state.voice.connect_user_voice(user.uid, peer_id, addr);
 
         Ok(json!({ "success": true }))
     })
@@ -36,11 +38,11 @@ pub fn connect_to_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -
 
         let user = state.get_user_by_token(token)?;
 
-        state
+        let peer_id = state
             .voice
             .connect_to_voice_channel(&user.uid, &channel_id)?;
 
-        state.broadcast_joined_vc(channel_id, user);
+        state.broadcast_joined_vc(channel_id, WrappedVoiceUser { user, peer_id });
 
         Ok(json!({ "success": true }))
     })

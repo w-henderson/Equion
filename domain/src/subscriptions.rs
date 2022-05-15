@@ -1,5 +1,6 @@
 use crate::messages;
 use crate::user::User;
+use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 
 use humphrey_ws::Message;
@@ -237,7 +238,7 @@ impl State {
         }
     }
 
-    pub fn broadcast_joined_vc(&self, set: impl AsRef<str>, user: User) {
+    pub fn broadcast_joined_vc(&self, set: impl AsRef<str>, user: WrappedVoiceUser) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(

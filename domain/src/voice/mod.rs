@@ -1,3 +1,4 @@
+pub mod user;
 pub mod ws;
 
 use std::collections::HashMap;
@@ -17,6 +18,7 @@ pub struct VoiceUser {
     pub uid: String,
     pub channel_id: Option<String>,
     pub socket_addr: SocketAddr,
+    pub peer_id: String,
 }
 
 impl VoiceServer {
@@ -24,7 +26,12 @@ impl VoiceServer {
         Self::default()
     }
 
-    pub fn connect_user_voice(&self, uid: impl AsRef<str>, addr: SocketAddr) {
+    pub fn connect_user_voice(
+        &self,
+        uid: impl AsRef<str>,
+        peer_id: impl AsRef<str>,
+        addr: SocketAddr,
+    ) {
         let mut online_users = self.online_users.write().unwrap();
 
         online_users.insert(
@@ -33,6 +40,7 @@ impl VoiceServer {
                 uid: uid.as_ref().to_string(),
                 channel_id: None,
                 socket_addr: addr,
+                peer_id: peer_id.as_ref().to_string(),
             },
         );
     }
@@ -63,18 +71,19 @@ impl VoiceServer {
         &self,
         uid: impl AsRef<str>,
         channel_id: impl AsRef<str>,
-    ) -> Result<Vec<String>, String> {
+    ) -> Result<String, String> {
         let mut online_users = self.online_users.write().unwrap();
         let mut voice_channels = self.voice_channels.write().unwrap();
 
         let channel_id = channel_id.as_ref().to_string();
         let uid = uid.as_ref().to_string();
 
-        if let Some(user) = online_users.get_mut(&uid) {
+        let peer_id = if let Some(user) = online_users.get_mut(&uid) {
             user.channel_id = Some(channel_id.clone());
+            user.peer_id.clone()
         } else {
             return Err("User not connected to voice server".to_string());
-        }
+        };
 
         let entry = voice_channels.entry(channel_id).or_insert_with(Vec::new);
 
@@ -84,7 +93,7 @@ impl VoiceServer {
             return Err("User already in voice channel".to_string());
         }
 
-        Ok(entry.clone())
+        Ok(peer_id)
     }
 
     pub fn leave_voice_channel(&self, uid: impl AsRef<str>) -> Result<(), String> {

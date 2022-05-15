@@ -139,12 +139,15 @@ Output:
       ],
       "voiceMembers": [
         {
-          "uid": "",
-          "username": "",
-          "displayName": "",
-          "email": "",
-          "image?": "",
-          "bio?": ""
+          "peerId": "",
+          "user": {
+            "uid": "",
+            "username": "",
+            "displayName": "",
+            "email": "",
+            "image?": "",
+            "bio?": ""
+          }
         }
       ]
     }
@@ -187,12 +190,15 @@ Output:
     ],
     "voiceMembers": [
       {
-        "uid": "",
-        "username": "",
-        "displayName": "",
-        "email": "",
-        "image?": "",
-        "bio?": ""
+        "peerId": "",
+        "user": {
+          "uid": "",
+          "username": "",
+          "displayName": "",
+          "email": "",
+          "image?": "",
+          "bio?": ""
+        }
       }
     ]
   }
@@ -362,7 +368,10 @@ Registers a user's voice connection allowing them to use voice chat features.
 
 Input:
 ```json
-{ "token": "" }
+{
+  "token": "",
+  "peerId": ""
+}
 ```
 
 Output:
@@ -490,12 +499,15 @@ Sent when a user joins a voice channel.
   "event": "v1/userJoinedVoiceChannel",
   "set": "",
   "user": {
-    "uid": "",
-    "username": "",
-    "displayName": "",
-    "email": "",
-    "image?": "",
-    "bio?": ""
+    "peerId": "",
+    "user": {
+      "uid": "",
+      "username": "",
+      "displayName": "",
+      "email": "",
+      "image?": "",
+      "bio?": ""
+    }
   }
 }
 ```
