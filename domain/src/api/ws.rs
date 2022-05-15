@@ -60,24 +60,24 @@ pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
         }
     }
 
-    let mut online_users = state.voice.online_users.write().unwrap();
-    let voice_user = online_users
-        .values()
-        .find(|u| u.socket_addr == addr)
-        .cloned();
+    drop(subscriptions);
+
+    let voice_user = {
+        let online_users = state.voice.online_users.read().unwrap();
+        online_users
+            .values()
+            .find(|u| u.socket_addr == addr)
+            .cloned()
+    };
 
     if let Some(voice_user) = voice_user {
-        online_users.remove(&voice_user.uid);
-
-        if let Some(channel) = voice_user.channel_id {
-            let mut channels = state.voice.voice_channels.write().unwrap();
-
-            if let Some(channel) = channels.get_mut(&channel) {
-                if let Some(i) = channel.iter().position(|u| u == &voice_user.uid) {
-                    channel.swap_remove(i);
-                }
-            }
+        if let Some(channel_id) = voice_user.channel_id {
+            state.voice.leave_voice_channel(&voice_user.uid).ok();
+            state.broadcast_left_vc(channel_id, &voice_user.uid);
         }
+
+        let mut online_users = state.voice.online_users.write().unwrap();
+        online_users.remove(&voice_user.uid);
     }
 }
 
