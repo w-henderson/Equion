@@ -6,9 +6,12 @@ import toast from "react-hot-toast";
 
 import Subscriber from "./Subscriber";
 import Notifier from "./Notifier";
+import Voice from "./Voice";
 
 const API_ROUTE = "http://localhost/api/v1";
 const WS_ROUTE = "ws://localhost/ws";
+const VOICE_HOST = "localhost";
+
 export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
 
 class Api {
@@ -22,6 +25,7 @@ class Api {
 
   subscriber: Subscriber;
   notifier: Notifier;
+  voice: Voice;
 
   onShow: () => void;
   onMessage: (message: MessageData, set: string, subset: string) => void;
@@ -40,6 +44,7 @@ class Api {
     this.trayIcon = "default";
 
     this.subscriber = new Subscriber(WS_ROUTE);
+    this.voice = new Voice(VOICE_HOST, this.subscriber.ws);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
 
     this.onShow = () => { };
@@ -57,8 +62,22 @@ class Api {
 
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
-    this.subscriber.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel;
-    this.subscriber.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel;
+
+    this.subscriber.onUserJoinedVoiceChannel = (set: string, user: VoiceUserData) => {
+      if (this.uid === user.user.uid) {
+        this.voice.currentChannel = set;
+      }
+
+      this.onUserJoinedVoiceChannel(set, user);
+    }
+
+    this.subscriber.onUserLeftVoiceChannel = (set: string, uid: string) => {
+      if (this.uid === uid) {
+        this.voice.currentChannel = null;
+      }
+
+      this.onUserLeftVoiceChannel(set, uid);
+    }
 
     this.subscriber.onUpdateUser = (set, user) => {
       if (user.uid !== this.uid) this.onUpdateUser(set, user);
@@ -85,6 +104,8 @@ class Api {
     this.uid = uid;
     this.token = token;
     this.image = await this.getUserByUid(uid).then(res => res.image);
+
+    await this.voice.init(token);
   }
 
   public errorHandler(e: string) {

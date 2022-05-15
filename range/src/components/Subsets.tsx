@@ -122,7 +122,9 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
               <AddSubset onClick={() => this.setState({ creatingSubset: true })} />
             }
 
-            <Voice members={this.props.set.voiceMembers} />
+            <Voice
+              id={this.props.set.id}
+              members={this.props.set.voiceMembers} />
           </div>
 
           <Modal

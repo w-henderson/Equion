@@ -15,6 +15,10 @@ div.Voice {
   }
 
   div.voiceMembers {
+    &.inVoiceChat div.member {
+      opacity: 1;
+    }
+
     div.member {
       display: flex;
       place-items: center;
