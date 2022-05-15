@@ -1,5 +1,6 @@
 use crate::user::User;
 use crate::util::get_greek_letter;
+use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 
 use humphrey_json::prelude::*;
@@ -13,7 +14,7 @@ pub struct Set {
     pub admin: bool,
     pub subsets: Vec<Subset>,
     pub members: Vec<User>,
-    pub voice_members: Vec<User>,
+    pub voice_members: Vec<WrappedVoiceUser>,
 }
 
 pub struct Subset {
@@ -100,10 +101,14 @@ impl State {
 
             let voice_members = self.voice.get_channel_members(&id);
 
-            let voice_members: Vec<User> = members
+            let voice_members: Vec<WrappedVoiceUser> = members
                 .clone()
                 .into_iter()
                 .filter(|member| voice_members.contains(&member.uid))
+                .map(|user| WrappedVoiceUser {
+                    peer_id: self.voice.get_peer_id(&user.uid).unwrap(),
+                    user,
+                })
                 .collect();
 
             full_sets.push(Set {
@@ -188,10 +193,14 @@ impl State {
 
             let voice_members = self.voice.get_channel_members(&id);
 
-            let voice_members: Vec<User> = members
+            let voice_members: Vec<WrappedVoiceUser> = members
                 .clone()
                 .into_iter()
                 .filter(|member| voice_members.contains(&member.uid))
+                .map(|user| WrappedVoiceUser {
+                    peer_id: self.voice.get_peer_id(&user.uid).unwrap(),
+                    user,
+                })
                 .collect();
 
             set.subsets = subsets;

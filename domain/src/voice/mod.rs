@@ -67,6 +67,14 @@ impl VoiceServer {
             .and_then(|user| user.channel_id.clone())
     }
 
+    pub fn get_peer_id(&self, uid: impl AsRef<str>) -> Option<String> {
+        let online_users = self.online_users.read().unwrap();
+
+        online_users
+            .get(uid.as_ref())
+            .map(|user| user.peer_id.clone())
+    }
+
     pub fn connect_to_voice_channel(
         &self,
         uid: impl AsRef<str>,
