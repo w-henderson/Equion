@@ -8,9 +8,8 @@ import Subscriber from "./Subscriber";
 import Notifier from "./Notifier";
 import Voice from "./Voice";
 
-const API_ROUTE = "http://localhost/api/v1";
-const WS_ROUTE = "ws://localhost/ws";
-const VOICE_HOST = "localhost";
+const API_ROUTE = process.env.REACT_APP_EQUION_API_ROUTE || "http://localhost/api/v1";
+const WS_ROUTE = process.env.REACT_APP_EQUION_WS_ROUTE || "ws://localhost/ws";
 
 export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
 
@@ -44,7 +43,7 @@ class Api {
     this.trayIcon = "default";
 
     this.subscriber = new Subscriber(WS_ROUTE);
-    this.voice = new Voice(VOICE_HOST, this.subscriber.ws);
+    this.voice = new Voice(this.subscriber.ws);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
 
     this.onShow = () => { };

@@ -1,5 +1,10 @@
 import Peer, { MediaConnection } from "peerjs";
 
+const VOICE_HOST = process.env.REACT_APP_EQUION_VOICE_HOST || "localhost";
+const VOICE_PORT = parseInt(process.env.REACT_APP_EQUION_VOICE_PORT || "80");
+const VOICE_PATH = process.env.REACT_APP_EQUION_VOICE_PATH || "/voice";
+const VOICE_SECURE: boolean = JSON.parse(process.env.REACT_APP_EQUION_VOICE_SECURE || "false");
+
 class Voice {
   peer: Peer;
   peerId: Promise<string>;
@@ -10,12 +15,12 @@ class Voice {
 
   allowedToCall: (id: string) => boolean;
 
-  constructor(host: string, ws: WebSocket) {
+  constructor(ws: WebSocket) {
     this.peer = new Peer({
-      host,
-      port: 80,
-      path: "/voice",
-      secure: false
+      host: VOICE_HOST,
+      port: VOICE_PORT,
+      path: VOICE_PATH,
+      secure: VOICE_SECURE
     });
 
     this.peerId = new Promise(resolve => {
