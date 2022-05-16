@@ -57,6 +57,39 @@ impl State {
         user.ok_or_else(|| "User not found".to_string())
     }
 
+    pub fn get_user_by_token(&self, token: impl AsRef<str>) -> Result<User, String> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())?;
+
+        #[allow(clippy::type_complexity)]
+        let user: Option<(
+            String,
+            String,
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+        )> = conn
+            .exec_first(
+                "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
+                (token.as_ref(),),
+            )
+            .map_err(|_| "Could not get user from database".to_string())?;
+
+        let user = user.map(|(uid, username, display_name, email, image, bio)| User {
+            uid,
+            username,
+            display_name,
+            email,
+            image,
+            bio,
+        });
+
+        user.ok_or_else(|| "User not found".to_string())
+    }
+
     pub fn update_user(
         &self,
         token: impl AsRef<str>,

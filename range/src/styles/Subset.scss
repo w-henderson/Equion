@@ -27,24 +27,26 @@ div.Subset {
     }
   }
 
+  &:not(.voice)::before {
+    content: "ζ";
+    font-size: 20px;
+    margin-right: 8px;
+  }
+
   &.add {
     opacity: 0.25;
     border: none;
 
     &::before {
       content: "+";
+      font-size: 20px;
+      margin-right: 8px;
     }
 
     &:hover {
       opacity: 0.5;
       background-color: transparent;
     }
-  }
-
-  &::before {
-    content: "ζ";
-    font-size: 20px;
-    margin-right: 8px;
   }
 
   &:hover {

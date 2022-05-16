@@ -136,6 +136,19 @@ Output:
           "image?": "",
           "bio?": ""
         }
+      ],
+      "voiceMembers": [
+        {
+          "peerId": "",
+          "user": {
+            "uid": "",
+            "username": "",
+            "displayName": "",
+            "email": "",
+            "image?": "",
+            "bio?": ""
+          }
+        }
       ]
     }
   ]
@@ -173,6 +186,19 @@ Output:
         "email": "",
         "image?": "",
         "bio?": ""
+      }
+    ],
+    "voiceMembers": [
+      {
+        "peerId": "",
+        "user": {
+          "uid": "",
+          "username": "",
+          "displayName": "",
+          "email": "",
+          "image?": "",
+          "bio?": ""
+        }
       }
     ]
   }
@@ -337,6 +363,64 @@ Output:
 { "success": true }
 ```
 
+### `v1/connectUserVoice`: Register user voice connection
+Registers a user's voice connection allowing them to use voice chat features.
+
+Input:
+```json
+{
+  "token": "",
+  "peerId": ""
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+### `v1/disconnectUserVoice`: Unregister user voice connection
+Unregisters a user's voice connection.
+
+Input:
+```json
+{ "token": "" }
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+### `v1/connectToVoiceChannel`: Connect to voice channel
+Connects the user to the given voice channel.
+
+Input:
+```json
+{
+  "token": "",
+  "channel": "",
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+### `v1/leaveVoiceChannel`: Leave current voice channel
+Leaves the user's current voice channel.
+
+Input:
+```json
+{ "token": "" }
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## WebSocket-only Events
 These are sent to the client when events happen in a set.
 
@@ -402,6 +486,38 @@ Sent when a user leaves a set.
 ```json
 {
   "event": "v1/leftUser",
+  "set": "",
+  "uid": ""
+}
+```
+
+### `v1/userJoinedVoiceChannel`: User joined voice channel
+Sent when a user joins a voice channel.
+
+```json
+{
+  "event": "v1/userJoinedVoiceChannel",
+  "set": "",
+  "user": {
+    "peerId": "",
+    "user": {
+      "uid": "",
+      "username": "",
+      "displayName": "",
+      "email": "",
+      "image?": "",
+      "bio?": ""
+    }
+  }
+}
+```
+
+### `v1/userLeftVoiceChannel`: User left voice channel
+Sent when a user leaves a voice channel.
+
+```json
+{
+  "event": "v1/userLeftVoiceChannel",
   "set": "",
   "uid": ""
 }

@@ -4,7 +4,8 @@ interface SetData {
   icon: string,
   admin: boolean,
   subsets: SubsetData[],
-  members: UserData[]
+  members: UserData[],
+  voiceMembers: VoiceUserData[]
 }
 
 interface SubsetData {
@@ -21,6 +22,11 @@ interface UserData {
   displayName: string,
   image?: string,
   bio?: string,
+}
+
+interface VoiceUserData {
+  peerId: string,
+  user: UserData
 }
 
 interface MessageData {

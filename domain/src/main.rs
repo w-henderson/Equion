@@ -6,6 +6,7 @@ mod sets;
 mod subscriptions;
 mod user;
 mod util;
+mod voice;
 
 use crate::api::{http, ws};
 
@@ -16,6 +17,7 @@ use humphrey_ws::async_app::AsyncSender;
 use humphrey_ws::{async_websocket_handler, AsyncWebsocketApp};
 
 use mysql::{Opts, Pool};
+use voice::VoiceServer;
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -30,6 +32,7 @@ pub struct State {
     pool: Arc<Pool>,
     global_sender: Arc<Mutex<Option<AsyncSender>>>,
     subscriptions: Arc<RwLock<HashMap<String, Vec<SocketAddr>>>>,
+    voice: Arc<VoiceServer>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -46,6 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         pool: Arc::new(pool),
         global_sender: Arc::new(Mutex::new(None)),
         subscriptions: Arc::new(RwLock::new(HashMap::new())),
+        voice: Arc::new(VoiceServer::new()),
     };
 
     // Initialise the WebSocket app for real-time updates.

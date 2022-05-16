@@ -8,6 +8,7 @@ import ApiContext from '../api/ApiContext';
 import Subset from './Subset';
 import AddSubset from './AddSubset';
 import Modal from './Modal';
+import Voice from './Voice';
 
 interface SubsetsProps {
   set: SetData | undefined,
@@ -120,6 +121,10 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
             {this.props.set.admin &&
               <AddSubset onClick={() => this.setState({ creatingSubset: true })} />
             }
+
+            <Voice
+              id={this.props.set.id}
+              members={this.props.set.voiceMembers} />
           </div>
 
           <Modal

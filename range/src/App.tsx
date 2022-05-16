@@ -25,6 +25,8 @@ interface AppState {
   shownUser: string | null
 }
 
+const api = new Api();
+
 class App extends React.Component<{}, AppState> {
   api: Api;
   sets: React.RefObject<Sets>;
@@ -32,13 +34,17 @@ class App extends React.Component<{}, AppState> {
   constructor(props: {}) {
     super(props);
 
-    this.api = new Api();
+    this.api = api;
 
     this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
     this.api.onSubset = this.onSubset.bind(this);
     this.api.onUpdateUser = this.onUpdateUser.bind(this);
     this.api.onLeftUser = this.onLeftUser.bind(this);
+    this.api.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
+    this.api.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
+
+    this.api.voice.allowedToCall = this.allowedToCall.bind(this);
 
     this.state = {
       init: false,
@@ -51,6 +57,7 @@ class App extends React.Component<{}, AppState> {
 
     this.sets = React.createRef();
 
+    this.allowedToCall = this.allowedToCall.bind(this);
     this.showUser = this.showUser.bind(this);
     this.refresh = this.refresh.bind(this);
     this.onShow = this.onShow.bind(this);
@@ -62,6 +69,8 @@ class App extends React.Component<{}, AppState> {
     this.createdSet = this.createdSet.bind(this);
     this.leaveSet = this.leaveSet.bind(this);
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
+    this.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
+    this.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
   }
 
   componentDidMount() {
@@ -106,6 +115,19 @@ class App extends React.Component<{}, AppState> {
     this.setState({
       shownUser: id
     });
+  }
+
+  allowedToCall(id: string): boolean {
+    if (this.api.voice.currentChannel !== null) {
+      let setIndex = this.state.sets.findIndex(s => s.id === this.api.voice.currentChannel);
+      if (setIndex === -1) return false;
+
+      let userIndex = this.state.sets[setIndex].voiceMembers.findIndex(u => u.peerId === id);
+
+      return userIndex !== -1;
+    }
+
+    return false;
   }
 
   createdSet(set: SetData) {
@@ -223,6 +245,44 @@ class App extends React.Component<{}, AppState> {
 
       return newState.value();
     }) // could refresh but not for now
+  }
+
+  onUserJoinedVoiceChannel(set: string, user: VoiceUserData) {
+    if (user.user.uid === this.api.uid) {
+      let setIndex = this.state.sets.findIndex(s => s.id === set);
+      let peers = this.state.sets[setIndex].voiceMembers.map(peer => peer.peerId);
+      this.api.voice.connectToPeers(peers);
+    }
+
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.id === set);
+      if (setIndex === -1) return state;
+
+      newState.push(`sets.${setIndex}.voiceMembers`, user);
+
+      return newState.value();
+    })
+  }
+
+  onUserLeftVoiceChannel(set: string, uid: string) {
+    if (uid === this.api.uid) {
+      this.api.voice.disconnect();
+    }
+
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.id === set);
+      if (setIndex === -1) return state;
+
+      let voiceMembers = state.sets[setIndex].voiceMembers.filter(m => m.user.uid !== uid);
+
+      newState.set(`sets.${setIndex}.voiceMembers`, voiceMembers);
+
+      return newState.value();
+    })
   }
 
   selectSet(id: string) {

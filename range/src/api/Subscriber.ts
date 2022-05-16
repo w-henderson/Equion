@@ -6,6 +6,8 @@ class Subscriber {
   onSubset: (subset: SubsetData, set: string) => void;
   onUpdateUser: (set: string, user: UserData) => void;
   onLeftUser: (set: string, uid: string) => void;
+  onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
+  onUserLeftVoiceChannel: (set: string, uid: string) => void;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
@@ -17,6 +19,8 @@ class Subscriber {
     this.onSubset = () => { };
     this.onUpdateUser = () => { };
     this.onLeftUser = () => { };
+    this.onUserJoinedVoiceChannel = () => { };
+    this.onUserLeftVoiceChannel = () => { };
   }
 
   subscribe(token: string, id: string) {
@@ -63,6 +67,10 @@ class Subscriber {
       this.onUpdateUser(data.set, data.user);
     } else if (data.event === "v1/leftUser") {
       this.onLeftUser(data.set, data.uid);
+    } else if (data.event === "v1/userJoinedVoiceChannel") {
+      this.onUserJoinedVoiceChannel(data.set, data.user);
+    } else if (data.event === "v1/userLeftVoiceChannel") {
+      this.onUserLeftVoiceChannel(data.set, data.uid);
     } else {
       // Ignore invalid events
       // toast.error(`Unknown event: ${data.event}`);
