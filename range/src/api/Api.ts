@@ -67,10 +67,18 @@ class Api {
         this.voice.currentChannel = set;
       }
 
+      if (this.voice.currentChannel === set) {
+        this.voice.playJoinAudio();
+      }
+
       this.onUserJoinedVoiceChannel(set, user);
     }
 
     this.subscriber.onUserLeftVoiceChannel = (set: string, uid: string) => {
+      if (this.voice.currentChannel === set) {
+        this.voice.playLeaveAudio();
+      }
+
       if (this.uid === uid) {
         this.voice.currentChannel = null;
       }

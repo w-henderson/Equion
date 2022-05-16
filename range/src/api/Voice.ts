@@ -15,6 +15,9 @@ class Voice {
 
   allowedToCall: (id: string) => boolean;
 
+  userJoinAudio: HTMLAudioElement;
+  userLeaveAudio: HTMLAudioElement;
+
   constructor(ws: WebSocket) {
     this.peer = new Peer({
       host: VOICE_HOST,
@@ -35,6 +38,11 @@ class Voice {
     this.calls = [];
 
     this.allowedToCall = () => false;
+
+    this.userJoinAudio = new Audio("/audio/equion-02.ogg");
+    this.userLeaveAudio = new Audio("/audio/equion-03.ogg");
+    this.userJoinAudio.load();
+    this.userLeaveAudio.load();
   }
 
   async init(token: string): Promise<void> {
@@ -102,6 +110,16 @@ class Voice {
     }
 
     this.calls = [];
+  }
+
+  public playJoinAudio() {
+    this.userJoinAudio.load();
+    this.userJoinAudio.play();
+  }
+
+  public playLeaveAudio() {
+    this.userLeaveAudio.load();
+    this.userLeaveAudio.play();
   }
 }
 
