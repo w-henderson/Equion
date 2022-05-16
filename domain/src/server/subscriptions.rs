@@ -1,5 +1,5 @@
-use crate::messages;
-use crate::user::User;
+use crate::server::messages;
+use crate::server::user::User;
 use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 

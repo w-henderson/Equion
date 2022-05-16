@@ -1,10 +1,5 @@
 mod api;
-mod auth;
-mod files;
-mod messages;
-mod sets;
-mod subscriptions;
-mod user;
+mod server;
 mod util;
 mod voice;
 

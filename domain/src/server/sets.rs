@@ -1,4 +1,4 @@
-use crate::user::User;
+use crate::server::user::User;
 use crate::util::get_greek_letter;
 use crate::voice::user::WrappedVoiceUser;
 use crate::State;

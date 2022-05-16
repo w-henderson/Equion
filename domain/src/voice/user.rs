@@ -1,4 +1,4 @@
-use crate::user::User;
+use crate::server::user::User;
 
 use humphrey_json::prelude::*;
 
