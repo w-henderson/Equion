@@ -38,6 +38,11 @@ pub fn connect_to_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -
 
         let user = state.get_user_by_token(token)?;
 
+        if let Some(channel_id) = state.voice.get_user_channel(&user.uid) {
+            state.voice.leave_voice_channel(&user.uid)?;
+            state.broadcast_left_vc(channel_id, &user.uid);
+        }
+
         let peer_id = state
             .voice
             .connect_to_voice_channel(&user.uid, &channel_id)?;
