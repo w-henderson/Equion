@@ -54,9 +54,9 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let has_appropriate_perms: Option<u8> = conn
+        let user: Option<String> = conn
             .exec_first(
-                "SELECT 1 FROM users
+                "SELECT users.username FROM users
                     JOIN memberships ON users.id = memberships.user_id
                     JOIN sets ON memberships.set_id = sets.id
                     JOIN subsets ON sets.id = subsets.set_id
@@ -64,9 +64,8 @@ impl State {
                 (token.as_ref(), subset.as_ref()),
             )
             .map_err(|_| "Could not check for invalid token".to_string())?;
-        let has_appropriate_perms = has_appropriate_perms.unwrap_or(0) != 0;
 
-        if !has_appropriate_perms {
+        if user.is_none() {
             return Err("Insufficient permissions".to_string());
         }
 
@@ -145,6 +144,12 @@ impl State {
             )
             .collect();
 
+        crate::log!(
+            "User {} retrieved messages for subset {}",
+            user.unwrap(),
+            subset.as_ref()
+        );
+
         Ok(messages)
     }
 
@@ -204,9 +209,9 @@ impl State {
         let send_time = Utc::now().timestamp() as u64;
 
         let message = Message {
-            id: new_message_id,
+            id: new_message_id.clone(),
             content: content.as_ref().to_string(),
-            author_id: user_id,
+            author_id: user_id.clone(),
             author_name,
             author_image,
             send_time,
@@ -217,7 +222,14 @@ impl State {
             }),
         };
 
-        self.broadcast_new_message(set_id, subset, message);
+        self.broadcast_new_message(set_id, subset.as_ref(), message);
+
+        crate::log!(
+            "User {} sent message with ID {} to subset {}",
+            user_id,
+            new_message_id,
+            subset.as_ref()
+        );
 
         Ok(())
     }

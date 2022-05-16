@@ -43,11 +43,24 @@ impl VoiceServer {
                 peer_id: peer_id.as_ref().to_string(),
             },
         );
+
+        crate::log!(
+            Debug,
+            "User {} connected to voice server with peer ID {}",
+            uid.as_ref(),
+            peer_id.as_ref()
+        );
     }
 
     pub fn disconnect_user_voice(&self, uid: impl AsRef<str>) {
         let mut online_users = self.online_users.write().unwrap();
         online_users.remove(uid.as_ref());
+
+        crate::log!(
+            Debug,
+            "User {} disconnected from voice server",
+            uid.as_ref()
+        );
     }
 
     pub fn get_channel_members(&self, channel_id: impl AsRef<str>) -> Vec<String> {
@@ -83,23 +96,29 @@ impl VoiceServer {
         let mut online_users = self.online_users.write().unwrap();
         let mut voice_channels = self.voice_channels.write().unwrap();
 
-        let channel_id = channel_id.as_ref().to_string();
-        let uid = uid.as_ref().to_string();
+        let channel = channel_id.as_ref().to_string();
+        let user = uid.as_ref().to_string();
 
-        let peer_id = if let Some(user) = online_users.get_mut(&uid) {
-            user.channel_id = Some(channel_id.clone());
+        let peer_id = if let Some(user) = online_users.get_mut(&user) {
+            user.channel_id = Some(channel.clone());
             user.peer_id.clone()
         } else {
             return Err("User not connected to voice server".to_string());
         };
 
-        let entry = voice_channels.entry(channel_id).or_insert_with(Vec::new);
+        let entry = voice_channels.entry(channel).or_insert_with(Vec::new);
 
-        if !entry.contains(&uid) {
-            entry.push(uid);
+        if !entry.contains(&user) {
+            entry.push(user);
         } else {
             return Err("User already in voice channel".to_string());
         }
+
+        crate::log!(
+            "User {} connected to voice channel {}",
+            uid.as_ref(),
+            channel_id.as_ref()
+        );
 
         Ok(peer_id)
     }
@@ -118,6 +137,12 @@ impl VoiceServer {
         if let Some(i) = entry.iter().position(|u| u == uid.as_ref()) {
             entry.swap_remove(i);
         }
+
+        crate::log!(
+            "User {} disconnected from voice channel {}",
+            uid.as_ref(),
+            channel_id
+        );
 
         Ok(())
     }

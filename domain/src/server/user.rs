@@ -152,7 +152,11 @@ impl State {
             })
             .ok_or_else(|| "User not found".to_string())?;
 
+        let uid = user.uid.clone();
+
         self.broadcast_update_user(user);
+
+        crate::log!("Updated user {}", uid);
 
         Ok(())
     }
@@ -202,7 +206,11 @@ impl State {
         )
         .map_err(|_| "Could not update image in database".to_string())?;
 
+        let uid = user.uid.clone();
+
         self.broadcast_update_user(user);
+
+        crate::log!("Updated user {} image", uid);
 
         Ok(())
     }

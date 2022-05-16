@@ -45,7 +45,21 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
         })
     };
 
-    let message = Message::new(response_body.serialize());
+    let serialized = response_body.serialize();
+
+    if !response_body
+        .get("success")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+    {
+        crate::log!(
+            "{} WebSocket Error: {}",
+            addr,
+            response_body.get("error").and_then(|v| v.as_str()).unwrap()
+        );
+    }
+
+    let message = Message::new(serialized);
 
     stream.send(message);
 }

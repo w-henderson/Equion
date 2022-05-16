@@ -3,6 +3,9 @@ mod server;
 mod util;
 mod voice;
 
+#[macro_use]
+mod log;
+
 use crate::api::{http, ws};
 
 use humphrey::http::cors::Cors;
@@ -36,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Connect to the database.
     let pool = Pool::new(Opts::from_url(&db_url)?)?;
 
-    println!("[DB]   Connected to MySQL database at {}", db_url);
+    log!("Connected to MySQL database at {}", db_url);
 
     // Initialise the app's state.
     // At the moment, everything is in `Arc`s due to limitations with Humphrey's API, but this should be fixed in the future.
@@ -64,11 +67,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_websocket_route("/ws", async_websocket_handler(hook));
 
     spawn(move || {
-        println!("[WS]   Started WebSocket service");
+        log!("Started WebSocket service");
         ws_app.run();
     });
 
-    println!("[HTTP] Started HTTP server on port 80");
+    log!("Started HTTP server on port 80");
 
     app.run("0.0.0.0:80")
 }

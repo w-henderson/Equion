@@ -24,16 +24,16 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let has_membership: Option<u8> = conn
+        let user: Option<String> = conn
             .exec_first(
-                "SELECT 1 FROM memberships
+                "SELECT memberships.user_id FROM memberships
                     JOIN users ON users.id = memberships.user_id
                     WHERE users.token = ? AND memberships.set_id = ?",
                 (token.as_ref(), set.as_ref()),
             )
             .map_err(|_| "Could not verify membership".to_string())?;
 
-        if has_membership.unwrap_or(0) == 0 {
+        if user.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -52,6 +52,13 @@ impl State {
             }
         }
 
+        crate::log!(
+            Debug,
+            "User {} subscribed to set {}",
+            user.unwrap(),
+            set.as_ref()
+        );
+
         Ok(())
     }
 
@@ -66,16 +73,16 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let has_membership: Option<u8> = conn
+        let user: Option<String> = conn
             .exec_first(
-                "SELECT 1 FROM memberships
+                "SELECT memberships.user_id FROM memberships
                     JOIN users ON users.id = memberships.user_id
                     WHERE users.token = ? AND memberships.set_id = ?",
                 (token.as_ref(), set.as_ref()),
             )
             .map_err(|_| "Could not verify membership".to_string())?;
 
-        if has_membership.unwrap_or(0) == 0 {
+        if user.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -93,6 +100,13 @@ impl State {
                 }
             }
         }
+
+        crate::log!(
+            Debug,
+            "User {} unsubscribed from set {}",
+            user.unwrap(),
+            set.as_ref()
+        );
 
         Ok(())
     }

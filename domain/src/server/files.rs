@@ -53,6 +53,12 @@ impl State {
         )
         .map_err(|_| "Could not set file in database".to_string())?;
 
+        crate::log!(
+            "File created with name \"{}\" and ID \"{}\"",
+            name.as_ref(),
+            &id
+        );
+
         Ok(id)
     }
 }

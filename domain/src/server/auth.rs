@@ -64,6 +64,8 @@ impl State {
             )
             .map_err(|_| "Could not set user in database".to_string())?;
 
+        crate::log!("User signed up with username {}", username.as_ref());
+
         Ok(AuthResponse { uid, token })
     }
 
@@ -96,6 +98,8 @@ impl State {
 
                 conn.exec_drop("UPDATE users SET token = ? WHERE id = ?", (&token, &uid))
                     .map_err(|_| "Could not set token in database".to_string())?;
+
+                crate::log!("User logged in with username {}", username.as_ref());
 
                 return Ok(AuthResponse { uid, token });
             }

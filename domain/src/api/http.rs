@@ -42,8 +42,31 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
         StatusCode::BadRequest
     };
 
+    let serialized = response_body.serialize();
+
+    if !success {
+        crate::log!(
+            "{} Error: {}",
+            request.address,
+            response_body.get("error").and_then(|v| v.as_str()).unwrap()
+        );
+    }
+
+    let status_code_number: u16 = status_code.into();
+    let status_code_string: &str = status_code.into();
+
+    crate::log!(
+        Debug,
+        "{} {} {} {} {}",
+        status_code_number,
+        status_code_string,
+        request.address,
+        request.method,
+        request.uri
+    );
+
     Response::empty(status_code)
-        .with_bytes(response_body.serialize())
+        .with_bytes(serialized)
         .with_header(HeaderType::ContentType, "application/json")
         .with_header(HeaderType::AccessControlAllowOrigin, "*")
 }

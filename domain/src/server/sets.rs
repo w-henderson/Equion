@@ -46,12 +46,14 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let valid_token: Option<u8> = conn
-            .exec_first("SELECT 1 FROM users WHERE token = ?", (token.as_ref(),))
+        let user: Option<String> = conn
+            .exec_first(
+                "SELECT username FROM users WHERE token = ?",
+                (token.as_ref(),),
+            )
             .map_err(|_| "Could not check for invalid token".to_string())?;
-        let valid_token = valid_token.unwrap_or(0) != 0;
 
-        if !valid_token {
+        if user.is_none() {
             return Err("Invalid token".to_string());
         }
 
@@ -122,6 +124,8 @@ impl State {
             });
         }
 
+        crate::log!("User {} retrieved sets", user.unwrap());
+
         Ok(full_sets)
     }
 
@@ -131,7 +135,7 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let is_admin: Option<bool> = conn
+        let meta: Option<(bool, String)> = conn
             .exec_first(
                 "SELECT memberships.admin FROM memberships
                     JOIN users ON users.id = memberships.user_id
@@ -140,9 +144,11 @@ impl State {
             )
             .map_err(|_| "Could not verify membership".to_string())?;
 
-        if is_admin.is_none() {
+        if meta.is_none() {
             return Err("Not a member of this set".to_string());
         }
+
+        let (is_admin, user) = meta.unwrap();
 
         let set: Option<Set> = conn
             .exec_first(
@@ -154,7 +160,7 @@ impl State {
                 id,
                 name,
                 icon,
-                admin: is_admin.unwrap(),
+                admin: is_admin,
                 subsets: Vec::new(),
                 members: Vec::new(),
                 voice_members: Vec::new(),
@@ -206,6 +212,8 @@ impl State {
             set.subsets = subsets;
             set.members = members;
             set.voice_members = voice_members;
+
+            crate::log!("User {} retrieved set {}", user, id.as_ref());
 
             Ok(set)
         } else {
@@ -264,6 +272,8 @@ impl State {
         )
         .map_err(|_| "Could not add General subset".to_string())?;
 
+        crate::log!("User {} created set {}", user_id, new_set_id);
+
         Ok(new_set_id)
     }
 
@@ -278,16 +288,22 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let has_admin_perms: Option<u8> = conn
+        let meta: Option<(bool, String)> = conn
             .exec_first(
-                "SELECT memberships.admin FROM memberships
+                "SELECT memberships.admin, users.id FROM memberships
                     JOIN users ON memberships.user_id = users.id
                     WHERE users.token = ? AND memberships.set_id = ?",
                 (token.as_ref(), set.as_ref()),
             )
             .map_err(|_| "Could not verify permissions".to_string())?;
 
-        if has_admin_perms.unwrap_or(0) == 0 {
+        if meta.is_none() {
+            return Err("Not a member of this set".to_string());
+        }
+
+        let (is_admin, user_id) = meta.unwrap();
+
+        if !is_admin {
             return Err("Insuffient permissions".to_string());
         }
 
@@ -300,6 +316,8 @@ impl State {
         .map_err(|_| "Could not add new subset".to_string())?;
 
         self.broadcast_new_subset(set, &new_subset_id, name);
+
+        crate::log!("User {} created subset {}", user_id, new_subset_id);
 
         Ok(new_subset_id)
     }
@@ -359,7 +377,11 @@ impl State {
         )
         .map_err(|_| "Could not add new membership".to_string())?;
 
-        self.broadcast_new_user(set, user);
+        let uid = user.uid.clone();
+
+        self.broadcast_new_user(set.as_ref(), user);
+
+        crate::log!("User {} joined set {}", uid, set.as_ref());
 
         Ok(())
     }
@@ -397,7 +419,9 @@ impl State {
         )
         .map_err(|_| "Could not remove membership".to_string())?;
 
-        self.broadcast_left_user(set, user_id);
+        self.broadcast_left_user(set.as_ref(), &user_id);
+
+        crate::log!("User {} left set {}", user_id, set.as_ref());
 
         Ok(())
     }
