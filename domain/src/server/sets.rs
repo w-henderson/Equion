@@ -137,7 +137,7 @@ impl State {
 
         let meta: Option<(bool, String)> = conn
             .exec_first(
-                "SELECT memberships.admin FROM memberships
+                "SELECT memberships.admin, users.id FROM memberships
                     JOIN users ON users.id = memberships.user_id
                     WHERE users.token = ? AND memberships.set_id = ?",
                 (token.as_ref(), id.as_ref()),
