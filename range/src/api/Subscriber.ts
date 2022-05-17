@@ -2,6 +2,8 @@ import toast from "react-hot-toast";
 
 class Subscriber {
   ws: WebSocket;
+  ready: boolean;
+
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
   onUpdateUser: (set: string, user: UserData) => void;
@@ -15,12 +17,26 @@ class Subscriber {
     this.ws.onmessage = this.onEvent.bind(this);
     this.ws.onerror = (e: any) => toast.error(e);
 
+    this.ready = false;
+
     this.onMessage = () => { };
     this.onSubset = () => { };
     this.onUpdateUser = () => { };
     this.onLeftUser = () => { };
     this.onUserJoinedVoiceChannel = () => { };
     this.onUserLeftVoiceChannel = () => { };
+  }
+
+  init() {
+    if (!this.ready) {
+      this.ready = true;
+
+      setInterval(() => {
+        this.ws.send(JSON.stringify({
+          command: "v1/ping"
+        }));
+      }, 10000);
+    }
   }
 
   subscribe(token: string, id: string) {

@@ -61,6 +61,7 @@ class Api {
 
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
+    this.subscriber.init();
 
     this.subscriber.onUserJoinedVoiceChannel = (set: string, user: VoiceUserData) => {
       if (this.uid === user.user.uid) {
