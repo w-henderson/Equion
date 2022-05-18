@@ -104,6 +104,7 @@ div.Message {
     div.text {
       padding: 0 12px 12px;
       user-select: text;
+      word-break: break-word;
 
       span.ping {
         display: inline-block;
