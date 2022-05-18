@@ -31,7 +31,7 @@ class Voice extends React.Component<VoiceProps> {
     return (
       <div className="Voice">
         <div className="Subset voice" onClick={inVoiceChat ? this.leaveVoice : this.joinVoice}>
-          <svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 4L12 20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M8 9L8 15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M20 10L20 14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
@@ -47,7 +47,7 @@ class Voice extends React.Component<VoiceProps> {
         {this.props.members.length > 0 &&
           <div className={inVoiceChat ? "voiceMembers inVoiceChat" : "voiceMembers"}>
             {this.props.members.map(member =>
-              <div className="member">
+              <div className="member" key={member.peerId}>
                 <img src={this.context.getFileURL(member.user.image)} alt="User" />
                 <h2>{member.user.displayName}</h2>
               </div>
