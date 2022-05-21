@@ -30,12 +30,6 @@ class Subscriber {
   init() {
     if (!this.ready) {
       this.ready = true;
-
-      setInterval(() => {
-        this.ws.send(JSON.stringify({
-          command: "v1/ping"
-        }));
-      }, 10000);
     }
   }
 
