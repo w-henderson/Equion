@@ -518,9 +518,9 @@ checksum = "1307584198424a6e74bde63f75543a6da7b506eb898890b59b908ccc1f4cef38"
 
 [[package]]
 name = "humphrey_ws"
-version = "0.3.4"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "519b22e2e629e3c7b01500a8328bd0e6a18c319227303524871a20fda6ae9c61"
+checksum = "5c612c67411591bca658ddce1d5444271a8bc32f9adc184091aec8008988987f"
 dependencies = [
  "humphrey",
 ]

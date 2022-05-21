@@ -12,6 +12,7 @@ use humphrey::http::cors::Cors;
 use humphrey::App;
 
 use humphrey_ws::async_app::AsyncSender;
+use humphrey_ws::ping::Heartbeat;
 use humphrey_ws::{async_websocket_handler, AsyncWebsocketApp};
 
 use mysql::{Opts, Pool};
@@ -22,6 +23,7 @@ use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread::spawn;
+use std::time::Duration;
 
 static DB_URL: &str = "mysql://root:hunter2@localhost:3306/equion";
 
@@ -53,6 +55,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Initialise the WebSocket app for real-time updates.
     let ws_app: AsyncWebsocketApp<State> =
         AsyncWebsocketApp::new_unlinked_with_config(state.clone(), 16)
+            .with_heartbeat(Heartbeat::new(
+                Duration::from_secs(5),
+                Duration::from_secs(10),
+            ))
             .with_message_handler(ws::handler)
             .with_disconnect_handler(ws::unsubscribe_all);
 

@@ -29,7 +29,6 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
             None => match command.as_str() {
                 "v1/subscribe" => subscribe(state, json, addr),
                 "v1/unsubscribe" => unsubscribe(state, json, addr),
-                "v1/ping" => ping(state, json, addr),
                 "v1/connectUserVoice" => voice::ws::connect_user_voice(state, json, addr),
                 "v1/disconnectUserVoice" => voice::ws::disconnect_user_voice(state, json, addr),
                 "v1/connectToVoiceChannel" => {
@@ -119,12 +118,5 @@ pub fn unsubscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
         Ok(json!({
             "success": true
         }))
-    })
-}
-
-pub fn ping(_: Arc<State>, _: Value, _: SocketAddr) -> Value {
-    json!({
-        "success": true,
-        "pong": true
     })
 }
