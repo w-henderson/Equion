@@ -47,7 +47,7 @@ class Voice extends React.Component<VoiceProps> {
         {this.props.members.length > 0 &&
           <div className={inVoiceChat ? "voiceMembers inVoiceChat" : "voiceMembers"}>
             {this.props.members.map(member =>
-              <div className="member" key={member.peerId}>
+              <div className={member.speaking === true ? "member speaking" : "member"} key={member.peerId}>
                 <img src={this.context.getFileURL(member.user.image)} alt="User" />
                 <h2>{member.user.displayName}</h2>
               </div>

@@ -45,6 +45,7 @@ class App extends React.Component<{}, AppState> {
     this.api.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
 
     this.api.voice.allowedToCall = this.allowedToCall.bind(this);
+    this.api.voice.onSpeakingChange = this.onSpeakingChange.bind(this);
 
     this.state = {
       init: false,
@@ -71,6 +72,7 @@ class App extends React.Component<{}, AppState> {
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
     this.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
     this.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
+    this.onSpeakingChange = this.onSpeakingChange.bind(this);
   }
 
   componentDidMount() {
@@ -287,6 +289,22 @@ class App extends React.Component<{}, AppState> {
       let voiceMembers = state.sets[setIndex].voiceMembers.filter(m => m.user.uid !== uid);
 
       newState.set(`sets.${setIndex}.voiceMembers`, voiceMembers);
+
+      return newState.value();
+    })
+  }
+
+  onSpeakingChange(speaking: boolean, peerId: string) {
+    this.setState(state => {
+      let newState = immutable.wrap(state);
+
+      let setIndex = state.sets.findIndex(s => s.voiceMembers.some(m => m.peerId === peerId));
+      if (setIndex === -1) return state;
+
+      let memberIndex = state.sets[setIndex].voiceMembers.findIndex(m => m.peerId === peerId);
+      if (memberIndex === -1) return state;
+
+      newState.set(`sets.${setIndex}.voiceMembers.${memberIndex}.speaking`, speaking);
 
       return newState.value();
     })
