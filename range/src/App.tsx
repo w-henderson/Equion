@@ -271,6 +271,13 @@ class App extends React.Component<{}, AppState> {
       this.api.voice.disconnect();
     }
 
+    let setIndex = this.state.sets.findIndex(s => s.id === set);
+    let peerId = this.state.sets[setIndex].voiceMembers.find(m => m.user.uid === uid)?.peerId;
+
+    if (peerId) {
+      this.api.voice.disconnectPeer(peerId);
+    }
+
     this.setState(state => {
       let newState = immutable.wrap(state);
 

@@ -26,6 +26,7 @@ interface UserData {
 
 interface VoiceUserData {
   peerId: string,
+  speaking?: boolean,
   user: UserData
 }
 
