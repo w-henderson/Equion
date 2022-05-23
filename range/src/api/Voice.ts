@@ -123,11 +123,12 @@ class Voice {
       let mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
       this.calls[callIndex].analyser = this.audioContext.createAnalyser();
       mediaStreamSource.connect(this.calls[callIndex].analyser!);
-    }
 
-    let audio = new Audio();
-    audio.srcObject = stream;
-    audio.play();
+      // work around for https://bugs.chromium.org/p/chromium/issues/detail?id=933677
+      new Audio().srcObject = stream;
+
+      mediaStreamSource.connect(this.audioContext.destination);
+    }
   }
 
   public speakingHandler() {
