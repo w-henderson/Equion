@@ -181,6 +181,7 @@ class Voice {
   }
 
   public connectToVoiceChannel(token: string, channel: string) {
+    this.audioContext.resume();
     this.ws.send(JSON.stringify({
       command: "v1/connectToVoiceChannel",
       token,
