@@ -47,7 +47,12 @@ class Voice extends React.Component<VoiceProps> {
 
         {this.props.members.length > 0 &&
           <div className={inVoiceChat ? "voiceMembers inVoiceChat" : "voiceMembers"}>
-            {this.props.members.map(member => <VoiceMember member={member} key={member.peerId} />)}
+            {this.props.members.map(member =>
+              <VoiceMember
+                member={member}
+                inVoiceChat={inVoiceChat}
+                key={member.peerId} />
+            )}
           </div>
         }
 

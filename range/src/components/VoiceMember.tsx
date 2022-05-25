@@ -2,7 +2,8 @@ import React from 'react';
 import ApiContext from '../api/ApiContext';
 
 interface VoiceMemberProps {
-  member: VoiceUserData
+  member: VoiceUserData,
+  inVoiceChat: boolean
 }
 
 interface VoiceMemberState {
@@ -29,6 +30,14 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
     this.showOptions = this.showOptions.bind(this);
     this.hideOptions = this.hideOptions.bind(this);
     this.volumeChange = this.volumeChange.bind(this);
+  }
+
+  componentDidUpdate() {
+    if (this.state.optionsVisible && !this.props.inVoiceChat) {
+      this.setState({ optionsVisible: false }, () => {
+        document.removeEventListener('mousedown', this.hideOptions);
+      });
+    }
   }
 
   showOptions() {
@@ -62,7 +71,7 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
         className={this.props.member.speaking === true ? "member speaking" : "member"}
         ref={this.wrapperRef}
         onClick={() => {
-          if (!this.state.optionsVisible) {
+          if (!this.state.optionsVisible && this.props.inVoiceChat) {
             this.showOptions();
           }
         }}>
