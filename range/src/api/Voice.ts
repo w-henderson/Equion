@@ -11,6 +11,7 @@ interface Call {
   connection: MediaConnection,
   stream: MediaStream | null,
   analyser: AnalyserNode | null,
+  gain: GainNode | null,
   speaking: boolean,
 }
 
@@ -95,6 +96,7 @@ class Voice {
           connection: call,
           stream: null,
           analyser: null,
+          gain: null,
           speaking: false
         });
 
@@ -121,13 +123,25 @@ class Voice {
       this.calls[callIndex].stream = stream;
 
       let mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+
       this.calls[callIndex].analyser = this.audioContext.createAnalyser();
+      this.calls[callIndex].gain = this.audioContext.createGain();
+
       mediaStreamSource.connect(this.calls[callIndex].analyser!);
 
       // work around for https://bugs.chromium.org/p/chromium/issues/detail?id=933677
       new Audio().srcObject = stream;
 
-      mediaStreamSource.connect(this.audioContext.destination);
+      mediaStreamSource.connect(this.calls[callIndex].gain!);
+      this.calls[callIndex].gain!.connect(this.audioContext.destination);
+    }
+  }
+
+  public setVolume(peerId: string, volume: number) {
+    let callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
+
+    if (callIndex !== -1) {
+      this.calls[callIndex].gain!.gain.value = volume * volume * volume;
     }
   }
 
@@ -204,6 +218,7 @@ class Voice {
         connection: call,
         stream: null,
         analyser: null,
+        gain: null,
         speaking: false
       });
 

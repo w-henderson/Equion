@@ -20,6 +20,7 @@ div.Voice {
     }
 
     div.member {
+      position: relative;
       display: flex;
       place-items: center;
       width: 100%;
@@ -27,7 +28,6 @@ div.Voice {
       margin-bottom: 8px;
       border-radius: 8px;
       cursor: pointer;
-      overflow: hidden;
       opacity: 0.75;
 
       transition: background-color 200ms, opacity 200ms;
@@ -68,6 +68,57 @@ div.Voice {
           border-radius: 15px;
           margin: -3px 7px -3px -3px;
           border: 3px solid var(--accent-light);
+        }
+      }
+
+      div.voiceOptions {
+        position: fixed;
+        background-color: var(--accent-dark);
+        box-shadow: 0 0 32px rgba(0, 0, 0, 0.25);
+        border-radius: 8px;
+        padding: 8px;
+        pointer-events: all;
+        z-index: 5;
+        cursor: default;
+
+        animation-name: pop-up;
+        animation-duration: 250ms;
+        animation-timing-function: ease;
+        animation-fill-mode: forwards;
+
+        display: flex;
+        place-items: center;
+
+        svg {
+          margin-right: 8px;
+        }
+
+        input[type=range] {
+          appearance: none;
+          background: transparent;
+          width: 150px;
+
+          &::-webkit-slider-thumb {
+            appearance: none;
+            margin-top: -4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            background-color: var(--accent-light);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+
+            &:hover {
+              filter: brightness(1.3);
+            }
+          }
+
+          &::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background-color: var(--accent-mid);
+            border-radius: 4px;
+            box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
+          }
         }
       }
     }

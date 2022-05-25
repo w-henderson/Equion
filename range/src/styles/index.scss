@@ -63,3 +63,15 @@ body,
     background-color: rgba(0, 0, 0, 0.2);
   }
 }
+
+@keyframes pop-up {
+  from {
+    transform: scale(0.95) translateY(4px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
