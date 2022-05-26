@@ -50,6 +50,7 @@
                     "FunctionExpression": false
                 }
             }
-        ]
+        ],
+        "react/no-unescaped-entities": "off"
     }
 }

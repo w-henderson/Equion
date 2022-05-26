@@ -1,5 +1,5 @@
-import React from 'react';
-import ApiContext from '../api/ApiContext';
+import React from "react";
+import ApiContext from "../api/ApiContext";
 
 interface VoiceMemberProps {
   member: VoiceUserData,
@@ -11,18 +11,26 @@ interface VoiceMemberState {
   volume: number
 }
 
+/**
+ * Component for each individual member of the voice chat.
+ * 
+ * This manages the UI for the volume of each member, as well as if they are speaking.
+ */
 class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
   context!: React.ContextType<typeof ApiContext>;
   wrapperRef: React.RefObject<HTMLDivElement>;
   optionsRef: React.RefObject<HTMLDivElement>;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: VoiceMemberProps) {
     super(props);
 
     this.state = {
       optionsVisible: false,
       volume: 1
-    }
+    };
 
     this.wrapperRef = React.createRef();
     this.optionsRef = React.createRef();
@@ -32,28 +40,41 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
     this.volumeChange = this.volumeChange.bind(this);
   }
 
+  /**
+   * If the user is no longer in the voice chat but the options for the user are still visible, hide them.
+   */
   componentDidUpdate() {
     if (this.state.optionsVisible && !this.props.inVoiceChat) {
       this.setState({ optionsVisible: false }, () => {
-        document.removeEventListener('mousedown', this.hideOptions);
+        document.removeEventListener("mousedown", this.hideOptions);
       });
     }
   }
 
+  /**
+   * Show the options for the user.
+   */
   showOptions() {
     this.setState({ optionsVisible: true }, () => {
-      document.addEventListener('mousedown', this.hideOptions);
+      document.addEventListener("mousedown", this.hideOptions);
     });
   }
 
+  /**
+   * Hide the options for the user.
+   */
+  /* eslint-disable */
   hideOptions(e: any) {
     if (this.optionsRef.current && !this.optionsRef.current.contains(e.target)) {
       this.setState({ optionsVisible: false }, () => {
-        document.removeEventListener('mousedown', this.hideOptions);
+        document.removeEventListener("mousedown", this.hideOptions);
       });
     }
   }
 
+  /**
+   * Change the volume of the user.
+   */
   volumeChange(e: any) {
     this.setState({ volume: e.target.value });
 
@@ -64,9 +85,12 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
     }
   }
 
+  /**
+   * Render the component.
+   */
   render() {
-    let x = (this.wrapperRef.current?.offsetLeft ?? 0) + 231;
-    let y = (this.wrapperRef.current?.offsetTop ?? 0);
+    const x = (this.wrapperRef.current?.offsetLeft ?? 0) + 231;
+    const y = (this.wrapperRef.current?.offsetTop ?? 0);
 
     return (
       <div
@@ -116,7 +140,7 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
           </div>
         }
       </div>
-    )
+    );
   }
 }
 

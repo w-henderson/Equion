@@ -1,11 +1,11 @@
-import React from 'react';
-import '../styles/UserInfo.scss';
+import React from "react";
+import "../styles/UserInfo.scss";
 
-import toast from 'react-hot-toast';
-import ApiContext from '../api/ApiContext';
-import { DEFAULT_PROFILE_IMAGE } from '../api/Api';
+import toast from "react-hot-toast";
+import ApiContext from "../api/ApiContext";
+import { DEFAULT_PROFILE_IMAGE } from "../api/Api";
 
-import Modal from './Modal';
+import Modal from "./Modal";
 
 interface UserInfoProps {
   id: string | null,
@@ -23,10 +23,18 @@ interface UserInfoState {
   displayedImage: string,
 }
 
+/**
+ * Component for the user information modal.
+ * 
+ * This also allows the current user to edit their information.
+ */
 class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
   context!: React.ContextType<typeof ApiContext>;
   fileInput: React.RefObject<HTMLInputElement>;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: UserInfoProps) {
     super(props);
 
@@ -38,7 +46,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
       about: "",
       imageFile: null,
       displayedImage: ""
-    }
+    };
 
     this.fileInput = React.createRef();
 
@@ -48,27 +56,38 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
     this.changedImage = this.changedImage.bind(this);
   }
 
+  /**
+   * If the component is supposed to be showing a user, but their data has not been loaded, load it.
+   */
   componentDidUpdate() {
     if (!this.state.loading && this.props.id !== null && this.state.data === null) {
       this.setState({ loading: true }, () => {
-        this.context.getUserByUid(this.props.id!).then(user => this.setState({ data: user, loading: false }));
+        if (this.props.id === null) return;
+
+        this.context.getUserByUid(this.props.id).then(user => this.setState({ data: user, loading: false }));
       });
     }
   }
 
+  /**
+   * Enables editing mode for the shown user.
+   */
   setEditing() {
     this.setState({
       editing: true,
-      displayName: this.state.data!.displayName,
-      about: this.state.data!.bio || "",
+      displayName: this.state.data?.displayName || "",
+      about: this.state.data?.bio || "",
       imageFile: null,
-      displayedImage: this.context.getFileURL(this.state.data!.image)
-    })
+      displayedImage: this.context.getFileURL(this.state.data?.image)
+    });
   }
 
+  /**
+   * Saves the edited data.
+   */
   save() {
     toast.promise(
-      this.context.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined).then(() => this.context.getUserByUid(this.props.id!)),
+      this.context.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined).then(() => this.context.getUserByUid(this.props.id ?? "")),
       {
         loading: "Updating profile...",
         success: "Profile updated!",
@@ -80,9 +99,12 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
           data: user,
           editing: false,
         });
-      })
+      });
   }
 
+  /**
+   * Closes the modal.
+   */
   close() {
     if (!this.state.loading) {
       this.props.hideCallback();
@@ -97,9 +119,12 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
     }
   }
 
+  /**
+   * Changes the image file for the profile picture.
+   */
   changedImage(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
-      let url = URL.createObjectURL(e.target.files[0]);
+      const url = URL.createObjectURL(e.target.files[0]);
       this.setState({
         imageFile: e.target.files[0],
         displayedImage: url
@@ -111,12 +136,15 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
         return {
           ...state,
           imageFile: null,
-          displayedImage: this.context.getFileURL(this.state.data!.image)
-        }
+          displayedImage: this.context.getFileURL(this.state.data?.image)
+        };
       });
     }
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
     if (!this.state.editing) {
       return (
@@ -161,7 +189,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
             </>
           }
         </Modal>
-      )
+      );
     } else {
       return (
         <Modal
@@ -180,7 +208,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
           <img
             src={this.state.displayedImage}
             alt="Profile"
-            onClick={() => this.fileInput.current!.click()} />
+            onClick={() => this.fileInput.current?.click()} />
 
           <input
             type="text"
@@ -194,7 +222,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
             ref={this.fileInput}
             onChange={this.changedImage} />
 
-          <span className="username" title="You cannot currently change your username">@{this.state.data!.username}</span>
+          <span className="username" title="You cannot currently change your username">@{this.state.data?.username}</span>
 
           <div>
             <h2>About</h2>

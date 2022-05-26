@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Peer, { MediaConnection } from "peerjs";
 
 const VOICE_HOST = process.env.REACT_APP_EQUION_VOICE_HOST || "localhost";
@@ -23,6 +24,9 @@ interface Microphone {
   speaking: boolean
 }
 
+/**
+ * Handles voice chat connections.
+ */
 class Voice {
   peer: Peer;
   peerId?: string;
@@ -42,6 +46,11 @@ class Voice {
   userJoinAudio: HTMLAudioElement;
   userLeaveAudio: HTMLAudioElement;
 
+  /**
+   * Creates a new voice chat instance.
+   * 
+   * Connects to the PeerJS server.
+   */
   constructor(ws: WebSocket) {
     this.peer = new Peer({
       host: VOICE_HOST,
@@ -63,7 +72,7 @@ class Voice {
     this.calls = [];
 
     this.allowedToCall = () => false;
-    this.onSpeakingChange = () => { };
+    this.onSpeakingChange = () => null;
 
     this.audioContext = new AudioContext();
     this.userJoinAudio = new Audio("/audio/equion-02.ogg");
@@ -72,17 +81,23 @@ class Voice {
     this.userLeaveAudio.load();
   }
 
+  /**
+   * Initialises the voice functionality.
+   * 
+   * This waits for the PeerJS node to be ready and then registers it with the server.
+   * It also creates the post-processing graph for the microphone.
+   */
   async init(token: string): Promise<void> {
-    let peerId = await this.asyncPeerId;
-    let stream = await this.getAudioStream();
+    const peerId = await this.asyncPeerId;
+    const stream = await this.getAudioStream();
 
-    let inputStream = this.audioContext.createMediaStreamSource(stream);
-    let analyser = this.audioContext.createAnalyser();
-    let gain = this.audioContext.createGain();
+    const inputStream = this.audioContext.createMediaStreamSource(stream);
+    const analyser = this.audioContext.createAnalyser();
+    const gain = this.audioContext.createGain();
     inputStream.connect(analyser);
     inputStream.connect(gain);
 
-    let outputStream = this.audioContext.createMediaStreamDestination();
+    const outputStream = this.audioContext.createMediaStreamDestination();
     gain.connect(outputStream);
 
     this.microphone = {
@@ -91,7 +106,7 @@ class Voice {
       gain,
       outputStream,
       speaking: false
-    }
+    };
 
     this.ws.send(JSON.stringify({
       command: "v1/connectUserVoice",
@@ -121,17 +136,26 @@ class Voice {
     this.analyserThread = window.setInterval(this.speakingHandler.bind(this), 100);
   }
 
+  /**
+   * Gets the audio stream from the microphone.
+   */
   async getAudioStream() {
     return await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
   }
 
+  /**
+   * Initialises and plays an audio stream.
+   * 
+   * This is called whenever a new stream is received from a peer.
+   * It sets up the post-processing graph and starts playing the stream.
+   */
   public initStream(stream: MediaStream, peerId: string) {
-    let callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
+    const callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
 
     if (callIndex !== -1) {
       this.calls[callIndex].stream = stream;
 
-      let mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+      const mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
 
       this.calls[callIndex].analyser = this.audioContext.createAnalyser();
       this.calls[callIndex].gain = this.audioContext.createGain();
@@ -146,21 +170,32 @@ class Voice {
     }
   }
 
+  /**
+   * Set the volume for the given peer's stream.
+   */
   public setVolume(peerId: string, volume: number) {
-    let callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
+    const callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
 
     if (callIndex !== -1) {
       this.calls[callIndex].gain!.gain.value = volume * volume * volume;
     }
   }
 
+  /**
+   * Set the volume for the microphone.
+   */
   public setMicrophoneVolume(volume: number) {
     this.microphone!.gain!.gain.value = volume * volume * volume;
   }
 
+  /**
+   * Handles changes in who is speaking.
+   * 
+   * This is called every 100ms.
+   */
   public speakingHandler() {
-    for (let call of this.calls) {
-      let amplitude = this.getAmplitude(call.connection.peer);
+    for (const call of this.calls) {
+      const amplitude = this.getAmplitude(call.connection.peer);
 
       if (amplitude === null) continue;
 
@@ -174,7 +209,7 @@ class Voice {
     }
 
     if (this.microphone !== undefined) {
-      let amplitude = this.getAnalyserAmplitude(this.microphone.analyser);
+      const amplitude = this.getAnalyserAmplitude(this.microphone.analyser);
 
       if (amplitude > SPEAKING_THRESHOLD) {
         if (!this.microphone.speaking) this.onSpeakingChange(true, this.peerId!);
@@ -186,8 +221,11 @@ class Voice {
     }
   }
 
+  /**
+   * Get the amplitude of the given peer's stream.
+   */
   public getAmplitude(peerId: string): number | null {
-    let callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
+    const callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
 
     if (callIndex === -1) return null;
     if (this.calls[callIndex].analyser === null) return null;
@@ -195,8 +233,11 @@ class Voice {
     return this.getAnalyserAmplitude(this.calls[callIndex].analyser!);
   }
 
+  /**
+   * Get the amplitude of the given analyser node.
+   */
   public getAnalyserAmplitude(analyser: AnalyserNode): number {
-    let data = new Float32Array(analyser.frequencyBinCount);
+    const data = new Float32Array(analyser.frequencyBinCount);
     analyser.getFloatTimeDomainData(data);
 
     let sumOfSquares = 0;
@@ -208,6 +249,9 @@ class Voice {
     return Math.sqrt(sumOfSquares / data.length);
   }
 
+  /**
+   * Connects the current user to the given voice channel.
+   */
   public connectToVoiceChannel(token: string, channel: string) {
     this.audioContext.resume();
     this.ws.send(JSON.stringify({
@@ -217,6 +261,9 @@ class Voice {
     }));
   }
 
+  /**
+   * Disconnects the current user from the voice channel.
+   */
   public leaveVoiceChannel(token: string) {
     this.ws.send(JSON.stringify({
       command: "v1/leaveVoiceChannel",
@@ -224,9 +271,12 @@ class Voice {
     }));
   }
 
+  /**
+   * Connects the current user to every peer in the list.
+   */
   public async connectToPeers(peers: string[]) {
-    for (let peer of peers) {
-      let call = this.peer.call(peer, this.microphone!.outputStream.stream);
+    for (const peer of peers) {
+      const call = this.peer.call(peer, this.microphone!.outputStream.stream);
       this.calls.push({
         connection: call,
         stream: null,
@@ -239,16 +289,22 @@ class Voice {
     }
   }
 
+  /**
+   * Disconnects the current user from every peer.
+   */
   public disconnect() {
-    for (let call of this.calls) {
+    for (const call of this.calls) {
       call.connection.close();
     }
 
     this.calls = [];
   }
 
+  /**
+   * Disconnects the current user from the given peer, if they are connected.
+   */
   public disconnectPeer(peerId: string) {
-    let callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
+    const callIndex = this.calls.findIndex(c => c.connection.peer === peerId);
 
     if (callIndex !== -1) {
       this.calls[callIndex].connection.close();
@@ -256,11 +312,17 @@ class Voice {
     }
   }
 
+  /**
+   * Plays the "join" audio sound.
+   */
   public playJoinAudio() {
     this.userJoinAudio.load();
     this.userJoinAudio.play();
   }
 
+  /**
+   * Plays the "leave" audio sound.
+   */
   public playLeaveAudio() {
     this.userLeaveAudio.load();
     this.userLeaveAudio.play();

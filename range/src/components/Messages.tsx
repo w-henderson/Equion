@@ -1,13 +1,13 @@
-import React from 'react';
-import ApiContext from '../api/ApiContext';
-import { open } from '@tauri-apps/api/shell';
+import React from "react";
+import ApiContext from "../api/ApiContext";
+import { open } from "@tauri-apps/api/shell";
 
-import '../styles/Messages.scss';
-import '../styles/UserInfo.scss';
+import "../styles/Messages.scss";
+import "../styles/UserInfo.scss";
 
 import Message from "./Message";
-import MessageBox from './MessageBox';
-import Modal from './Modal';
+import MessageBox from "./MessageBox";
+import Modal from "./Modal";
 
 interface MessagesProps {
   subset: SubsetData | undefined,
@@ -23,6 +23,9 @@ interface MessagesState {
   shownAttachmentId?: string,
 }
 
+/**
+ * Component for the messages list.
+ */
 class Messages extends React.Component<MessagesProps, MessagesState> {
   context!: React.ContextType<typeof ApiContext>;
   messages: React.RefObject<HTMLDivElement>;
@@ -30,6 +33,9 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
   lastMessageId: string | null;
   lastScrolledMessageTimestamp: number | null;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: MessagesProps) {
     super(props);
 
@@ -37,7 +43,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
       waitingForMessages: false,
       scrollLockedToBottom: true,
       shownAttachment: false
-    }
+    };
 
     this.lastId = null;
     this.lastMessageId = null;
@@ -50,29 +56,44 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     this.lockScroll = this.lockScroll.bind(this);
   }
 
+  /**
+   * When the component has rendered for the first time, scroll to the bottom of the messages.
+   */
   componentDidMount() {
     if (this.messages.current) {
       this.messages.current.scrollTop = this.messages.current.scrollHeight;
     }
   }
 
+  /**
+   * Handles scroll events.
+   * 
+   * If the scroll touches the bottom, it becomes locked to the bottom until it is scrolled up.
+   * This means that it automatically scrolls down when new messages are received.
+   * 
+   * If the scroll touches the top, older messages are requested.
+   */
   handleScroll(e: React.WheelEvent<HTMLDivElement>) {
-    let scrollTop = this.messages.current!.scrollTop + e.deltaY;
-    let scrollBottom = scrollTop + this.messages.current!.clientHeight;
-    let scrollHeight = this.messages.current!.scrollHeight;
+    if (!this.messages.current) return;
+
+    const scrollTop = this.messages.current.scrollTop + e.deltaY;
+    const scrollBottom = scrollTop + this.messages.current.clientHeight;
+    const scrollHeight = this.messages.current.scrollHeight;
 
     if (scrollBottom >= scrollHeight) {
       this.setState({ scrollLockedToBottom: true });
     } else if (scrollTop <= 0 && !this.state.waitingForMessages && !this.props.subset?.loadedToTop) {
-      let oldScrollHeight = this.messages.current!.scrollHeight;
+      const oldScrollHeight = this.messages.current.scrollHeight;
 
       this.setState({
         scrollLockedToBottom: false,
         waitingForMessages: true
       }, () => {
         this.props.requestMoreMessages().then(() => {
-          let newScrollHeight = this.messages.current!.scrollHeight;
-          this.messages.current!.scrollTop = newScrollHeight - oldScrollHeight;
+          if (!this.messages.current) return;
+
+          const newScrollHeight = this.messages.current.scrollHeight;
+          this.messages.current.scrollTop = newScrollHeight - oldScrollHeight;
           this.setState({ waitingForMessages: false });
         });
       });
@@ -81,10 +102,16 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     }
   }
 
+  /**
+   * Locks the scroll to the bottom.
+   */
   lockScroll() {
     this.setState({ scrollLockedToBottom: true });
   }
 
+  /**
+   * Shows an attachment in a fullscreen modal.
+   */
   showAttachment(id: string) {
     this.setState({
       shownAttachment: true,
@@ -92,9 +119,12 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     });
   }
 
+  /**
+   * After each render, check whether scrolling is required.
+   */
   componentDidUpdate() {
-    if (this.state.scrollLockedToBottom) {
-      this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
+    if (this.state.scrollLockedToBottom && this.messages.current) {
+      this.messages.current.scrollTop = this.messages.current.scrollHeight;
     }
 
     if (this.props.subset !== undefined) {
@@ -107,6 +137,9 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
     }
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
     if (this.props.subset !== undefined) {
       return (
@@ -131,8 +164,8 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
                 showUserCallback={this.props.showUser}
                 showAttachmentCallback={this.showAttachment}
                 scrollCallback={() => {
-                  if (this.state.scrollLockedToBottom) {
-                    this.messages.current!.scrollTop = this.messages.current!.scrollHeight;
+                  if (this.state.scrollLockedToBottom && this.messages.current) {
+                    this.messages.current.scrollTop = this.messages.current.scrollHeight;
                   }
                 }} />
             )}
@@ -164,7 +197,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
               alt="Attachment" />
           </Modal>
         </div>
-      )
+      );
     } else {
       return (
         <div className="Messages">
@@ -172,7 +205,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             <h1> </h1>
           </div>
         </div>
-      )
+      );
     }
   }
 }

@@ -1,7 +1,7 @@
-import React from 'react';
-import ApiContext from '../api/ApiContext';
-import { open } from '@tauri-apps/api/dialog';
-import '../styles/MessageBox.scss';
+import React from "react";
+import ApiContext from "../api/ApiContext";
+import { open } from "@tauri-apps/api/dialog";
+import "../styles/MessageBox.scss";
 
 interface MessageBoxProps {
   subsetId: string,
@@ -20,10 +20,16 @@ interface MessageBoxState {
   sending: boolean
 }
 
+/**
+ * Component for the message box.
+ */
 class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
   context!: React.ContextType<typeof ApiContext>;
   box: React.RefObject<HTMLInputElement>;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: MessageBoxProps) {
     super(props);
 
@@ -33,7 +39,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
       message: "",
       attachment: undefined,
       sending: false
-    }
+    };
 
     this.box = React.createRef();
 
@@ -45,12 +51,20 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
     this.messageSend = this.messageSend.bind(this);
   }
 
+  /**
+   * If the message box re-renders, focus it.
+   * 
+   * This causes the box to be focussed whenever the subset is changed.
+   */
   componentDidUpdate() {
     if (this.box.current) {
       this.box.current.focus();
     }
   }
 
+  /**
+   * Adds an attachment to the message.
+   */
   addAttachment() {
     open({
       title: "Attach a file",
@@ -59,9 +73,12 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
       if (!Array.isArray(path) && path) {
         this.setState({ attachment: path });
       }
-    })
+    });
   }
 
+  /**
+   * Handles keyboard events for pinging people.
+   */
   handleButtonPress(e: React.KeyboardEvent<HTMLInputElement>) {
     if (this.state.mentioning !== undefined) {
       if (e.key === "ArrowUp") {
@@ -77,28 +94,32 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
     }
 
     if (
+      this.box.current &&
       e.key === "Backspace" &&
       (this.state.message.length === 0 ||
-        (this.box.current!.selectionStart === 0 &&
-          this.box.current!.selectionEnd === this.state.message.length))
+        (this.box.current.selectionStart === 0 &&
+          this.box.current.selectionEnd === this.state.message.length))
     ) {
       this.setState(state => {
         return {
           ...state,
           mentions: state.mentions.slice(0, state.mentions.length - 1)
-        }
-      })
+        };
+      });
     }
   }
 
+  /**
+   * Changes the highlighted user in the given direction.
+   */
   changeHighlight(direction: number) {
-    let currentIndex = this.state.mentioning?.highlighted;
+    if (this.state.mentioning) {
+      const mentioning = this.state.mentioning;
+      let newIndex = this.state.mentioning.highlighted + direction;
 
-    if (currentIndex !== undefined) {
-      let newIndex = currentIndex + direction;
-      let length = this.props.members.filter(user =>
-        user.displayName.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
-        || user.username.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+      const length = this.props.members.filter(user =>
+        user.displayName.toLowerCase().includes(mentioning.query.toLowerCase())
+        || user.username.toLowerCase().includes(mentioning.query.toLowerCase())
       ).length;
 
       if (newIndex < 0) {
@@ -109,24 +130,31 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
 
       this.setState({
         mentioning: {
-          ...this.state.mentioning!,
+          ...mentioning,
           highlighted: newIndex
         }
-      })
+      });
     }
   }
 
+  /**
+   * Adds the highlighted mention to the message.
+   */
   addMention() {
-    let user = this.props.members.filter(user =>
-      user.displayName.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
-      || user.username.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
-    )[this.state.mentioning!.highlighted];
+    if (!this.state.mentioning || !this.box.current) return;
 
-    let words = this.state.message.split(" ");
-    let currentPosition = this.box.current!.selectionStart || 0;
+    const mentioning = this.state.mentioning;
+
+    const user = this.props.members.filter(user =>
+      user.displayName.toLowerCase().includes(mentioning.query.toLowerCase())
+      || user.username.toLowerCase().includes(mentioning.query.toLowerCase())
+    )[mentioning.highlighted];
+
+    const words = this.state.message.split(" ");
+    let currentPosition = this.box.current.selectionStart || 0;
     let currentWordIndex = 0;
 
-    for (let word of words) {
+    for (const word of words) {
       currentPosition -= word.length + 1;
       if (currentPosition < 0) break;
       currentWordIndex++;
@@ -139,22 +167,27 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
         ...state,
         message: words.join(" "),
         mentions: [...state.mentions, user],
-      }
-    })
+      };
+    });
   }
 
+  /**
+   * Handles changes to the message.
+   * 
+   * This keeps track of the current word to enable mentioning.
+   */
   messageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let words = e.target.value.split(" ");
+    const words = e.target.value.split(" ");
     let currentPosition = e.target.selectionStart || 0;
     let currentWordIndex = 0;
 
-    for (let word of words) {
+    for (const word of words) {
       currentPosition -= word.length + 1;
       if (currentPosition < 0) break;
       currentWordIndex++;
     }
 
-    let currentWord = words[currentWordIndex];
+    const currentWord = words[currentWordIndex];
 
     if (currentWord.startsWith("@")) {
       this.setState({
@@ -163,21 +196,24 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
           highlighted: 0
         },
         message: e.target.value
-      })
+      });
     } else {
       this.setState({
         mentioning: undefined,
         message: e.target.value
-      })
+      });
     }
   }
 
+  /**
+   * Sends the message.
+   */
   messageSend(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    let formattedMentions = this.state.mentions.map(user => "<@" + user.uid + ">").join(" ");
-    let message = (formattedMentions + " " + this.state.message).trim();
-    let attachment = this.state.attachment;
+    const formattedMentions = this.state.mentions.map(user => "<@" + user.uid + ">").join(" ");
+    const message = (formattedMentions + " " + this.state.message).trim();
+    const attachment = this.state.attachment;
 
     if (message.length > 0 || attachment) {
       this.setState({
@@ -190,15 +226,18 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
         this.props.sendCallback();
         this.context.sendMessage(this.props.subsetId, message, attachment).then(() => {
           this.setState({ sending: false }, () => {
-            this.box.current!.focus();
+            this.box.current?.focus();
           });
-        })
+        });
       });
     }
   }
 
+  /**
+   * Renders the message box.
+   */
   render() {
-    let attachmentName = this.state.attachment?.split('\\').pop()?.split('/').pop();;
+    const attachmentName = this.state.attachment?.split("\\").pop()?.split("/").pop();
 
     return (
       <div className="MessageBox">
@@ -255,10 +294,11 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
 
             <div className="matches">
               {this.props.members.filter(user =>
-                user.displayName.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
-                || user.username.toLowerCase().includes(this.state.mentioning!.query.toLowerCase())
+                this.state.mentioning && (
+                  user.displayName.toLowerCase().includes(this.state.mentioning.query.toLowerCase())
+                  || user.username.toLowerCase().includes(this.state.mentioning.query.toLowerCase()))
               ).map((user, i) => (
-                <div className={i === this.state.mentioning!.highlighted ? "match highlighted" : "match"} key={user.uid}>
+                <div className={i === this.state.mentioning?.highlighted ? "match highlighted" : "match"} key={user.uid}>
                   <img src={this.context.getFileURL(user.image)} alt="Member" />
 
                   <div>
@@ -271,7 +311,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
           </div>
         }
       </div>
-    )
+    );
   }
 }
 

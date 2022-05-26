@@ -1,5 +1,5 @@
-import React from 'react';
-import '../styles/Modal.scss';
+import React from "react";
+import "../styles/Modal.scss";
 
 interface ModalProps {
   visible: boolean,
@@ -8,7 +8,13 @@ interface ModalProps {
   className?: string,
 }
 
+/**
+ * Component for the modal.
+ */
 class Modal extends React.Component<ModalProps> {
+  /**
+   * Render the modal.
+   */
   render() {
     return (
       <div className={this.props.visible ? "Modal" : "Modal hidden"} onClick={this.props.close}>
@@ -16,7 +22,7 @@ class Modal extends React.Component<ModalProps> {
           {this.props.children}
         </div>
       </div>
-    )
+    );
   }
 }
 

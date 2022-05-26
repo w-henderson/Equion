@@ -1,8 +1,8 @@
-import React from 'react';
-import { MathJax } from 'better-react-mathjax';
+import React from "react";
+import { MathJax } from "better-react-mathjax";
 
-import ApiContext from '../api/ApiContext';
-import { MessageSegment as MessageSegmentData, MessageSegmentType } from '../api/MessageParser';
+import ApiContext from "../api/ApiContext";
+import { MessageSegment as MessageSegmentData, MessageSegmentType } from "../api/MessageParser";
 
 interface MessageSegmentProps {
   segment: MessageSegmentData,
@@ -16,9 +16,15 @@ interface MessageSegmentState {
   invalidPing: boolean
 }
 
+/**
+ * Component for a message segment.
+ */
 class MessageSegment extends React.Component<MessageSegmentProps, MessageSegmentState> {
   context!: React.ContextType<typeof ApiContext>;
 
+  /**
+   * Initialises the component.
+   */
   constructor(props: MessageSegmentProps) {
     super(props);
 
@@ -26,11 +32,14 @@ class MessageSegment extends React.Component<MessageSegmentProps, MessageSegment
       typeset: props.segment.type !== MessageSegmentType.BlockLatex && props.segment.type !== MessageSegmentType.InlineLatex,
       username: null,
       invalidPing: false
-    }
+    };
 
     this.scroll = this.scroll.bind(this);
   }
 
+  /**
+   * If the segment is a mention, load the user who it mentions and display their name.
+   */
   componentDidMount() {
     if (this.props.segment.type === MessageSegmentType.Ping) {
       this.context.getUserByUid(this.props.segment.value).then(user => {
@@ -41,47 +50,56 @@ class MessageSegment extends React.Component<MessageSegmentProps, MessageSegment
     }
   }
 
+  /**
+   * Scrolls to the bottom if necessary.
+   * 
+   * This is called after MathJax has typeset the LaTeX.
+   */
   scroll() {
     this.props.scrollCallback();
     this.setState({ typeset: true });
   }
 
+  /**
+   * Renders the component.
+   */
+  /* eslint-disable */
   render() {
     switch (this.props.segment.type) {
       case MessageSegmentType.Plain:
-        return <span>{this.props.segment.value}</span>
+        return <span>{this.props.segment.value}</span>;
 
       case MessageSegmentType.BlockLatex:
         return <MathJax
           className="blockLatex"
           onTypeset={this.state.typeset ? undefined : this.scroll}>
           \[{this.props.segment.value}\]
-        </MathJax>
+        </MathJax>;
 
       case MessageSegmentType.InlineLatex:
         return <MathJax
           className="inlineLatex"
           onTypeset={this.state.typeset ? undefined : this.scroll}>
           \[{this.props.segment.value}\]
-        </MathJax>
+        </MathJax>;
 
       case MessageSegmentType.Bold:
-        return <b>{this.props.segment.value}</b>
+        return <b>{this.props.segment.value}</b>;
 
       case MessageSegmentType.Italic:
-        return <i>{this.props.segment.value}</i>
+        return <i>{this.props.segment.value}</i>;
 
       case MessageSegmentType.Underline:
-        return <u>{this.props.segment.value}</u>
+        return <u>{this.props.segment.value}</u>;
 
       case MessageSegmentType.Strike:
-        return <s>{this.props.segment.value}</s>
+        return <s>{this.props.segment.value}</s>;
 
       case MessageSegmentType.Ping:
         if (this.state.invalidPing) {
-          return <span className="ping invalid">User Not Found</span>
+          return <span className="ping invalid">User Not Found</span>;
         } else {
-          return <span className="ping" onClick={this.props.userCallback}>@{this.state.username || <div />}</span>
+          return <span className="ping" onClick={this.props.userCallback}>@{this.state.username || <div />}</span>;
         }
 
       case MessageSegmentType.Unparsed:
