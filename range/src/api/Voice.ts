@@ -16,8 +16,10 @@ interface Call {
 }
 
 interface Microphone {
-  stream: MediaStream,
+  inputStream: MediaStream,
   analyser: AnalyserNode,
+  gain: GainNode,
+  outputStream: MediaStreamAudioDestinationNode,
   speaking: boolean
 }
 
@@ -74,13 +76,20 @@ class Voice {
     let peerId = await this.asyncPeerId;
     let stream = await this.getAudioStream();
 
-    let source = this.audioContext.createMediaStreamSource(stream);
+    let inputStream = this.audioContext.createMediaStreamSource(stream);
     let analyser = this.audioContext.createAnalyser();
-    source.connect(analyser);
+    let gain = this.audioContext.createGain();
+    inputStream.connect(analyser);
+    inputStream.connect(gain);
+
+    let outputStream = this.audioContext.createMediaStreamDestination();
+    gain.connect(outputStream);
 
     this.microphone = {
-      stream,
+      inputStream: stream,
       analyser,
+      gain,
+      outputStream,
       speaking: false
     }
 
@@ -100,7 +109,7 @@ class Voice {
           speaking: false
         });
 
-        call.answer(this.microphone!.stream);
+        call.answer(this.microphone!.outputStream.stream);
 
         call.on("stream", remoteStream => this.initStream(remoteStream, call.peer));
       } else {
@@ -143,6 +152,10 @@ class Voice {
     if (callIndex !== -1) {
       this.calls[callIndex].gain!.gain.value = volume * volume * volume;
     }
+  }
+
+  public setMicrophoneVolume(volume: number) {
+    this.microphone!.gain!.gain.value = volume * volume * volume;
   }
 
   public speakingHandler() {
@@ -213,7 +226,7 @@ class Voice {
 
   public async connectToPeers(peers: string[]) {
     for (let peer of peers) {
-      let call = this.peer.call(peer, this.microphone!.stream);
+      let call = this.peer.call(peer, this.microphone!.outputStream.stream);
       this.calls.push({
         connection: call,
         stream: null,
