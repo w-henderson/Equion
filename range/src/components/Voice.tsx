@@ -1,6 +1,7 @@
 import React from 'react';
 import ApiContext from '../api/ApiContext';
 import '../styles/Voice.scss';
+import VoiceMember from './VoiceMember';
 
 interface VoiceProps {
   id: string,
@@ -47,10 +48,10 @@ class Voice extends React.Component<VoiceProps> {
         {this.props.members.length > 0 &&
           <div className={inVoiceChat ? "voiceMembers inVoiceChat" : "voiceMembers"}>
             {this.props.members.map(member =>
-              <div className="member" key={member.peerId}>
-                <img src={this.context.getFileURL(member.user.image)} alt="User" />
-                <h2>{member.user.displayName}</h2>
-              </div>
+              <VoiceMember
+                member={member}
+                inVoiceChat={inVoiceChat}
+                key={member.peerId} />
             )}
           </div>
         }
