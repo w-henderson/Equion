@@ -1,16 +1,22 @@
-import React from 'react';
-import ApiContext from '../api/ApiContext';
-import '../styles/Voice.scss';
-import VoiceMember from './VoiceMember';
+import React from "react";
+import ApiContext from "../api/ApiContext";
+import "../styles/Voice.scss";
+import VoiceMember from "./VoiceMember";
 
 interface VoiceProps {
   id: string,
   members: VoiceUserData[]
 }
 
+/**
+ * Component for the voice chat.
+ */
 class Voice extends React.Component<VoiceProps> {
   context!: React.ContextType<typeof ApiContext>;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: VoiceProps) {
     super(props);
 
@@ -18,16 +24,29 @@ class Voice extends React.Component<VoiceProps> {
     this.leaveVoice = this.leaveVoice.bind(this);
   }
 
+  /**
+   * Joins the voice chat.
+   */
   joinVoice() {
-    this.context.voice.connectToVoiceChannel(this.context.token!, this.props.id);
+    if (!this.context.token) return;
+
+    this.context.voice.connectToVoiceChannel(this.context.token, this.props.id);
   }
 
+  /**
+   * Leaves the voice chat.
+   */
   leaveVoice() {
-    this.context.voice.leaveVoiceChannel(this.context.token!);
+    if (!this.context.token) return;
+
+    this.context.voice.leaveVoiceChannel(this.context.token);
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
-    let inVoiceChat = this.context.voice.currentChannel === this.props.id;
+    const inVoiceChat = this.context.voice.currentChannel === this.props.id;
 
     return (
       <div className="Voice">
@@ -60,7 +79,7 @@ class Voice extends React.Component<VoiceProps> {
           <span className="none">Nobody's in the voice channel yet.</span>
         }
       </div>
-    )
+    );
   }
 }
 

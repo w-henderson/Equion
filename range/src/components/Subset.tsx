@@ -1,5 +1,5 @@
-import React from 'react';
-import '../styles/Subset.scss';
+import React from "react";
+import "../styles/Subset.scss";
 
 interface SubsetProps {
   name: string,
@@ -8,7 +8,13 @@ interface SubsetProps {
   onClick: () => void
 }
 
+/**
+ * Component for an individual subset.
+ */
 class Subset extends React.Component<SubsetProps> {
+  /**
+   * Render the subset information.
+   */
   render() {
     let className = "Subset";
     if (this.props.selected) className += " selected";
@@ -18,7 +24,7 @@ class Subset extends React.Component<SubsetProps> {
       <div className={className} onClick={this.props.onClick}>
         {this.props.name}
       </div>
-    )
+    );
   }
 }
 

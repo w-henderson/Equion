@@ -1,15 +1,24 @@
+//! Provides core functionality for user management.
+
 use crate::State;
 
 use humphrey_json::prelude::*;
 use mysql::prelude::*;
 
+/// Represents a user response from the server.
 #[derive(Clone)]
 pub struct User {
+    /// The ID of the user.
     pub uid: String,
+    /// The username of the user.
     pub username: String,
+    /// The display name of the user.
     pub display_name: String,
+    /// The email address of the user.
     pub email: String,
+    /// The user's profile picture, or `None` if they have not set one.
     pub image: Option<String>,
+    /// The user's bio, or `None` if they have not set one.
     pub bio: Option<String>,
 }
 
@@ -24,6 +33,7 @@ json_map! {
 }
 
 impl State {
+    /// Gets the user with the given ID from the database.
     pub fn get_user(&self, uid: impl AsRef<str>) -> Result<User, String> {
         let mut conn = self
             .pool
@@ -57,6 +67,7 @@ impl State {
         user.ok_or_else(|| "User not found".to_string())
     }
 
+    /// Gets the user with the given token from the database.
     pub fn get_user_by_token(&self, token: impl AsRef<str>) -> Result<User, String> {
         let mut conn = self
             .pool
@@ -90,6 +101,7 @@ impl State {
         user.ok_or_else(|| "User not found".to_string())
     }
 
+    /// Updates the authenticated user's details.
     pub fn update_user(
         &self,
         token: impl AsRef<str>,
@@ -161,6 +173,7 @@ impl State {
         Ok(())
     }
 
+    /// Updates the authenticated user's profile picture.
     pub fn update_user_image(
         &self,
         token: impl AsRef<str>,

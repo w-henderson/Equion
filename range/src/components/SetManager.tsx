@@ -1,6 +1,6 @@
-import React from 'react';
-import toast from 'react-hot-toast';
-import ApiContext from '../api/ApiContext';
+import React from "react";
+import toast from "react-hot-toast";
+import ApiContext from "../api/ApiContext";
 
 interface SetManagerProps {
   createSet: (name: string, icon: string) => void,
@@ -16,13 +16,21 @@ interface SetManagerState {
 }
 
 const ICONS = [
-  'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ',
-  'ν', 'ξ', 'ο', 'π', 'ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω'
+  "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ",
+  "ν", "ξ", "ο", "π", "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω"
 ];
 
+/**
+ * Component for the set manager.
+ * 
+ * This handles the creation and joining of sets.
+ */
 class SetManager extends React.Component<SetManagerProps, SetManagerState> {
   context!: React.ContextType<typeof ApiContext>;
 
+  /**
+   * Initialise the set manager.
+   */
   constructor(props: SetManagerProps) {
     super(props);
 
@@ -32,7 +40,7 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
       setName: "",
       icon: "Icon",
       loading: false
-    }
+    };
 
     this.clear = this.clear.bind(this);
     this.changeName = this.changeName.bind(this);
@@ -41,6 +49,9 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
     this.joinSet = this.joinSet.bind(this);
   }
 
+  /**
+   * Clear the join/create dialog data.
+   */
   clear() {
     this.setState({
       tab: "join",
@@ -51,6 +62,9 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
     });
   }
 
+  /**
+   * Create a new set with the name and icon from the state.
+   */
   createSet(e: React.FormEvent) {
     e.preventDefault();
 
@@ -68,6 +82,9 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
     this.props.createSet(this.state.setName, this.state.icon);
   }
 
+  /**
+   * Join a set with the ID from the state.
+   */
   joinSet(e: React.FormEvent) {
     e.preventDefault();
 
@@ -80,6 +97,11 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
     this.props.joinSet(this.state.setId);
   }
 
+  /**
+   * Change the name of the set.
+   * 
+   * This also changes the icon to match.
+   */
   changeName(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 0) {
       this.setState({
@@ -94,17 +116,25 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
     }
   }
 
+  /**
+   * Change the icon of the set.
+   * 
+   * This scrolls through the available icons, which are Greek letters because maths.
+   */
   changeIcon(direction: number) {
-    let currentIndex = ICONS.indexOf(this.state.icon);
+    const currentIndex = ICONS.indexOf(this.state.icon);
     let newIndex = currentIndex + direction;
     if (newIndex < 0) newIndex = ICONS.length - 1;
     if (newIndex >= ICONS.length) newIndex = 0;
 
     this.setState({
       icon: ICONS[newIndex]
-    })
+    });
   }
 
+  /**
+   * Render the set manager.
+   */
   render() {
     if (this.state.tab === "create") {
       return (
@@ -140,11 +170,11 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
               disabled={this.state.loading} />
           </form>
 
-          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "join" }) }}>
+          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "join" }); }}>
             Join an existing set
           </span>
         </>
-      )
+      );
     } else {
       return (
         <>
@@ -166,11 +196,11 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
               disabled={this.state.loading} />
           </form>
 
-          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "create" }) }}>
+          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "create" }); }}>
             Create a new set
           </span>
         </>
-      )
+      );
     }
   }
 }

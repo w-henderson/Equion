@@ -1,11 +1,11 @@
-import React from 'react';
-import '../styles/AuthDialog.scss';
+import React from "react";
+import "../styles/AuthDialog.scss";
 import logo from "../images/logo.png";
 
-import toast from 'react-hot-toast';
-import { appWindow } from '@tauri-apps/api/window';
+import toast from "react-hot-toast";
+import { appWindow } from "@tauri-apps/api/window";
 
-import ApiContext from '../api/ApiContext';
+import ApiContext from "../api/ApiContext";
 
 interface AuthDialogProps {
   authComplete: () => void
@@ -21,9 +21,17 @@ interface AuthDialogState {
   loading: boolean,
 }
 
+/**
+ * Component for the authentication dialog.
+ * 
+ * Handles authentication, calling the `authComplete` callback when complete.
+ */
 class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
   context!: React.ContextType<typeof ApiContext>;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: AuthDialogProps) {
     super(props);
 
@@ -35,12 +43,17 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       displayName: "",
       email: "",
       loading: false
-    }
+    };
 
     this.login = this.login.bind(this);
     this.signup = this.signup.bind(this);
   }
 
+  /**
+   * Attempts to log in the user with the credentials in the state.
+   * 
+   * Called when the user clicks the login button.
+   */
   login(e: React.FormEvent) {
     e.preventDefault();
 
@@ -57,10 +70,15 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
         password: "",
         confirmPassword: "",
         loading: false
-      })
+      });
     });
   }
 
+  /**
+   * Attempts to sign up the user with the credentials in the state.
+   * 
+   * Called when the user clicks the signup button.
+   */
   signup(e: React.FormEvent) {
     e.preventDefault();
 
@@ -69,7 +87,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       this.setState({
         password: "",
         confirmPassword: "",
-      })
+      });
       return;
     }
 
@@ -86,12 +104,15 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
         password: "",
         confirmPassword: "",
         loading: false
-      })
+      });
     });
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
-    let windowButtons = <div className="windowButtons">
+    const windowButtons = <div className="windowButtons">
       <div className="close" onClick={() => this.context.minimiseToTray()} />
       <div className="minimise" onClick={() => appWindow.minimize()} />
       <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
@@ -126,11 +147,11 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
             <input type="submit" value={this.state.loading ? "Loading..." : "Login"} key="login" disabled={this.state.loading} />
           </form>
 
-          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "signup" }) }}>
+          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "signup" }); }}>
             Create a new account
           </span>
         </div>
-      )
+      );
     } else {
       return (
         <div className="AuthDialog" data-tauri-drag-region>
@@ -184,11 +205,11 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
             <input type="submit" value={this.state.loading ? "Loading..." : "Sign Up"} key="sign_up" disabled={this.state.loading} />
           </form>
 
-          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "login" }) }}>
+          <span onClick={() => { if (!this.state.loading) this.setState({ tab: "login" }); }}>
             Sign in to an existing account
           </span>
         </div>
-      )
+      );
     }
   }
 }

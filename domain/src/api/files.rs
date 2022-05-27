@@ -1,3 +1,5 @@
+//! Provides the high-level user-facing file management API.
+
 use crate::State;
 
 use humphrey::http::headers::HeaderType;
@@ -6,6 +8,7 @@ use humphrey::http::{Request, Response, StatusCode};
 
 use std::sync::Arc;
 
+/// The handler for the `/api/v1/files/*` and `/api/v1/updateUserImage` endpoints.
 pub fn handler(request: Request, state: Arc<State>) -> Response {
     let response = if request.uri.starts_with("/api/v1/files/") {
         get_file(request, state)
@@ -24,6 +27,8 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
     }
 }
 
+/// The handler for the `/api/v1/files/*` endpoint.
+/// Attempts to get the file from the file store and sends it back with appropriate metadata.
 fn get_file(request: Request, state: Arc<State>) -> Result<Response, String> {
     let id = request.uri.strip_prefix("/api/v1/files/").unwrap();
 
@@ -38,6 +43,7 @@ fn get_file(request: Request, state: Arc<State>) -> Result<Response, String> {
     })
 }
 
+/// Parses the request and, if successful, updates the user's image.
 fn update_user_image(request: Request, state: Arc<State>) -> Result<Response, String> {
     let file_name = request
         .headers

@@ -1,20 +1,20 @@
-import React from 'react';
-import './styles/App.scss';
+import React from "react";
+import "./styles/App.scss";
 
-import { confirm } from '@tauri-apps/api/dialog';
-import { MathJaxContext } from 'better-react-mathjax';
-import toast, { Toaster } from 'react-hot-toast';
-import * as immutable from 'object-path-immutable';
+import { confirm } from "@tauri-apps/api/dialog";
+import { MathJaxContext } from "better-react-mathjax";
+import toast, { Toaster } from "react-hot-toast";
+import * as immutable from "object-path-immutable";
 
-import ApiContext from './api/ApiContext';
-import Api from './api/Api';
+import ApiContext from "./api/ApiContext";
+import Api from "./api/Api";
 
-import Sets from './components/Sets';
-import Subsets from './components/Subsets';
-import Messages from './components/Messages';
-import AuthDialog from './components/AuthDialog';
-import UserInfo from './components/UserInfo';
-import Members from './components/Members';
+import Sets from "./components/Sets";
+import Subsets from "./components/Subsets";
+import Messages from "./components/Messages";
+import AuthDialog from "./components/AuthDialog";
+import UserInfo from "./components/UserInfo";
+import Members from "./components/Members";
 
 interface AppState {
   init: boolean,
@@ -27,11 +27,17 @@ interface AppState {
 
 const api = new Api();
 
-class App extends React.Component<{}, AppState> {
+/**
+ * Component for the main app.
+ */
+class App extends React.Component<unknown, AppState> {
   api: Api;
   sets: React.RefObject<Sets>;
 
-  constructor(props: {}) {
+  /**
+   * Initializes the app.
+   */
+  constructor(props: unknown) {
     super(props);
 
     this.api = api;
@@ -54,7 +60,7 @@ class App extends React.Component<{}, AppState> {
       selectedSet: null,
       selectedSubset: null,
       shownUser: null
-    }
+    };
 
     this.sets = React.createRef();
 
@@ -75,6 +81,9 @@ class App extends React.Component<{}, AppState> {
     this.onSpeakingChange = this.onSpeakingChange.bind(this);
   }
 
+  /**
+   * When the app has rendered, initialize the API.
+   */
   componentDidMount() {
     this.api.init().then((authenticated) => this.setState({
       init: true,
@@ -82,21 +91,31 @@ class App extends React.Component<{}, AppState> {
     }));
   }
 
+  /**
+   * Upon completion of authentication, load the user's sets and subscribe to events for them.
+   */
   authComplete() {
     this.api.getSets().then(sets => {
       this.setState({
         sets,
         authenticated: true
       }, () => {
-        for (let set of sets) {
-          this.api.subscriber.subscribe(this.api.token!, set.id);
+        if (!this.api.token) return;
+
+        for (const set of sets) {
+          this.api.subscriber.subscribe(this.api.token, set.id);
         }
       });
-    })
+    });
   }
 
+  /**
+   * Refresh the application's data.
+   */
   refresh() {
-    this.api.getUserByUid(this.api.uid!).then(user => {
+    if (!this.api.uid) return;
+
+    this.api.getUserByUid(this.api.uid).then(user => {
       this.api.image = user.image;
     });
 
@@ -113,18 +132,26 @@ class App extends React.Component<{}, AppState> {
     });
   }
 
+  /**
+   * Show the user with the given ID in the user info dialog.
+   */
   showUser(id: string) {
     this.setState({
       shownUser: id
     });
   }
 
+  /**
+   * Check whether the peer is allowed to call the user.
+   * 
+   * This prevents unauthorized users from joining voice chats, since the actual PeerJS connection is stateless.
+   */
   allowedToCall(id: string): boolean {
     if (this.api.voice.currentChannel !== null) {
-      let setIndex = this.state.sets.findIndex(s => s.id === this.api.voice.currentChannel);
+      const setIndex = this.state.sets.findIndex(s => s.id === this.api.voice.currentChannel);
       if (setIndex === -1) return false;
 
-      let userIndex = this.state.sets[setIndex].voiceMembers.findIndex(u => u.peerId === id);
+      const userIndex = this.state.sets[setIndex].voiceMembers.findIndex(u => u.peerId === id);
 
       return userIndex !== -1;
     }
@@ -132,18 +159,24 @@ class App extends React.Component<{}, AppState> {
     return false;
   }
 
+  /**
+   * Update the sets when a new set is created.
+   */
   createdSet(set: SetData) {
     this.setState(state => {
       return {
         ...state,
         sets: [...state.sets, set]
-      }
+      };
     }, () => {
-      this.api.subscriber.subscribe(this.api.token!, set.id);
+      if (this.api.token) this.api.subscriber.subscribe(this.api.token, set.id);
       this.selectSet(set.id);
     });
   }
 
+  /**
+   * Leave the given set, requesting confirmation.
+   */
   leaveSet(id: string) {
     confirm("Are you sure you want to leave this set? You will not be able to rejoin unless invited.", "Leave set?").then(ok => {
       if (ok) {
@@ -154,40 +187,46 @@ class App extends React.Component<{}, AppState> {
     });
   }
 
+  /**
+   * When a subset is selected, update the state as well as the tray icon if necessary.
+   */
   onShow() {
-    let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet);
+    const setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet);
     if (setIndex === -1) return;
-    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset);
+    const subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset);
     if (subsetIndex === -1) return;
 
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
-      let subset = {
+      const subset = {
         ...state.sets[setIndex].subsets[subsetIndex],
         unread: false
-      }
+      };
 
       newState.set(`sets.${setIndex}.subsets.${subsetIndex}`, subset);
 
       return newState.value();
     }, () => {
-      let unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
+      const unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
 
       this.api.setTrayIcon(unreadMessages ? "notification" : "default");
     });
   }
 
+  /**
+   * When a message is received, display it or store it.
+   */
   onMessage(message: MessageData, set: string, subset: string) {
-    let setIndex = this.state.sets.findIndex(s => s.id === set)!;
-    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
+    const setIndex = this.state.sets.findIndex(s => s.id === set);
+    const subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset);
 
     if (this.state.selectedSubset !== subset || this.api.minimisedToTray) {
       this.api.notifier.notify(message);
     }
 
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
       if (state.sets[setIndex].subsets[subsetIndex].messages === undefined) {
         newState.set(`sets.${setIndex}.subsets.${subsetIndex}.messages`, [message]);
@@ -201,17 +240,20 @@ class App extends React.Component<{}, AppState> {
 
       return newState.value();
     }, () => {
-      let unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
+      const unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
 
       this.api.setTrayIcon(unreadMessages ? "notification" : "default");
     });
   }
 
+  /**
+   * When a new subset is created, add it to the state.
+   */
   onSubset(subset: SubsetData, set: string) {
-    let setIndex = this.state.sets.findIndex(s => s.id === set)!;
+    const setIndex = this.state.sets.findIndex(s => s.id === set);
 
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
       newState.push(`sets.${setIndex}.subsets`, subset);
 
@@ -219,12 +261,15 @@ class App extends React.Component<{}, AppState> {
     });
   }
 
+  /**
+   * When a user's details are updated, update the state.
+   */
   onUpdateUser(set: string, user: UserData) {
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
-      let setIndex = state.sets.findIndex(s => s.id === set)!;
-      let memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === user.uid);
+      const setIndex = state.sets.findIndex(s => s.id === set);
+      const memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === user.uid);
 
       if (memberIndex === -1) {
         newState.push(`sets.${setIndex}.members`, user);
@@ -233,114 +278,146 @@ class App extends React.Component<{}, AppState> {
       }
 
       return newState.value();
-    }) // could refresh but not for now
+    }); // could refresh but not for now
   }
 
+  /**
+   * When a user leaves a set, remove them from the state.
+   */
   onLeftUser(set: string, uid: string) {
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
-      let setIndex = state.sets.findIndex(s => s.id === set)!;
-      let memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === uid);
+      const setIndex = state.sets.findIndex(s => s.id === set);
+      const memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === uid);
 
       newState.del(`sets.${setIndex}.members.${memberIndex}`);
 
       return newState.value();
-    }) // could refresh but not for now
+    }); // could refresh but not for now
   }
 
+  /**
+   * When a user joins the voice channel, add them to the state.
+   * 
+   * If the user is the current user, start the initialisation process for the voice chat by connecting to the peers.
+   */
   onUserJoinedVoiceChannel(set: string, user: VoiceUserData) {
     if (user.user.uid === this.api.uid) {
-      let setIndex = this.state.sets.findIndex(s => s.id === set);
-      let peers = this.state.sets[setIndex].voiceMembers.map(peer => peer.peerId);
+      const setIndex = this.state.sets.findIndex(s => s.id === set);
+      const peers = this.state.sets[setIndex].voiceMembers.map(peer => peer.peerId);
       this.api.voice.connectToPeers(peers);
     }
 
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
-      let setIndex = state.sets.findIndex(s => s.id === set);
+      const setIndex = state.sets.findIndex(s => s.id === set);
       if (setIndex === -1) return state;
 
       newState.push(`sets.${setIndex}.voiceMembers`, user);
 
       return newState.value();
-    })
+    });
   }
 
+  /**
+   * When a user leaves the voice channel, remove them from the state.
+   * 
+   * If the user is the current user, close the WebRTC connections.
+   */
   onUserLeftVoiceChannel(set: string, uid: string) {
     if (uid === this.api.uid) {
       this.api.voice.disconnect();
     }
 
-    let setIndex = this.state.sets.findIndex(s => s.id === set);
-    let peerId = this.state.sets[setIndex].voiceMembers.find(m => m.user.uid === uid)?.peerId;
+    const setIndex = this.state.sets.findIndex(s => s.id === set);
+    const peerId = this.state.sets[setIndex].voiceMembers.find(m => m.user.uid === uid)?.peerId;
 
     if (peerId) {
       this.api.voice.disconnectPeer(peerId);
     }
 
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
-      let setIndex = state.sets.findIndex(s => s.id === set);
+      const setIndex = state.sets.findIndex(s => s.id === set);
       if (setIndex === -1) return state;
 
-      let voiceMembers = state.sets[setIndex].voiceMembers.filter(m => m.user.uid !== uid);
+      const voiceMembers = state.sets[setIndex].voiceMembers.filter(m => m.user.uid !== uid);
 
       newState.set(`sets.${setIndex}.voiceMembers`, voiceMembers);
 
       return newState.value();
-    })
+    });
   }
 
+  /**
+   * When a user starts or stops speaking, update the state.
+   */
   onSpeakingChange(speaking: boolean, peerId: string) {
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
-      let setIndex = state.sets.findIndex(s => s.voiceMembers.some(m => m.peerId === peerId));
+      const setIndex = state.sets.findIndex(s => s.voiceMembers.some(m => m.peerId === peerId));
       if (setIndex === -1) return state;
 
-      let memberIndex = state.sets[setIndex].voiceMembers.findIndex(m => m.peerId === peerId);
+      const memberIndex = state.sets[setIndex].voiceMembers.findIndex(m => m.peerId === peerId);
       if (memberIndex === -1) return state;
 
       newState.set(`sets.${setIndex}.voiceMembers.${memberIndex}.speaking`, speaking);
 
       return newState.value();
-    })
+    });
   }
 
+  /**
+   * Selects the set with the given ID.
+   */
   selectSet(id: string) {
-    let setIndex = this.state.sets.findIndex(set => set.id === id)!;
+    const setIndex = this.state.sets.findIndex(set => set.id === id);
+
+    if (setIndex === -1) return;
 
     this.selectSubset(id, this.state.sets[setIndex].subsets[0].id);
   }
 
+  /**
+   * Selects the subset of the given set with the given ID.
+   */
   async selectSubset(set: string, subset: string) {
-    let setIndex = this.state.sets.findIndex(s => s.id === set)!;
-    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset)!;
+    const setIndex = this.state.sets.findIndex(s => s.id === set);
+    if (setIndex === -1) return;
+
+    const subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset);
+    if (subsetIndex === -1) return;
 
     this.setState(state => {
-      let newState = immutable.wrap(state);
+      const newState = immutable.wrap(state);
 
       newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, false);
-      newState.set(`selectedSet`, set);
-      newState.set(`selectedSubset`, subset);
+      newState.set("selectedSet", set);
+      newState.set("selectedSubset", subset);
 
       return newState.value();
     }, () => {
       if (this.state.sets[setIndex].subsets[subsetIndex].messages === undefined
-        || (this.state.sets[setIndex].subsets[subsetIndex].messages!.length < 25
+        || ((this.state.sets[setIndex].subsets[subsetIndex].messages ?? []).length < 25
           && this.state.sets[setIndex].subsets[subsetIndex].loadedToTop !== true)) {
         this.requestMoreMessages();
       }
     });
   }
 
+  /**
+   * Requests earlier messages for the current subset.
+   */
   async requestMoreMessages() {
-    let setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet);
+    if (this.state.selectedSubset === null) return;
+
+    const setIndex = this.state.sets.findIndex(s => s.id === this.state.selectedSet);
     if (setIndex === -1) return;
-    let subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset);
+    const subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === this.state.selectedSubset);
     if (subsetIndex === -1) return;
 
     let oldest = undefined;
@@ -348,18 +425,18 @@ class App extends React.Component<{}, AppState> {
       oldest = this.state.sets[setIndex].subsets[subsetIndex].messages?.[0].id;
     }
 
-    let messages = await this.api.getMessages(this.state.selectedSubset!, oldest);
+    const messages = await this.api.getMessages(this.state.selectedSubset, oldest);
 
-    return new Promise<void>((resolve, _) => {
+    return new Promise<void>((resolve) => {
       this.setState(state => {
-        let newState = immutable.wrap(state);
+        const newState = immutable.wrap(state);
 
         if (messages.length < 25) {
           newState.set(["sets", setIndex, "subsets", subsetIndex, "loadedToTop"], true);
         }
 
         // Add newly-loaded messages to the start
-        let newMessages = [
+        const newMessages = [
           ...messages,
           ...(state.sets[setIndex].subsets[subsetIndex].messages || [])
         ];
@@ -371,9 +448,12 @@ class App extends React.Component<{}, AppState> {
     });
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
-    let selectedSet = this.state.sets.find(set => set.id === this.state.selectedSet);
-    let selectedSubset = selectedSet?.subsets.find(subset => subset.id === this.state.selectedSubset);
+    const selectedSet = this.state.sets.find(set => set.id === this.state.selectedSet);
+    const selectedSubset = selectedSet?.subsets.find(subset => subset.id === this.state.selectedSubset);
 
     let inner = (
       <div className="App">
@@ -390,7 +470,9 @@ class App extends React.Component<{}, AppState> {
             <Subsets
               set={selectedSet}
               selectedSubset={this.state.selectedSubset}
-              selectCallback={(s) => this.selectSubset(this.state.selectedSet!, s)} />
+              selectCallback={(s) => {
+                if (this.state.selectedSet !== null) this.selectSubset(this.state.selectedSet, s);
+              }} />
 
             <Messages
               subset={selectedSubset}
@@ -401,7 +483,9 @@ class App extends React.Component<{}, AppState> {
             <Members
               set={selectedSet}
               userCallback={this.showUser}
-              leaveCallback={() => this.leaveSet(selectedSet!.id)} />
+              leaveCallback={() => {
+                if (selectedSet !== undefined) this.leaveSet(selectedSet.id);
+              }} />
           </>
         }
 
@@ -421,7 +505,7 @@ class App extends React.Component<{}, AppState> {
 
       </div>
     );
-    ;
+
 
     if (!this.state.init) inner = <div className="App" />;
 
@@ -432,7 +516,7 @@ class App extends React.Component<{}, AppState> {
             <AuthDialog authComplete={this.authComplete} />
           </div>
         </ApiContext.Provider>
-      )
+      );
     }
 
     return (

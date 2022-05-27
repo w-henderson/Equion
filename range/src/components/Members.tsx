@@ -1,6 +1,6 @@
-import React from 'react';
-import ApiContext from '../api/ApiContext';
-import '../styles/Members.scss';
+import React from "react";
+import ApiContext from "../api/ApiContext";
+import "../styles/Members.scss";
 
 interface MembersProps {
   set: SetData,
@@ -8,9 +8,15 @@ interface MembersProps {
   leaveCallback: () => void,
 }
 
+/**
+ * Component for the members list.
+ */
 class Members extends React.Component<MembersProps> {
   context!: React.ContextType<typeof ApiContext>;
 
+  /**
+   * Renders the members list.
+   */
   render() {
     return (
       <div className="Members">
@@ -49,7 +55,7 @@ class Members extends React.Component<MembersProps> {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
 

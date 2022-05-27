@@ -1,3 +1,10 @@
+//! The main API server for Equion.
+//!
+//! The API schema is defined in the [`api.md`](https://github.com/w-henderson/Equion/blob/master/docs/api.md) file of the root directory.
+
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
 mod api;
 mod server;
 mod status;
@@ -26,16 +33,23 @@ use std::sync::{Arc, Mutex, RwLock};
 use std::thread::spawn;
 use std::time::Duration;
 
+/// The address to connect to the database at, if not already specified in the `EQUION_DATABASE_URL` environment variable.
 static DB_URL: &str = "mysql://root:hunter2@localhost:3306/equion";
 
+/// The state of the server.
 #[derive(Clone)]
 pub struct State {
+    /// A pool of database connections.
     pool: Arc<Pool>,
+    /// The sender to send messages to clients using WebSocket.
     global_sender: Arc<Mutex<Option<AsyncSender>>>,
+    /// A hashmap of set IDs to WebSocket connections that are subscribed to them.
     subscriptions: Arc<RwLock<HashMap<String, Vec<SocketAddr>>>>,
+    /// The voice server.
     voice: Arc<VoiceServer>,
 }
 
+/// The main function.
 fn main() -> Result<(), Box<dyn Error>> {
     let db_url = std::env::var("EQUION_DATABASE_URL").unwrap_or_else(|_| String::from(DB_URL));
 

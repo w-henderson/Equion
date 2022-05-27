@@ -1,5 +1,5 @@
-import React from 'react';
-import '../styles/SetIcon.scss';
+import React from "react";
+import "../styles/SetIcon.scss";
 
 interface SetIconProps {
   set: SetData,
@@ -7,7 +7,13 @@ interface SetIconProps {
   onClick: () => void
 }
 
+/**
+ * Component for the set icon.
+ */
 class SetIcon extends React.Component<SetIconProps> {
+  /**
+   * Render the set icon.
+   */
   render() {
     let className = "SetIcon";
     if (this.props.selected) className += " selected";
@@ -17,7 +23,7 @@ class SetIcon extends React.Component<SetIconProps> {
       <div className={className} onClick={this.props.onClick}>
         {this.props.set.icon}
       </div>
-    )
+    );
   }
 }
 

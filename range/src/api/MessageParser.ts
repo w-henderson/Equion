@@ -6,7 +6,7 @@ const SEGMENT_REGEX = {
   underline: /__(.*?)__/g,
   strike: /~~(.*?)~~/g,
   ping: /<@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>/g
-}
+};
 
 export enum MessageSegmentType {
   Plain = "plain",
@@ -25,9 +25,19 @@ export interface MessageSegment {
   value: string
 }
 
+/**
+ * Manages parsing text messages into their segments.
+ * 
+ * Stores the intermediate state during the parsing process.
+ */
 export class MessageParser {
   private message: MessageSegment[];
 
+  /**
+   * Creates a new message parser with the given message.
+   * 
+   * Initially, the message will be unparsed.
+   */
   constructor(message: string) {
     this.message = [{
       type: MessageSegmentType.Unparsed,
@@ -35,6 +45,9 @@ export class MessageParser {
     }];
   }
 
+  /**
+   * Fully parse the message, returning the parsed message.
+   */
   parse(): MessageSegment[] {
     while (this.message.reduce((acc, segment) => acc || segment.type === "unparsed", false)) {
       this.performPass();
@@ -43,6 +56,9 @@ export class MessageParser {
     return this.message;
   }
 
+  /**
+   * Perform a single message parser pass.
+   */
   private performPass() {
     this.message = this.message.map(segment => {
       if (segment.type === "unparsed") {
@@ -52,8 +68,8 @@ export class MessageParser {
         let regex = null;
         let type = null;
 
-        for (let [newType, newRegex] of Object.entries(SEGMENT_REGEX)) {
-          let newLocation = segment.value.search(newRegex);
+        for (const [newType, newRegex] of Object.entries(SEGMENT_REGEX)) {
+          const newLocation = segment.value.search(newRegex);
           if (newLocation !== -1) {
             location = newLocation;
             regex = newRegex;
@@ -64,9 +80,9 @@ export class MessageParser {
         if (location !== -1 && regex !== null && type !== null) {
           // If the segment was matched by a regular expression, parse it.
 
-          let beforeMatch = segment.value.substring(0, location); // The part before the match.
-          let match = segment.value.split(regex)[1]; // The matched part without the surrounding stuff (hence why split instead of match).
-          let afterMatch = segment.value.substring(location + segment.value.match(regex)![0].length); // The part after the match.
+          const beforeMatch = segment.value.substring(0, location); // The part before the match.
+          const match = segment.value.split(regex)[1]; // The matched part without the surrounding stuff (hence why split instead of match).
+          const afterMatch = segment.value.substring(location + (segment.value.match(regex)?.[0] ?? "").length); // The part after the match.
 
           return [
             {
@@ -81,7 +97,7 @@ export class MessageParser {
               type: MessageSegmentType.Unparsed,
               value: afterMatch
             }
-          ]
+          ];
         } else {
           // If the segment was not matched, mark it as plain text.
 
@@ -101,10 +117,14 @@ export class MessageParser {
   }
 }
 
+/**
+ * Serializes a collection of message segments into a text message.
+ */
+/* eslint-disable */
 export function serializeMessage(message: MessageSegment[]): string {
   let output = "";
 
-  for (let segment of message) {
+  for (const segment of message) {
     switch (segment.type) {
       case MessageSegmentType.BlockLatex:
         output += `\\[${segment.value}\\]`;

@@ -1,3 +1,5 @@
+//! Provides event subscription management.
+
 use crate::server::messages;
 use crate::server::user::User;
 use crate::voice::user::WrappedVoiceUser;
@@ -13,6 +15,7 @@ use std::collections::hash_map::Entry;
 use std::net::SocketAddr;
 
 impl State {
+    /// Subscribes the authenticated user to events for the given set.
     pub fn subscribe(
         &self,
         token: impl AsRef<str>,
@@ -62,6 +65,7 @@ impl State {
         Ok(())
     }
 
+    /// Unsubscribes the authenticated user from events for the given set.
     pub fn unsubscribe(
         &self,
         token: impl AsRef<str>,
@@ -111,6 +115,7 @@ impl State {
         Ok(())
     }
 
+    /// Broadcasts the "new subset" event to all subscribers of the set.
     pub fn broadcast_new_subset(
         &self,
         set: impl AsRef<str>,
@@ -141,6 +146,7 @@ impl State {
         }
     }
 
+    /// Broadcasts the "new message" event to all subscribers of the set.
     pub fn broadcast_new_message(
         &self,
         set: impl AsRef<str>,
@@ -169,6 +175,7 @@ impl State {
         }
     }
 
+    /// Broadcasts the "new user" event to all subscribers of the set.
     pub fn broadcast_new_user(&self, set: impl AsRef<str>, user: User) {
         let subscriptions = self.subscriptions.read().unwrap();
 
@@ -191,6 +198,7 @@ impl State {
         }
     }
 
+    /// Broadcasts the "update user" event to all subscribers of the set.
     pub fn broadcast_update_user(&self, user: User) -> Option<()> {
         let mut conn = self
             .pool
@@ -230,6 +238,7 @@ impl State {
         Some(())
     }
 
+    /// Broadcasts the "user left" event to all subscribers of the set.
     pub fn broadcast_left_user(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
         let subscriptions = self.subscriptions.read().unwrap();
 
@@ -252,6 +261,7 @@ impl State {
         }
     }
 
+    /// Broadcasts the "user joined voice chat" event to all subscribers of the set.
     pub fn broadcast_joined_vc(&self, set: impl AsRef<str>, user: WrappedVoiceUser) {
         let subscriptions = self.subscriptions.read().unwrap();
 
@@ -274,6 +284,7 @@ impl State {
         }
     }
 
+    /// Broadcasts the "user left voice chat" event to all subscribers of the set.
     pub fn broadcast_left_vc(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
         let subscriptions = self.subscriptions.read().unwrap();
 

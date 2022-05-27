@@ -1,3 +1,5 @@
+//! Provides the core functionality for message management.
+
 use crate::State;
 
 use humphrey::http::mime::MimeType;
@@ -7,19 +9,31 @@ use chrono::{TimeZone, Utc};
 use mysql::{prelude::*, Value};
 use uuid::Uuid;
 
+/// Represents a message response from the server.
 pub struct Message {
+    /// The ID of the message.
     pub id: String,
+    /// The content of the message.
     pub content: String,
+    /// The ID of the author.
     pub author_id: String,
+    /// The name of the author.
     pub author_name: String,
+    /// The optional profile picture of the author.
     pub author_image: Option<String>,
+    /// The optional attachment of the message.
     pub attachment: Option<Attachment>,
+    /// The time at which the message was sent.
     pub send_time: u64,
 }
 
+/// Represents an attachment response from the server.
 pub struct Attachment {
+    /// The ID of the file.
     pub id: String,
+    /// The name of the file.
     pub name: String,
+    /// The MIME type of the file.
     pub type_: String,
 }
 
@@ -42,6 +56,7 @@ json_map! {
 }
 
 impl State {
+    /// Gets the messages for the given subset.
     pub fn messages(
         &self,
         token: impl AsRef<str>,
@@ -153,6 +168,7 @@ impl State {
         Ok(messages)
     }
 
+    /// Sends a message to the given subset.
     pub fn send_message(
         &self,
         token: impl AsRef<str>,

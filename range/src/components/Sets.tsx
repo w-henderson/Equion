@@ -1,14 +1,14 @@
-import React from 'react';
-import '../styles/Sets.scss';
+import React from "react";
+import "../styles/Sets.scss";
 
-import ApiContext from '../api/ApiContext';
-import { appWindow } from '@tauri-apps/api/window';
-import toast from 'react-hot-toast';
+import ApiContext from "../api/ApiContext";
+import { appWindow } from "@tauri-apps/api/window";
+import toast from "react-hot-toast";
 
-import SetIcon from './SetIcon';
-import AddSetIcon from './AddSetIcon';
-import Modal from './Modal';
-import SetManager from './SetManager';
+import SetIcon from "./SetIcon";
+import AddSetIcon from "./AddSetIcon";
+import Modal from "./Modal";
+import SetManager from "./SetManager";
 
 interface SetsProps {
   sets: SetData[],
@@ -23,17 +23,23 @@ interface SetsState {
   loading: boolean,
 }
 
+/**
+ * Component for the list of sets.
+ */
 class Sets extends React.Component<SetsProps, SetsState> {
   context!: React.ContextType<typeof ApiContext>;
   setManager: React.RefObject<SetManager>;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: SetsProps) {
     super(props);
 
     this.state = {
       creatingSet: false,
       loading: false
-    }
+    };
 
     this.setManager = React.createRef();
 
@@ -41,6 +47,9 @@ class Sets extends React.Component<SetsProps, SetsState> {
     this.joinSet = this.joinSet.bind(this);
   }
 
+  /**
+   * Creates a set with the given name and icon.
+   */
   createSet(name: string, icon: string) {
     this.setState({ loading: true });
 
@@ -56,13 +65,17 @@ class Sets extends React.Component<SetsProps, SetsState> {
         this.props.createdCallback(set);
       });
     }, () => {
-      this.setManager.current!.clear();
+      if (this.setManager.current) this.setManager.current.clear();
+
       this.setState({
         loading: false
       });
     });
   }
 
+  /**
+   * Joins the given set.
+   */
   joinSet(id: string) {
     this.setState({ loading: true });
 
@@ -78,13 +91,17 @@ class Sets extends React.Component<SetsProps, SetsState> {
         this.props.createdCallback(set);
       });
     }, () => {
-      this.setManager.current!.clear();
+      if (this.setManager.current) this.setManager.current.clear();
+
       this.setState({
         loading: false
       });
     });
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
     return (
       <div data-tauri-drag-region className="Sets">
@@ -104,7 +121,8 @@ class Sets extends React.Component<SetsProps, SetsState> {
           )}
 
           <AddSetIcon onClick={() => {
-            this.setManager.current!.clear();
+            if (this.setManager.current) this.setManager.current.clear();
+
             this.setState({
               creatingSet: true,
               loading: false
@@ -117,21 +135,21 @@ class Sets extends React.Component<SetsProps, SetsState> {
             <img
               src={this.context.getFileURL(this.context.image)}
               alt="Profile"
-              onClick={() => this.props.showUserCallback(this.context.uid!)} />
+              onClick={() => this.props.showUserCallback(this.context.uid ?? "")} />
             <aside />
           </div>
         </div>
 
         <Modal
           visible={this.state.creatingSet}
-          close={() => { if (!this.state.loading) this.setState({ creatingSet: false }) }}>
+          close={() => { if (!this.state.loading) this.setState({ creatingSet: false }); }}>
           <SetManager
             ref={this.setManager}
             createSet={this.createSet}
             joinSet={this.joinSet} />
         </Modal>
       </div>
-    )
+    );
   }
 }
 

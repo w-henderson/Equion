@@ -1,5 +1,8 @@
 import toast from "react-hot-toast";
 
+/**
+ * Manages subscriptions to events.
+ */
 class Subscriber {
   ws: WebSocket;
   ready: boolean;
@@ -11,28 +14,42 @@ class Subscriber {
   onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
   onUserLeftVoiceChannel: (set: string, uid: string) => void;
 
+  /**
+   * Creates a new Subscriber instance, connecting through WebSocket to the given URL.
+   * 
+   * Initially, there will be no subscriptions or callbacks.
+   */
   constructor(url: string) {
     this.ws = new WebSocket(url);
 
     this.ws.onmessage = this.onEvent.bind(this);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.ws.onerror = (e: any) => toast.error(e);
 
     this.ready = false;
 
-    this.onMessage = () => { };
-    this.onSubset = () => { };
-    this.onUpdateUser = () => { };
-    this.onLeftUser = () => { };
-    this.onUserJoinedVoiceChannel = () => { };
-    this.onUserLeftVoiceChannel = () => { };
+    this.onMessage = () => null;
+    this.onSubset = () => null;
+    this.onUpdateUser = () => null;
+    this.onLeftUser = () => null;
+    this.onUserJoinedVoiceChannel = () => null;
+    this.onUserLeftVoiceChannel = () => null;
   }
 
+  /**
+   * Initialises the subscriber.
+   * 
+   * Currently does nothing.
+   */
   init() {
     if (!this.ready) {
       this.ready = true;
     }
   }
 
+  /**
+   * Subscribes to the given set.
+   */
   subscribe(token: string, id: string) {
     this.ws.send(JSON.stringify({
       command: "v1/subscribe",
@@ -41,6 +58,9 @@ class Subscriber {
     }));
   }
 
+  /**
+   * Unsubscribes from the given set.
+   */
   unsubscribe(token: string, id: string) {
     this.ws.send(JSON.stringify({
       command: "v1/unsubscribe",
@@ -49,11 +69,14 @@ class Subscriber {
     }));
   }
 
+  /**
+   * Handles events by parsing the payload and calling the appropriate callback.
+   */
   onEvent(e: MessageEvent) {
-    let data = JSON.parse(e.data);
+    const data = JSON.parse(e.data);
 
     if (data.event === "v1/newMessage") {
-      let hasAttachment = data.message.attachment !== null;
+      const hasAttachment = data.message.attachment !== null;
 
       this.onMessage({
         id: data.message.id,

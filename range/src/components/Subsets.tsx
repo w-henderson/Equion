@@ -1,14 +1,14 @@
-import React from 'react';
-import '../styles/Subsets.scss';
+import React from "react";
+import "../styles/Subsets.scss";
 
-import { clipboard } from '@tauri-apps/api';
-import toast from 'react-hot-toast';
-import ApiContext from '../api/ApiContext';
+import { clipboard } from "@tauri-apps/api";
+import toast from "react-hot-toast";
+import ApiContext from "../api/ApiContext";
 
-import Subset from './Subset';
-import AddSubset from './AddSubset';
-import Modal from './Modal';
-import Voice from './Voice';
+import Subset from "./Subset";
+import AddSubset from "./AddSubset";
+import Modal from "./Modal";
+import Voice from "./Voice";
 
 interface SubsetsProps {
   set: SetData | undefined,
@@ -22,11 +22,19 @@ interface SubsetsState {
   subsetName: string,
 }
 
+/**
+ * Component for the list of subsets.
+ * 
+ * This also handles subset creation.
+ */
 class Subsets extends React.Component<SubsetsProps, SubsetsState> {
   context!: React.ContextType<typeof ApiContext>;
   input: React.RefObject<HTMLInputElement>;
-  wasVisible: boolean = false;
+  wasVisible = false;
 
+  /**
+   * Initializes the component.
+   */
   constructor(props: SubsetsProps) {
     super(props);
 
@@ -34,7 +42,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
       creatingSubset: false,
       loading: false,
       subsetName: ""
-    }
+    };
 
     this.input = React.createRef();
 
@@ -43,29 +51,35 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
     this.share = this.share.bind(this);
   }
 
+  /**
+   * Keeps track of whether the modal was visible before the component was updated.
+   */
   componentDidUpdate() {
     if (!this.wasVisible && this.state.creatingSubset) {
-      this.input.current!.focus();
+      if (this.input.current) this.input.current.focus();
       this.wasVisible = true;
     }
 
     this.wasVisible = this.state.creatingSubset;
   }
 
+  /**
+   * Creates a new subset with the data from the state.
+   */
   createSubset(e: React.FormEvent) {
     e.preventDefault();
 
-    if (this.state.subsetName.length === 0) return;
+    if (this.state.subsetName.length === 0 || this.props.set === undefined) return;
 
     this.setState({
       loading: true
     });
 
-    toast.promise(this.context.createSubset(this.state.subsetName, this.props.set!.id), {
+    toast.promise(this.context.createSubset(this.state.subsetName, this.props.set.id), {
       loading: "Creating subset...",
       success: "Subset created!",
       error: (e) => `${e}`,
-    }).then(_ => {
+    }).then(() => {
       this.setState({
         creatingSubset: false,
         subsetName: "",
@@ -78,20 +92,31 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
     });
   }
 
+  /**
+   * Changes the name of the subset to be created.
+   */
   changeName(e: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       subsetName: e.target.value
-    })
+    });
   }
 
+  /**
+   * Copies the ID of the current set to the clipboard.
+   */
   share() {
-    clipboard.writeText(this.props.set!.id).then(() => {
+    if (this.props.set === undefined) return;
+
+    clipboard.writeText(this.props.set.id).then(() => {
       toast.success("Share link copied to clipboard!");
     }, () => {
       toast.error("Could not copy share link to clipboard.");
-    })
+    });
   }
 
+  /**
+   * Renders the component.
+   */
   render() {
     if (this.props.set !== undefined) {
       return (
@@ -129,7 +154,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
 
           <Modal
             visible={this.state.creatingSubset}
-            close={() => { if (!this.state.loading) this.setState({ creatingSubset: false, subsetName: "" }) }}>
+            close={() => { if (!this.state.loading) this.setState({ creatingSubset: false, subsetName: "" }); }}>
             <h1>Create a Subset</h1>
 
             <form onSubmit={this.createSubset}>
@@ -154,7 +179,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
             </form>
           </Modal>
         </div>
-      )
+      );
     } else {
       return (
         <div className="Subsets">
@@ -162,7 +187,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
             <h1>Equion</h1>
           </div>
         </div>
-      )
+      );
     }
   }
 }

@@ -1,9 +1,12 @@
+//! Provides the status page route.
+
 use crate::State;
 
 use humphrey::http::{Request, Response, StatusCode};
 
 use std::sync::Arc;
 
+/// The status page handler, showing the number of currently online users.
 pub fn status(_: Request, state: Arc<State>) -> Response {
     let user_count = state.voice.online_users.read().unwrap().len();
 
