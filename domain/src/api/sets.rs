@@ -1,3 +1,5 @@
+//! Provides the high-level user-facing set management API.
+
 use crate::api::{error_context, get_string};
 use crate::State;
 
@@ -6,6 +8,7 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
+/// Parses the JSON body of the request, and if valid, returns the user's sets.
 pub fn get_sets(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -19,6 +22,7 @@ pub fn get_sets(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of the request, and if valid, returns the specified set.
 pub fn get_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -33,6 +37,7 @@ pub fn get_set(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of the request, and if valid, creates a new set with the given details.
 pub fn create_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -48,6 +53,7 @@ pub fn create_set(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of the request, and if valid, creates a new subset with the given details.
 pub fn create_subset(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -63,6 +69,7 @@ pub fn create_subset(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of the request, and if valid, adds the user to the set.
 pub fn join_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -76,6 +83,7 @@ pub fn join_set(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of the request, and if valid, removes the user from the set.
 pub fn leave_set(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;

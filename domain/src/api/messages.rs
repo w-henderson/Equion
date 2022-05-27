@@ -1,3 +1,5 @@
+//! Provides the high-level user-facing message management API.
+
 use crate::api::{error_context, get_int, get_string};
 use crate::State;
 
@@ -6,6 +8,7 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
+/// Parses the JSON body of the request, and if valid, returns the messages.
 pub fn get_messages(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -22,6 +25,7 @@ pub fn get_messages(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of the request, and if valid, sends the message.
 pub fn send_message(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;

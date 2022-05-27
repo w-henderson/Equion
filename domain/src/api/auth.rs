@@ -1,3 +1,5 @@
+//! Provides the high-level user-facing authentication API.
+
 use crate::api::{error_context, get_string};
 use crate::State;
 
@@ -6,6 +8,7 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
+/// Parses the JSON body of a request to sign up a new user, and if successful, performs the operation.
 pub fn signup(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let username = get_string(&json, "username")?;
@@ -23,6 +26,7 @@ pub fn signup(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of a request to log in a user, and if successful, performs the operation.
 pub fn login(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let username = get_string(&json, "username")?;
@@ -38,6 +42,7 @@ pub fn login(state: Arc<State>, json: Value) -> Value {
     })
 }
 
+/// Parses the JSON body of a request to log out a user, and if successful, performs the operation.
 pub fn logout(state: Arc<State>, json: Value) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;

@@ -1,3 +1,5 @@
+//! Provides the WebSocket interface for routing events.
+
 use crate::api::{error_context, get_string, matcher, not_found};
 use crate::voice;
 use crate::State;
@@ -10,6 +12,9 @@ use humphrey_json::Value;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+/// The core WebSocket request handler.
+///
+/// This also handles voice chat WebSocket messages, since these cannot use HTTP.
 pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
     let json: Option<(Value, String)> = message
         .text()
@@ -64,6 +69,7 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
     stream.send(message);
 }
 
+/// Unsubscribes the given stream from all events.
 pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
     let addr = stream.peer_addr();
     let mut subscriptions = state.subscriptions.write().unwrap();
@@ -95,6 +101,7 @@ pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
     }
 }
 
+/// Subscribes the user to events for the specified set.
 pub fn subscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -108,6 +115,7 @@ pub fn subscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
     })
 }
 
+/// Unsubscribes the user from events for the specified set.
 pub fn unsubscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;

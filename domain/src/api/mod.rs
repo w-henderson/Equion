@@ -1,3 +1,5 @@
+//! Provides the HTTP and WebSocket API endpoints and handles serialization and deserialization of JSON.
+
 pub mod auth;
 pub mod files;
 pub mod http;
@@ -13,9 +15,14 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
+/// Represents a function able to handle a request. The function is passed the state and the JSON body, and returns a JSON value.
 pub trait Handler: Fn(Arc<State>, Value) -> Value + Send + Sync + 'static {}
 impl<T> Handler for T where T: Fn(Arc<State>, Value) -> Value + Send + Sync + 'static {}
 
+/// Matches the command to the appropriate handler.
+///
+/// - For HTTP requests, the command is specified by the API route, for example `/api/v1/user`.
+/// - For WebSocket requests, the command is specified in the message, for example `{ "command": "v1/user" }`.
 pub fn matcher(command: &str) -> Option<Box<dyn Handler>> {
     match command {
         "v1/signup" => Some(Box::new(auth::signup)),
@@ -35,6 +42,9 @@ pub fn matcher(command: &str) -> Option<Box<dyn Handler>> {
     }
 }
 
+/// Runs the given closure in an error-catching context.
+///
+/// This converts error strings into JSON values for the API.
 pub fn error_context<F>(f: F) -> Value
 where
     F: Fn() -> Result<Value, String>,
@@ -48,6 +58,7 @@ where
     }
 }
 
+/// Returns the "command not found" JSON response.
 pub fn not_found() -> Value {
     json!({
         "success": false,
@@ -55,6 +66,7 @@ pub fn not_found() -> Value {
     })
 }
 
+/// Attempts to get a string at the given key from the JSON value.
 pub fn get_string(json: &Value, key: &str) -> Result<String, String> {
     deep_index(json, key)
         .ok_or_else(|| format!("Missing {}", key))
@@ -62,6 +74,7 @@ pub fn get_string(json: &Value, key: &str) -> Result<String, String> {
         .map(|s| s.to_string())
 }
 
+/// Attempts to get an integer at the given key from the JSON value.
 pub fn get_int(json: &Value, key: &str) -> Result<u64, String> {
     deep_index(json, key)
         .ok_or_else(|| format!("Missing {}", key))

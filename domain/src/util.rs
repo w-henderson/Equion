@@ -1,3 +1,7 @@
+//! Provides utility functions.
+
+/// Returns the Greek letter corresponding to the character.
+/// This is done visually and is only used for generating set icons.
 pub fn get_greek_letter(ch: char) -> char {
     match ch.to_ascii_lowercase() {
         'a' => 'α',

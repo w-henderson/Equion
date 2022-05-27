@@ -1,3 +1,5 @@
+//! Provides the voice chat server implementation.
+
 pub mod user;
 pub mod ws;
 
@@ -5,6 +7,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::RwLock;
 
+/// Represents the voice chat server.
 #[derive(Default)]
 pub struct VoiceServer {
     /// Hashmap of user IDs to voice user data.
@@ -13,19 +16,26 @@ pub struct VoiceServer {
     pub voice_channels: RwLock<HashMap<String, Vec<String>>>,
 }
 
+/// Represents a user connected to the voice chat server, whether they are in a voice chat or not.
 #[derive(Clone)]
 pub struct VoiceUser {
+    /// The ID of the user, as used in the database.
     pub uid: String,
+    /// The ID of the channel the user is currently in, if any.
     pub channel_id: Option<String>,
+    /// The socket address of the user's WebSocket connection to the server.
     pub socket_addr: SocketAddr,
+    /// The peer ID of the user for WebRTC, used by PeerJS to identify the user.
     pub peer_id: String,
 }
 
 impl VoiceServer {
+    /// Creates a new empty voice server.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Connects a user to the voice chat server.
     pub fn connect_user_voice(
         &self,
         uid: impl AsRef<str>,
@@ -52,6 +62,7 @@ impl VoiceServer {
         );
     }
 
+    /// Disconnects a user from the voice chat server.
     pub fn disconnect_user_voice(&self, uid: impl AsRef<str>) {
         let mut online_users = self.online_users.write().unwrap();
         online_users.remove(uid.as_ref());
@@ -63,6 +74,7 @@ impl VoiceServer {
         );
     }
 
+    /// Gets the IDs of the members of the given channel.
     pub fn get_channel_members(&self, channel_id: impl AsRef<str>) -> Vec<String> {
         let voice_channels = self.voice_channels.read().unwrap();
 
@@ -72,6 +84,7 @@ impl VoiceServer {
             .unwrap_or_default()
     }
 
+    /// Gets the channel that the user is currently in, if any.
     pub fn get_user_channel(&self, uid: impl AsRef<str>) -> Option<String> {
         let online_users = self.online_users.read().unwrap();
 
@@ -80,6 +93,7 @@ impl VoiceServer {
             .and_then(|user| user.channel_id.clone())
     }
 
+    /// Gets the peer ID of the given user.
     pub fn get_peer_id(&self, uid: impl AsRef<str>) -> Option<String> {
         let online_users = self.online_users.read().unwrap();
 
@@ -88,6 +102,7 @@ impl VoiceServer {
             .map(|user| user.peer_id.clone())
     }
 
+    /// Connects the given user to a voice channel.
     pub fn connect_to_voice_channel(
         &self,
         uid: impl AsRef<str>,
@@ -123,6 +138,7 @@ impl VoiceServer {
         Ok(peer_id)
     }
 
+    /// Disconnects the given user from a voice channel.
     pub fn leave_voice_channel(&self, uid: impl AsRef<str>) -> Result<(), String> {
         let mut online_users = self.online_users.write().unwrap();
         let mut voice_channels = self.voice_channels.write().unwrap();

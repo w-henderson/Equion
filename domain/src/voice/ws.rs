@@ -1,3 +1,5 @@
+//! Provides WebSocket handlers for voice chat events.
+
 use crate::api::{error_context, get_string};
 use crate::voice::user::WrappedVoiceUser;
 use crate::State;
@@ -8,6 +10,7 @@ use humphrey_json::Value;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+/// Parses the JSON body of the request, and if valid, connects the user to the voice chat server.
 pub fn connect_user_voice(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -20,6 +23,7 @@ pub fn connect_user_voice(state: Arc<State>, json: Value, addr: SocketAddr) -> V
     })
 }
 
+/// Parses the JSON body of the request, and if valid, disconnects the user from the voice chat server.
 pub fn disconnect_user_voice(state: Arc<State>, json: Value, _: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -31,6 +35,7 @@ pub fn disconnect_user_voice(state: Arc<State>, json: Value, _: SocketAddr) -> V
     })
 }
 
+/// Parses the JSON body of the request, and if valid, connects the user to the voice channel.
 pub fn connect_to_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;
@@ -53,6 +58,7 @@ pub fn connect_to_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -
     })
 }
 
+/// Parses the JSON body of the request, and if valid, disconnects the user from the voice channel.
 pub fn leave_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -> Value {
     error_context(|| {
         let token = get_string(&json, "token")?;

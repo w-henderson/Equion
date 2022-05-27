@@ -1,3 +1,5 @@
+//! Provides core functionality for set management.
+
 use crate::server::user::User;
 use crate::util::get_greek_letter;
 use crate::voice::user::WrappedVoiceUser;
@@ -7,18 +9,29 @@ use humphrey_json::prelude::*;
 use mysql::prelude::*;
 use uuid::Uuid;
 
+/// Represents a set response from the server.
 pub struct Set {
+    /// The ID of the set.
     pub id: String,
+    /// The name of the set.
     pub name: String,
+    /// The icon of the set.
     pub icon: String,
+    /// Whether the requesting user has administrative privileges for the set.
     pub admin: bool,
+    /// The subsets of the set.
     pub subsets: Vec<Subset>,
+    /// The members of the set.
     pub members: Vec<User>,
+    /// The members of the set's voice chat.
     pub voice_members: Vec<WrappedVoiceUser>,
 }
 
+/// Represents a subset response from the server.
 pub struct Subset {
+    /// The ID of the subset.
     pub id: String,
+    /// The name of the subset.
     pub name: String,
 }
 
@@ -40,6 +53,7 @@ json_map! {
 }
 
 impl State {
+    /// Gets all the sets for the authenticated uesr.
     pub fn get_sets(&self, token: impl AsRef<str>) -> Result<Vec<Set>, String> {
         let mut conn = self
             .pool
@@ -129,6 +143,7 @@ impl State {
         Ok(full_sets)
     }
 
+    /// Gets the specific set.
     pub fn get_set(&self, token: impl AsRef<str>, id: impl AsRef<str>) -> Result<Set, String> {
         let mut conn = self
             .pool
@@ -221,6 +236,7 @@ impl State {
         }
     }
 
+    /// Creates a set with the given details. Automatically gives the creator admin rights.
     pub fn create_set(
         &self,
         token: impl AsRef<str>,
@@ -277,6 +293,7 @@ impl State {
         Ok(new_set_id)
     }
 
+    /// Creates a subset with the given name of the given set.
     pub fn create_subset(
         &self,
         token: impl AsRef<str>,
@@ -322,6 +339,7 @@ impl State {
         Ok(new_subset_id)
     }
 
+    /// Adds the authenticated user to the given set.
     pub fn join_set(&self, token: impl AsRef<str>, set: impl AsRef<str>) -> Result<(), String> {
         let mut conn = self
             .pool
@@ -386,6 +404,7 @@ impl State {
         Ok(())
     }
 
+    /// Removes the authenticated user from the given set.
     pub fn leave_set(&self, token: impl AsRef<str>, set: impl AsRef<str>) -> Result<(), String> {
         let mut conn = self
             .pool

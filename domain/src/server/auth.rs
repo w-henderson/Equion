@@ -1,3 +1,5 @@
+//! Provides core authentication functionality.
+
 use crate::State;
 
 use argon2::password_hash::rand_core::OsRng;
@@ -8,12 +10,16 @@ use mysql::prelude::*;
 
 use uuid::Uuid;
 
+/// Represents an authentication response from the server.
 pub struct AuthResponse {
+    /// The UID of the authenticated user.
     pub uid: String,
+    /// The authentication token of the authenticated user.
     pub token: String,
 }
 
 impl State {
+    /// Attempts to sign up a user with the given details.
     pub fn signup(
         &self,
         username: impl AsRef<str>,
@@ -69,6 +75,7 @@ impl State {
         Ok(AuthResponse { uid, token })
     }
 
+    /// Attempts to sign in a user with the given details.
     pub fn login(
         &self,
         username: impl AsRef<str>,
@@ -108,6 +115,7 @@ impl State {
         Err("Invalid username or password".to_string())
     }
 
+    /// Logs out the user with the given token.
     pub fn logout(&self, token: impl AsRef<str>) -> Result<(), String> {
         let mut conn = self
             .pool

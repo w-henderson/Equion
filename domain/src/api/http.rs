@@ -1,3 +1,5 @@
+//! Provides handlers for HTTP endpoints.
+
 use crate::api::{files, matcher, not_found};
 use crate::State;
 
@@ -9,6 +11,9 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
+/// The core HTTP request handler for the API.
+///
+/// Extracts the JSON body of each request before passing it to the request [`matcher`].
 pub fn handler(request: Request, state: Arc<State>) -> Response {
     let route = request.uri.strip_prefix("/api/").unwrap();
 
