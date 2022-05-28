@@ -214,6 +214,31 @@ class Api {
   }
 
   /**
+   * Logs out the current user.
+   */
+  public logout(): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${API_ROUTE}/logout`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          forage.removeItem({ key: "uid" })();
+          forage.removeItem({ key: "token" })();
+
+          window.location.reload();
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
    * Gets the user's sets.
    */
   public getSets(): Promise<SetData[]> {
