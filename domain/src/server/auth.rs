@@ -6,7 +6,7 @@ use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 
-use mysql::prelude::*;
+use mysql::{prelude::*, TxOpts};
 
 use uuid::Uuid;
 
@@ -32,8 +32,12 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
         // Check if the username already exists and prevent duplicate usernames
-        let exists: Option<u8> = conn
+        let exists: Option<u8> = transaction
             .exec_first(
                 "SELECT 1 FROM users WHERE username = ?",
                 (username.as_ref(),),
@@ -56,7 +60,7 @@ impl State {
         // Generate a token for the user
         let token = Uuid::new_v4().to_string();
 
-        conn
+        transaction
             .exec_drop(
                 "INSERT INTO users (id, username, password, display_name, email, token, creation_date) VALUES (?, ?, ?, ?, ?, ?, NOW())",
                 (
@@ -72,6 +76,10 @@ impl State {
 
         crate::log!("User signed up with username {}", username.as_ref());
 
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
+
         Ok(AuthResponse { uid, token })
     }
 
@@ -86,7 +94,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user: Option<(String, String)> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user: Option<(String, String)> = transaction
             .exec_first(
                 "SELECT id, password FROM users WHERE username = ?",
                 (username.as_ref(),),
@@ -103,10 +115,15 @@ impl State {
             if valid {
                 let token = Uuid::new_v4().to_string();
 
-                conn.exec_drop("UPDATE users SET token = ? WHERE id = ?", (&token, &uid))
+                transaction
+                    .exec_drop("UPDATE users SET token = ? WHERE id = ?", (&token, &uid))
                     .map_err(|_| "Could not set token in database".to_string())?;
 
                 crate::log!("User logged in with username {}", username.as_ref());
+
+                transaction
+                    .commit()
+                    .map_err(|_| "Could not commit transaction".to_string())?;
 
                 return Ok(AuthResponse { uid, token });
             }

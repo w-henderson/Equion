@@ -6,7 +6,7 @@ use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 
 use humphrey_json::prelude::*;
-use mysql::prelude::*;
+use mysql::{prelude::*, TxOpts};
 use uuid::Uuid;
 
 /// Represents a set response from the server.
@@ -60,7 +60,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user: Option<String> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user: Option<String> = transaction
             .exec_first(
                 "SELECT username FROM users WHERE token = ?",
                 (token.as_ref(),),
@@ -71,7 +75,7 @@ impl State {
             return Err("Invalid token".to_string());
         }
 
-        let sets: Vec<(String, String, String, bool)> = conn
+        let sets: Vec<(String, String, String, bool)> = transaction
             .exec(
                 "SELECT sets.id, sets.name, sets.icon, memberships.admin FROM sets
                     JOIN memberships ON sets.id = memberships.set_id
@@ -85,7 +89,7 @@ impl State {
         let mut full_sets: Vec<Set> = Vec::new();
 
         for (id, name, icon, admin) in sets {
-            let subsets: Vec<Subset> = conn
+            let subsets: Vec<Subset> = transaction
                 .exec(
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
                     (&id,),
@@ -95,7 +99,7 @@ impl State {
                 .map(|(id, name)| Subset { id, name })
                 .collect();
 
-            let members: Vec<User> = conn
+            let members: Vec<User> = transaction
                 .exec(
                     "SELECT users.id, username, display_name, email, image, bio FROM users
                     JOIN memberships ON users.id = memberships.user_id
@@ -140,6 +144,10 @@ impl State {
 
         crate::log!("User {} retrieved sets", user.unwrap());
 
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
+
         Ok(full_sets)
     }
 
@@ -150,7 +158,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let meta: Option<(bool, String)> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let meta: Option<(bool, String)> = transaction
             .exec_first(
                 "SELECT memberships.admin, users.id FROM memberships
                     JOIN users ON users.id = memberships.user_id
@@ -165,7 +177,7 @@ impl State {
 
         let (is_admin, user) = meta.unwrap();
 
-        let set: Option<Set> = conn
+        let set: Option<Set> = transaction
             .exec_first(
                 "SELECT id, name, icon FROM sets WHERE id = ?",
                 (id.as_ref(),),
@@ -182,7 +194,7 @@ impl State {
             });
 
         if let Some(mut set) = set {
-            let subsets: Vec<Subset> = conn
+            let subsets: Vec<Subset> = transaction
                 .exec(
                     "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
                     (&set.id,),
@@ -192,7 +204,7 @@ impl State {
                 .map(|(id, name)| Subset { id, name })
                 .collect();
 
-            let members: Vec<User> = conn
+            let members: Vec<User> = transaction
                 .exec(
                     "SELECT users.id, username, display_name, email, image, bio FROM users
                     JOIN memberships ON users.id = memberships.user_id
@@ -230,6 +242,10 @@ impl State {
 
             crate::log!("User {} retrieved set {}", user, id.as_ref());
 
+            transaction
+                .commit()
+                .map_err(|_| "Could not commit transaction".to_string())?;
+
             Ok(set)
         } else {
             Err("Could not find set".to_string())
@@ -248,7 +264,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user_id: Option<String> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user_id: Option<String> = transaction
             .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
             .map_err(|_| "Could not get user by token".to_string())?;
 
@@ -270,25 +290,30 @@ impl State {
             .unwrap_or('α')
             .to_string();
 
-        conn.exec_drop(
-            "INSERT INTO sets (id, name, icon, creation_date) VALUES (?, ?, ?, NOW())",
-            (&new_set_id, name.as_ref(), icon),
-        )
-        .map_err(|_| "Could not add new set".to_string())?;
+        transaction
+            .exec_drop(
+                "INSERT INTO sets (id, name, icon, creation_date) VALUES (?, ?, ?, NOW())",
+                (&new_set_id, name.as_ref(), icon),
+            )
+            .map_err(|_| "Could not add new set".to_string())?;
 
-        conn.exec_drop(
+        transaction.exec_drop(
             "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 1, NOW())",
             (&new_membership_id, &user_id, &new_set_id),
         )
         .map_err(|_| "Could not add new membership".to_string())?;
 
-        conn.exec_drop(
+        transaction.exec_drop(
             "INSERT INTO subsets (id, name, set_id, creation_date) VALUES (UUID(), \"General\", ?, NOW())",
             (&new_set_id,),
         )
         .map_err(|_| "Could not add General subset".to_string())?;
 
         crate::log!("User {} created set {}", user_id, new_set_id);
+
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(new_set_id)
     }
@@ -305,7 +330,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let meta: Option<(bool, String)> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let meta: Option<(bool, String)> = transaction
             .exec_first(
                 "SELECT memberships.admin, users.id FROM memberships
                     JOIN users ON memberships.user_id = users.id
@@ -326,15 +355,20 @@ impl State {
 
         let new_subset_id = Uuid::new_v4().to_string();
 
-        conn.exec_drop(
-            "INSERT INTO subsets (id, set_id, name, creation_date) VALUES (?, ?, ?, NOW())",
-            (&new_subset_id, set.as_ref(), name.as_ref()),
-        )
-        .map_err(|_| "Could not add new subset".to_string())?;
+        transaction
+            .exec_drop(
+                "INSERT INTO subsets (id, set_id, name, creation_date) VALUES (?, ?, ?, NOW())",
+                (&new_subset_id, set.as_ref(), name.as_ref()),
+            )
+            .map_err(|_| "Could not add new subset".to_string())?;
 
         self.broadcast_new_subset(set, &new_subset_id, name);
 
         crate::log!("User {} created subset {}", user_id, new_subset_id);
+
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(new_subset_id)
     }
@@ -346,6 +380,10 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
         #[allow(clippy::type_complexity)]
         let user: Option<(
             String,
@@ -354,7 +392,7 @@ impl State {
             String,
             Option<String>,
             Option<String>,
-        )> = conn
+        )> = transaction
             .exec_first(
                 "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
                 (token.as_ref(),),
@@ -376,7 +414,7 @@ impl State {
 
         let user = user.unwrap();
 
-        let has_membership: Option<u8> = conn
+        let has_membership: Option<u8> = transaction
             .exec_first(
                 "SELECT 1 FROM memberships WHERE user_id = ? AND set_id = ?",
                 (&user.uid, set.as_ref()),
@@ -389,7 +427,7 @@ impl State {
 
         let new_membership_id = Uuid::new_v4().to_string();
 
-        conn.exec_drop(
+        transaction.exec_drop(
             "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 0, NOW())",
             (&new_membership_id, &user.uid, set.as_ref()),
         )
@@ -401,6 +439,10 @@ impl State {
 
         crate::log!("User {} joined set {}", uid, set.as_ref());
 
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
+
         Ok(())
     }
 
@@ -411,7 +453,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user_id: Option<String> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user_id: Option<String> = transaction
             .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
             .map_err(|_| "Could not get user by token".to_string())?;
 
@@ -421,7 +467,7 @@ impl State {
 
         let user_id = user_id.unwrap();
 
-        let has_membership: Option<u8> = conn
+        let has_membership: Option<u8> = transaction
             .exec_first(
                 "SELECT 1 FROM memberships WHERE user_id = ? AND set_id = ?",
                 (&user_id, set.as_ref()),
@@ -432,15 +478,20 @@ impl State {
             return Err("Not a member of this set".to_string());
         }
 
-        conn.exec_drop(
-            "DELETE FROM memberships WHERE user_id = ? AND set_id = ?",
-            (&user_id, set.as_ref()),
-        )
-        .map_err(|_| "Could not remove membership".to_string())?;
+        transaction
+            .exec_drop(
+                "DELETE FROM memberships WHERE user_id = ? AND set_id = ?",
+                (&user_id, set.as_ref()),
+            )
+            .map_err(|_| "Could not remove membership".to_string())?;
 
         self.broadcast_left_user(set.as_ref(), &user_id);
 
         crate::log!("User {} left set {}", user_id, set.as_ref());
+
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }

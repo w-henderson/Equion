@@ -5,7 +5,7 @@
 
 use crate::State;
 
-use mysql::prelude::*;
+use mysql::{prelude::*, Transaction};
 use uuid::Uuid;
 
 /// Represents a file response from the server.
@@ -51,19 +51,29 @@ impl State {
         name: impl AsRef<str>,
         content: Vec<u8>,
         owner: impl AsRef<str>,
+        transaction: Option<&mut Transaction>,
     ) -> Result<String, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
-
         let id = Uuid::new_v4().to_string();
 
-        conn.exec_drop(
-            "INSERT INTO files (id, name, content, owner) VALUES (?, ?, ?, ?)",
-            (&id, name.as_ref(), &content, owner.as_ref()),
-        )
-        .map_err(|_| "Could not set file in database".to_string())?;
+        if let Some(transaction) = transaction {
+            transaction
+                .exec_drop(
+                    "INSERT INTO files (id, name, content, owner) VALUES (?, ?, ?, ?)",
+                    (&id, name.as_ref(), &content, owner.as_ref()),
+                )
+                .map_err(|_| "Could not set file in database".to_string())?;
+        } else {
+            let mut conn = self
+                .pool
+                .get_conn()
+                .map_err(|_| "Could not connect to database".to_string())?;
+
+            conn.exec_drop(
+                "INSERT INTO files (id, name, content, owner) VALUES (?, ?, ?, ?)",
+                (&id, name.as_ref(), &content, owner.as_ref()),
+            )
+            .map_err(|_| "Could not set file in database".to_string())?;
+        }
 
         crate::log!(
             "File created with name \"{}\" and ID \"{}\"",

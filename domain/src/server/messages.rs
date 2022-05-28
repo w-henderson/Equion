@@ -6,7 +6,7 @@ use humphrey::http::mime::MimeType;
 use humphrey_json::prelude::*;
 
 use chrono::{TimeZone, Utc};
-use mysql::{prelude::*, Value};
+use mysql::{prelude::*, TxOpts, Value};
 use uuid::Uuid;
 
 /// Represents a message response from the server.
@@ -69,7 +69,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user: Option<String> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user: Option<String> = transaction
             .exec_first(
                 "SELECT users.username FROM users
                     JOIN memberships ON users.id = memberships.user_id
@@ -94,7 +98,7 @@ impl State {
             Value,           // Message send time
             Option<String>,  // Attachment ID
             Option<String>   // Attachment name
-        )> = if let Some(before) = before { conn.exec(
+        )> = if let Some(before) = before { transaction.exec(
             "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
                 JOIN users ON messages.sender = users.id
                 JOIN subsets ON messages.subset = subsets.id
@@ -106,7 +110,7 @@ impl State {
                 LIMIT ?",
                 (subset.as_ref(), before, limit.unwrap_or(25)),
         ) } else {
-            conn.exec(
+            transaction.exec(
                 "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
                     JOIN users ON messages.sender = users.id
                     JOIN subsets ON messages.subset = subsets.id
@@ -165,6 +169,10 @@ impl State {
             subset.as_ref()
         );
 
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
+
         Ok(messages)
     }
 
@@ -181,7 +189,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let meta: Option<(String, String, String, Option<String>)> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let meta: Option<(String, String, String, Option<String>)> = transaction
             .exec_first(
                 "SELECT sets.id, users.id, users.display_name, users.image FROM sets
                     JOIN memberships ON sets.id = memberships.set_id
@@ -203,14 +215,19 @@ impl State {
             let attachment_content = base64::decode(attachment_content)
                 .map_err(|_| "Could not decode attachment".to_string())?;
 
-            Some(self.set_file(attachment_name, attachment_content, &user_id)?)
+            Some(self.set_file(
+                attachment_name,
+                attachment_content,
+                &user_id,
+                Some(&mut transaction),
+            )?)
         } else {
             None
         };
 
         let new_message_id = Uuid::new_v4().to_string();
 
-        conn.exec_drop(
+        transaction.exec_drop(
             "INSERT INTO messages (id, content, subset, sender, send_time, attachment) VALUES (?, ?, ?, ?, NOW(), ?)",
             (
                 &new_message_id,
@@ -246,6 +263,10 @@ impl State {
             new_message_id,
             subset.as_ref()
         );
+
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }

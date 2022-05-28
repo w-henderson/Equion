@@ -9,7 +9,7 @@ use humphrey_ws::Message;
 
 use humphrey_json::prelude::*;
 
-use mysql::prelude::*;
+use mysql::{prelude::*, TxOpts};
 
 use std::collections::hash_map::Entry;
 use std::net::SocketAddr;
@@ -27,7 +27,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user: Option<String> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user: Option<String> = transaction
             .exec_first(
                 "SELECT memberships.user_id FROM memberships
                     JOIN users ON users.id = memberships.user_id
@@ -62,6 +66,10 @@ impl State {
             set.as_ref()
         );
 
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
+
         Ok(())
     }
 
@@ -77,7 +85,11 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
-        let user: Option<String> = conn
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let user: Option<String> = transaction
             .exec_first(
                 "SELECT memberships.user_id FROM memberships
                     JOIN users ON users.id = memberships.user_id
@@ -111,6 +123,10 @@ impl State {
             user.unwrap(),
             set.as_ref()
         );
+
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }
