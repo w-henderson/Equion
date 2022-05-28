@@ -45,6 +45,22 @@ Output:
 { "success": true }
 ```
 
+### `v1/validateToken`: Validate token
+Asserts that the token is valid, and if so, returns the user's ID. Used for restoring sessions.
+
+Input:
+```json
+{ "token": "" }
+```
+
+Output:
+```json
+{
+  "success": true,
+  "uid": ""
+}
+```
+
 ## User
 
 ### `v1/user`: Get user details

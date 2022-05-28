@@ -28,6 +28,7 @@ pub fn matcher(command: &str) -> Option<Box<dyn Handler>> {
         "v1/signup" => Some(Box::new(auth::signup)),
         "v1/login" => Some(Box::new(auth::login)),
         "v1/logout" => Some(Box::new(auth::logout)),
+        "v1/validateToken" => Some(Box::new(auth::validate_token)),
         "v1/user" => Some(Box::new(user::get_user)),
         "v1/updateUser" => Some(Box::new(user::update_user)),
         "v1/sets" => Some(Box::new(sets::get_sets)),

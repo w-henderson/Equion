@@ -151,4 +151,18 @@ impl State {
             Ok(())
         }
     }
+
+    /// Validates the token and if valid, returns the user's ID.
+    pub fn validate_token(&self, token: impl AsRef<str>) -> Result<String, String> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())?;
+
+        let uid: Option<String> = conn
+            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
+            .map_err(|_| "Could not get user data from database".to_string())?;
+
+        uid.ok_or_else(|| "Invalid token".to_string())
+    }
 }

@@ -54,3 +54,17 @@ pub fn logout(state: Arc<State>, json: Value) -> Value {
         }))
     })
 }
+
+/// Parses the JSON body of a request to validate a token, and if successful, performs the operation.
+pub fn validate_token(state: Arc<State>, json: Value) -> Value {
+    error_context(|| {
+        let token = get_string(&json, "token")?;
+
+        let uid = state.validate_token(token)?;
+
+        Ok(json!({
+            "success": true,
+            "uid": uid
+        }))
+    })
+}
