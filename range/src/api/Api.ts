@@ -69,9 +69,23 @@ class Api {
    * @returns A promise that resolves to `true` if the user is logged in, `false` otherwise.
    */
   public async init(): Promise<boolean> {
-    this.uid = await forage.getItem({ key: "uid" })();
+    // Initialise authentication
     this.token = await forage.getItem({ key: "token" })();
 
+    if (this.token) {
+      const response = await fetch(`${API_ROUTE}/validateToken`, {
+        method: "POST",
+        body: JSON.stringify({ token: this.token })
+      }).then(res => res.json());
+
+      if (response.success) {
+        this.uid = response.uid;
+      } else {
+        toast.error("Session expired, please sign in again.");
+      }
+    }
+
+    // Initialise the subscriber
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
     this.subscriber.init();
@@ -118,7 +132,7 @@ class Api {
     this.ready = true;
 
     // Whether the user is already authenticated.
-    return false;
+    return this.uid !== null;
   }
 
   /**
@@ -177,10 +191,9 @@ class Api {
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          return this.finishAuth(res.uid, res.token);
+          forage.setItem({ key: "token", value: res.token })();
 
-          /*forage.setItem({ key: "uid", value: res.uid })();
-          forage.setItem({ key: "token", value: res.token })();*/
+          return this.finishAuth(res.uid, res.token);
         } else {
           return Promise.reject(res.error);
         }

@@ -27,6 +27,8 @@ interface AppState {
 
 const api = new Api();
 
+let RENDERED = false;
+
 /**
  * Component for the main app.
  */
@@ -85,10 +87,26 @@ class App extends React.Component<unknown, AppState> {
    * When the app has rendered, initialize the API.
    */
   componentDidMount() {
-    this.api.init().then((authenticated) => this.setState({
-      init: true,
-      authenticated
-    }));
+    if (RENDERED) return;
+    RENDERED = true;
+
+    this.api.init().then(authenticated => {
+      if (authenticated) {
+        if (this.api.uid === null || this.api.token === null) return toast.error("Failed to authenticate.");
+
+        toast.promise(this.api.finishAuth(this.api.uid, this.api.token).then(this.authComplete), {
+          loading: "Loading previous session...",
+          success: "Loaded previous session!",
+          error: "Failed to load previous session."
+        });
+
+      } else {
+        this.setState({
+          init: true,
+          authenticated
+        });
+      }
+    });
   }
 
   /**
@@ -98,6 +116,7 @@ class App extends React.Component<unknown, AppState> {
     this.api.getSets().then(sets => {
       this.setState({
         sets,
+        init: true,
         authenticated: true
       }, () => {
         if (!this.api.token) return;

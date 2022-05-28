@@ -74,7 +74,11 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    * Logs out the current user.
    */
   logout() {
-    this.context.logout().then(() => null, toast.error);
+    toast.promise(this.context.logout(), {
+      loading: "Signing out...",
+      success: "Signed out!",
+      error: (e) => `${e}`,
+    });
   }
 
   /**
