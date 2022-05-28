@@ -102,6 +102,9 @@ class MessageSegment extends React.Component<MessageSegmentProps, MessageSegment
           return <span className="ping" onClick={this.props.userCallback}>@{this.state.username || <div />}</span>;
         }
 
+      case MessageSegmentType.Link:
+        return <a href={this.props.segment.value} target="_blank" rel="noopener noreferrer">{this.props.segment.value}</a>
+
       case MessageSegmentType.Unparsed:
         throw new Error("Unparsed message segment");
     }

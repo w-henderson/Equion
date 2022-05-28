@@ -5,7 +5,8 @@ const SEGMENT_REGEX = {
   italic: /(?<!\*)\*(?!\*)(.*?)\*/g,
   underline: /__(.*?)__/g,
   strike: /~~(.*?)~~/g,
-  ping: /<@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>/g
+  ping: /<@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>/g,
+  link: /(https?:\/\/[^\s]+)/,
 };
 
 export enum MessageSegmentType {
@@ -17,6 +18,7 @@ export enum MessageSegmentType {
   Underline = "underline",
   Strike = "strike",
   Ping = "ping",
+  Link = "link",
   Unparsed = "unparsed"
 }
 
