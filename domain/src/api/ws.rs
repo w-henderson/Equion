@@ -40,6 +40,7 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
                     voice::ws::connect_to_voice_channel(state, json, addr)
                 }
                 "v1/leaveVoiceChannel" => voice::ws::leave_voice_channel(state, json, addr),
+                "v1/ping" => ping(),
                 _ => not_found(),
             },
         }
@@ -67,6 +68,34 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
     let message = Message::new(serialized);
 
     stream.send(message);
+}
+
+/// Subscribes the user to events for the specified set.
+pub fn subscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
+    error_context(|| {
+        let token = get_string(&json, "token")?;
+        let set = get_string(&json, "set")?;
+
+        state.subscribe(token, set, addr)?;
+
+        Ok(json!({
+            "success": true
+        }))
+    })
+}
+
+/// Unsubscribes the user from events for the specified set.
+pub fn unsubscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
+    error_context(|| {
+        let token = get_string(&json, "token")?;
+        let set = get_string(&json, "set")?;
+
+        state.unsubscribe(token, set, addr)?;
+
+        Ok(json!({
+            "success": true
+        }))
+    })
 }
 
 /// Unsubscribes the given stream from all events.
@@ -101,30 +130,10 @@ pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
     }
 }
 
-/// Subscribes the user to events for the specified set.
-pub fn subscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
-    error_context(|| {
-        let token = get_string(&json, "token")?;
-        let set = get_string(&json, "set")?;
-
-        state.subscribe(token, set, addr)?;
-
-        Ok(json!({
-            "success": true
-        }))
-    })
-}
-
-/// Unsubscribes the user from events for the specified set.
-pub fn unsubscribe(state: Arc<State>, json: Value, addr: SocketAddr) -> Value {
-    error_context(|| {
-        let token = get_string(&json, "token")?;
-        let set = get_string(&json, "set")?;
-
-        state.unsubscribe(token, set, addr)?;
-
-        Ok(json!({
-            "success": true
-        }))
+/// Returns a `v1/pong` event.
+pub fn ping() -> Value {
+    json!({
+        "success": true,
+        "event": "v1/pong"
     })
 }
