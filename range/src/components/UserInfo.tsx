@@ -65,7 +65,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
       this.setState({ loading: true }, () => {
         if (this.props.id === null) return;
 
-        this.context.getUserByUid(this.props.id).then(user => this.setState({ data: user, loading: false }));
+        this.context!.getUserByUid(this.props.id).then(user => this.setState({ data: user, loading: false }));
       });
     }
   }
@@ -74,7 +74,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    * Logs out the current user.
    */
   logout() {
-    toast.promise(this.context.logout(), {
+    toast.promise(this.context!.logout(), {
       loading: "Signing out...",
       success: "Signed out!",
       error: (e) => `${e}`,
@@ -90,7 +90,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
       displayName: this.state.data?.displayName || "",
       about: this.state.data?.bio || "",
       imageFile: null,
-      displayedImage: this.context.getFileURL(this.state.data?.image)
+      displayedImage: this.context!.getFileURL(this.state.data?.image)
     });
   }
 
@@ -99,7 +99,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    */
   save() {
     toast.promise(
-      this.context.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined).then(() => this.context.getUserByUid(this.props.id ?? "")),
+      this.context!.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined).then(() => this.context!.getUserByUid(this.props.id ?? "")),
       {
         loading: "Updating profile...",
         success: "Profile updated!",
@@ -148,7 +148,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
         return {
           ...state,
           imageFile: null,
-          displayedImage: this.context.getFileURL(this.state.data?.image)
+          displayedImage: this.context!.getFileURL(this.state.data?.image)
         };
       });
     }
@@ -165,7 +165,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
           close={this.close}
           className="UserInfo">
 
-          {this.state.data?.uid === this.context.getUid() &&
+          {this.state.data?.uid === this.context!.getUid() &&
             <>
               <div className="logoutButton" onClick={this.logout}>
                 <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -184,7 +184,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
 
           {this.state.data !== null &&
             <>
-              <img src={this.context.getFileURL(this.state.data.image)} alt="Profile" />
+              <img src={this.context!.getFileURL(this.state.data.image)} alt="Profile" />
 
               <h1>{this.state.data.displayName}</h1>
               <span className="username">@{this.state.data.username}</span>

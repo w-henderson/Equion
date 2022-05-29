@@ -59,7 +59,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
     this.setState({ loading: true });
 
-    toast.promise(this.context.login(this.state.username, this.state.password), {
+    toast.promise(this.context!.login(this.state.username, this.state.password), {
       loading: "Logging in...",
       success: "Logged in!",
       error: (e) => `${e}`,
@@ -83,7 +83,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
     e.preventDefault();
 
     if (this.state.password !== this.state.confirmPassword) {
-      this.context.errorHandler("Passwords do not match");
+      this.context!.errorHandler("Passwords do not match");
       this.setState({
         password: "",
         confirmPassword: "",
@@ -93,7 +93,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
     this.setState({ loading: true });
 
-    toast.promise(this.context.signup(this.state.username, this.state.password, this.state.displayName, this.state.email), {
+    toast.promise(this.context!.signup(this.state.username, this.state.password, this.state.displayName, this.state.email), {
       loading: "Signing up...",
       success: "Signed up, welcome to Equion!",
       error: (e) => `${e}`,
@@ -113,7 +113,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
    */
   render() {
     const windowButtons = <div className="windowButtons">
-      <div className="close" onClick={() => this.context.minimiseToTray()} />
+      <div className="close" onClick={() => this.context!.minimiseToTray()} />
       <div className="minimise" onClick={() => appWindow.minimize()} />
       <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
     </div>;

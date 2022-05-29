@@ -53,7 +53,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
   createSet(name: string, icon: string) {
     this.setState({ loading: true });
 
-    toast.promise(this.context.createSet(name, icon), {
+    toast.promise(this.context!.createSet(name, icon), {
       loading: "Creating set...",
       success: "Set created!",
       error: (e) => `${e}`,
@@ -79,7 +79,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
   joinSet(id: string) {
     this.setState({ loading: true });
 
-    toast.promise(this.context.joinSet(id), {
+    toast.promise(this.context!.joinSet(id), {
       loading: "Joining set...",
       success: "Set joined!",
       error: (e) => `${e}`,
@@ -106,7 +106,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
     return (
       <div data-tauri-drag-region className="Sets">
         <div className="windowButtons">
-          <div className="close" onClick={() => this.context.minimiseToTray()} />
+          <div className="close" onClick={() => this.context!.minimiseToTray()} />
           <div className="minimise" onClick={() => appWindow.minimize()} />
           <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
         </div>
@@ -133,9 +133,9 @@ class Sets extends React.Component<SetsProps, SetsState> {
         <div className="userButton">
           <div>
             <img
-              src={this.context.getFileURL(this.context.image)}
+              src={this.context!.getFileURL(this.context!.image)}
               alt="Profile"
-              onClick={() => this.props.showUserCallback(this.context.uid ?? "")} />
+              onClick={() => this.props.showUserCallback(this.context!.uid ?? "")} />
             <aside />
           </div>
         </div>

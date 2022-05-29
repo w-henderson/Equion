@@ -19,8 +19,8 @@ class Subscriber {
    * 
    * Initially, there will be no subscriptions or callbacks.
    */
-  constructor(url: string) {
-    this.ws = new WebSocket(url);
+  constructor(ws: WebSocket) {
+    this.ws = ws;
 
     this.ws.onmessage = this.onEvent.bind(this);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

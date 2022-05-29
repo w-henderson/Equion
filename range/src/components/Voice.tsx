@@ -28,25 +28,25 @@ class Voice extends React.Component<VoiceProps> {
    * Joins the voice chat.
    */
   joinVoice() {
-    if (!this.context.token) return;
+    if (!this.context!.token) return;
 
-    this.context.voice.connectToVoiceChannel(this.context.token, this.props.id);
+    this.context!.voice.connectToVoiceChannel(this.context!.token, this.props.id);
   }
 
   /**
    * Leaves the voice chat.
    */
   leaveVoice() {
-    if (!this.context.token) return;
+    if (!this.context!.token) return;
 
-    this.context.voice.leaveVoiceChannel(this.context.token);
+    this.context!.voice.leaveVoiceChannel(this.context!.token);
   }
 
   /**
    * Renders the component.
    */
   render() {
-    const inVoiceChat = this.context.voice.currentChannel === this.props.id;
+    const inVoiceChat = this.context!.voice.currentChannel === this.props.id;
 
     return (
       <div className="Voice">
