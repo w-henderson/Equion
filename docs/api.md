@@ -437,6 +437,19 @@ Output:
 { "success": true }
 ```
 
+### `v1/ping`: Pings the server
+Pings the server to check if the connection is still alive.
+
+Input:
+```json
+{ }
+```
+
+Output:
+```
+(triggers a pong event)
+```
+
 ## WebSocket-only Events
 These are sent to the client when events happen in a set.
 
@@ -536,5 +549,14 @@ Sent when a user leaves a voice channel.
   "event": "v1/userLeftVoiceChannel",
   "set": "",
   "uid": ""
+}
+```
+
+### `v1/pong`: Pong
+Sent when a ping is received.
+
+```json
+{
+  "event": "v1/pong"
 }
 ```

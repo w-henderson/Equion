@@ -12,6 +12,39 @@ div.App {
     place-content: center;
     width: 100%;
   }
+
+  &.offline {
+    place-items: center;
+    place-content: center;
+    flex-direction: column;
+
+    a {
+      color: var(--accent-light);
+    }
+
+    button {
+      padding: 12px;
+      margin: 24px 8px;
+
+      font-family: Inter;
+      font-size: 16px;
+
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+
+      color: white;
+      background-color: var(--mid);
+
+      transition: background-color 200ms;
+
+      &:hover {
+        background-color: var(--accent-dark);
+      }
+
+      cursor: pointer;
+    }
+  }
 }
 
 ::-webkit-scrollbar {

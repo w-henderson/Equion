@@ -191,8 +191,8 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
             className="noStyle"
             close={() => this.setState({ shownAttachment: false })}>
             <img
-              src={this.context.getFileURL(this.state.shownAttachmentId)}
-              onClick={() => open(this.context.getFileURL(this.state.shownAttachmentId))}
+              src={this.context!.getFileURL(this.state.shownAttachmentId)}
+              onClick={() => open(this.context!.getFileURL(this.state.shownAttachmentId))}
               className="limitSize"
               alt="Attachment" />
           </Modal>

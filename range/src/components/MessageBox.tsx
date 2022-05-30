@@ -224,7 +224,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
         sending: true
       }, () => {
         this.props.sendCallback();
-        this.context.sendMessage(this.props.subsetId, message, attachment).then(() => {
+        this.context!.sendMessage(this.props.subsetId, message, attachment).then(() => {
           this.setState({ sending: false }, () => {
             this.box.current?.focus();
           });
@@ -299,7 +299,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
                   || user.username.toLowerCase().includes(this.state.mentioning.query.toLowerCase()))
               ).map((user, i) => (
                 <div className={i === this.state.mentioning?.highlighted ? "match highlighted" : "match"} key={user.uid}>
-                  <img src={this.context.getFileURL(user.image)} alt="Member" />
+                  <img src={this.context!.getFileURL(user.image)} alt="Member" />
 
                   <div>
                     <h2>{user.displayName}</h2>

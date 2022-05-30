@@ -34,7 +34,7 @@ class Message extends React.Component<MessageProps> {
     const sendDate = new Date(this.props.message.timestamp);
     const sendDateString = sendDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    const isLocalSender = this.props.message.author.uid === this.context.getUid();
+    const isLocalSender = this.props.message.author.uid === this.context!.getUid();
 
     const parsedMessage = new MessageParser(this.props.message.text).parse();
 
@@ -45,7 +45,7 @@ class Message extends React.Component<MessageProps> {
 
       attachment = (
         <div className="attachment">
-          <img src={this.context.getFileURL(attachmentId)} alt="Attachment" />
+          <img src={this.context!.getFileURL(attachmentId)} alt="Attachment" />
 
           <div
             className="attachmentInfo"
@@ -63,7 +63,7 @@ class Message extends React.Component<MessageProps> {
 
           <div
             className="attachmentInfo"
-            onClick={() => open(this.context.getFileURL(attachmentId))}>
+            onClick={() => open(this.context!.getFileURL(attachmentId))}>
             <span className="attachmentName">{this.props.message.attachment.name}</span>
           </div>
         </div>
@@ -73,11 +73,11 @@ class Message extends React.Component<MessageProps> {
     return (
       <div className={isLocalSender ? "Message local" : "Message"}>
         <img
-          src={this.context.getFileURL(this.props.message.author.image)}
+          src={this.context!.getFileURL(this.props.message.author.image)}
           alt="Profile"
           onClick={() => this.props.showUserCallback(this.props.message.author.uid)} />
 
-        <div className={this.context.doesMessagePingMe(this.props.message.text) ? "content pingsMe" : "content"}>
+        <div className={this.context!.doesMessagePingMe(this.props.message.text) ? "content pingsMe" : "content"}>
           {attachment}
 
           <div className="meta">
@@ -95,7 +95,7 @@ class Message extends React.Component<MessageProps> {
             )}
           </div>
         </div>
-      </div>
+      </div >
     );
   }
 }

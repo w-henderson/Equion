@@ -106,7 +106,7 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
     if (e.target.value.length > 0) {
       this.setState({
         setName: e.target.value,
-        icon: this.context.getGreekLetter(e.target.value[0].toLowerCase())
+        icon: this.context!.getGreekLetter(e.target.value[0].toLowerCase())
       });
     } else {
       this.setState({

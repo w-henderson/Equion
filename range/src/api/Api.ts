@@ -8,8 +8,8 @@ import Subscriber from "./Subscriber";
 import Notifier from "./Notifier";
 import Voice from "./Voice";
 
-const API_ROUTE = process.env.REACT_APP_EQUION_API_ROUTE || "http://localhost/api/v1";
-const WS_ROUTE = process.env.REACT_APP_EQUION_WS_ROUTE || "ws://localhost/ws";
+export const API_ROUTE = process.env.REACT_APP_EQUION_API_ROUTE || "http://localhost/api/v1";
+export const WS_ROUTE = process.env.REACT_APP_EQUION_WS_ROUTE || "ws://localhost/ws";
 
 export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
 
@@ -42,7 +42,7 @@ class Api {
   /**
    * Creates the API instance and connects to the backend through WebSocket.
    */
-  constructor() {
+  constructor(ws: WebSocket, onPong: () => void) {
     this.ready = false;
     this.uid = null;
     this.token = null;
@@ -50,7 +50,7 @@ class Api {
     this.minimisedToTray = false;
     this.trayIcon = "default";
 
-    this.subscriber = new Subscriber(WS_ROUTE);
+    this.subscriber = new Subscriber(ws, onPong);
     this.voice = new Voice(this.subscriber.ws);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
 
