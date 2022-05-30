@@ -29,6 +29,14 @@ div.Sets {
         background-color: var(--darkest);
         border-radius: 30px;
         cursor: pointer;
+
+        transition: transform 200ms,
+          box-shadow 200ms;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        }
       }
 
       aside {
@@ -42,14 +50,30 @@ div.Sets {
         background-color: var(--green);
         border-radius: 14px;
         border: 6px solid var(--mid);
-      }
 
-      transition: transform 200ms,
-      box-shadow 200ms;
+        div {
+          position: absolute;
+          top: -16px;
+          left: 8px;
+          padding: 4px 8px;
+          border-radius: 8px;
 
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+          transform: scale(0);
+          transform-origin: bottom left;
+          transition: transform 150ms ease;
+
+          background-color: var(--accent-light);
+          box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
+
+          pointer-events: none;
+          white-space: nowrap;
+        }
+
+        &:hover div {
+          display: block;
+          pointer-events: all;
+          transform: scale(1);
+        }
       }
     }
   }

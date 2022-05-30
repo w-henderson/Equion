@@ -6,7 +6,8 @@ import { API_ROUTE, WS_ROUTE } from "./api/Api";
 
 interface AppState {
   ws: WebSocket | null,
-  status: "online" | "offline" | "connecting"
+  status: "online" | "offline" | "connecting",
+  ping: number | null,
 }
 
 /**
@@ -14,6 +15,7 @@ interface AppState {
  */
 class App extends React.Component<unknown, AppState> {
   interval: number | null;
+  lastPing: number | null;
   lastPong: number | null;
 
   /**
@@ -24,10 +26,12 @@ class App extends React.Component<unknown, AppState> {
 
     this.state = {
       ws: null,
-      status: "connecting"
+      status: "connecting",
+      ping: null
     };
 
     this.interval = null;
+    this.lastPing = null;
     this.lastPong = null;
 
     this.connect = this.connect.bind(this);
@@ -70,6 +74,7 @@ class App extends React.Component<unknown, AppState> {
 
       if (this.state.ws) {
         this.state.ws.send(JSON.stringify({ command: "v1/ping" }));
+        this.lastPing = new Date().getTime();
       }
     }, 5000);
   }
@@ -110,6 +115,8 @@ class App extends React.Component<unknown, AppState> {
    */
   onPong() {
     this.lastPong = new Date().getTime();
+
+    this.setState({ ping: this.lastPong - this.lastPing! });
   }
 
   /**
@@ -117,7 +124,12 @@ class App extends React.Component<unknown, AppState> {
    */
   render() {
     if (this.state.status === "online") {
-      return <OnlineApp ws={this.state.ws!} onPong={this.onPong} />;
+      return (
+        <OnlineApp
+          ws={this.state.ws!}
+          ping={this.state.ping}
+          onPong={this.onPong} />
+      );
     } else if (this.state.status === "offline") {
       return (
         <div className="App offline" data-tauri-drag-region>

@@ -13,6 +13,7 @@ import SetManager from "./SetManager";
 interface SetsProps {
   sets: SetData[],
   selectedSet: string | null,
+  ping: number | null,
   showUserCallback: (id: string) => void,
   selectCallback: (id: string) => void,
   createdCallback: (set: SetData) => void
@@ -136,7 +137,10 @@ class Sets extends React.Component<SetsProps, SetsState> {
               src={this.context!.getFileURL(this.context!.image)}
               alt="Profile"
               onClick={() => this.props.showUserCallback(this.context!.uid ?? "")} />
-            <aside />
+
+            <aside>
+              <div>{this.props.ping === null ? "Connecting..." : <><b>{this.props.ping}</b> ms</>}</div>
+            </aside>
           </div>
         </div>
 

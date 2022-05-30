@@ -18,6 +18,7 @@ import Members from "./components/Members";
 
 interface OnlineAppProps {
   ws: WebSocket,
+  ping: number | null,
   onPong: () => void
 }
 
@@ -482,6 +483,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         <Sets
           ref={this.sets}
           sets={this.state.sets}
+          ping={this.props.ping}
           selectedSet={this.state.selectedSet}
           showUserCallback={this.showUser}
           selectCallback={this.selectSet}
