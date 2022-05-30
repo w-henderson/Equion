@@ -91,8 +91,10 @@ class App extends React.Component<unknown, AppState> {
    * Attempts to reconnect to the WebSocket server.
    */
   reconnect() {
-    this.disconnect();
-    this.connect();
+    this.setState({ status: "connecting" }, () => {
+      this.disconnect();
+      this.connect();
+    });
   }
 
   /**
