@@ -1,5 +1,3 @@
-import toast from "react-hot-toast";
-
 /**
  * Manages subscriptions to events.
  */
@@ -23,8 +21,6 @@ class Subscriber {
     this.ws = ws;
 
     this.ws.onmessage = this.onEvent.bind(this);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.ws.onerror = (e: any) => toast.error(e);
 
     this.ready = false;
 

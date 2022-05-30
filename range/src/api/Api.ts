@@ -8,7 +8,7 @@ import Subscriber from "./Subscriber";
 import Notifier from "./Notifier";
 import Voice from "./Voice";
 
-const API_ROUTE = process.env.REACT_APP_EQUION_API_ROUTE || "http://localhost/api/v1";
+export const API_ROUTE = process.env.REACT_APP_EQUION_API_ROUTE || "http://localhost/api/v1";
 export const WS_ROUTE = process.env.REACT_APP_EQUION_WS_ROUTE || "ws://localhost/ws";
 
 export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
