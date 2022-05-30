@@ -5,6 +5,7 @@ class Subscriber {
   ws: WebSocket;
   ready: boolean;
 
+  onPong: () => void;
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
   onUpdateUser: (set: string, user: UserData) => void;
@@ -17,8 +18,9 @@ class Subscriber {
    * 
    * Initially, there will be no subscriptions or callbacks.
    */
-  constructor(ws: WebSocket) {
+  constructor(ws: WebSocket, onPong: () => void) {
     this.ws = ws;
+    this.onPong = onPong;
 
     this.ws.onmessage = this.onEvent.bind(this);
 
@@ -100,6 +102,8 @@ class Subscriber {
       this.onUserJoinedVoiceChannel(data.set, data.user);
     } else if (data.event === "v1/userLeftVoiceChannel") {
       this.onUserLeftVoiceChannel(data.set, data.uid);
+    } else if (data.event === "v1/pong") {
+      this.onPong();
     } else {
       // Ignore invalid events
       // toast.error(`Unknown event: ${data.event}`);

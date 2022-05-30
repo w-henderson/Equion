@@ -14,6 +14,7 @@ interface AppState {
  */
 class App extends React.Component<unknown, AppState> {
   interval: number | null;
+  lastPong: number | null;
 
   /**
    * Initializes the app.
@@ -27,10 +28,13 @@ class App extends React.Component<unknown, AppState> {
     };
 
     this.interval = null;
+    this.lastPong = null;
 
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
     this.reconnect = this.reconnect.bind(this);
+    this.onConnectionLost = this.onConnectionLost.bind(this);
+    this.onPong = this.onPong.bind(this);
   }
 
   /**
@@ -54,12 +58,16 @@ class App extends React.Component<unknown, AppState> {
     const ws = new WebSocket(WS_ROUTE);
 
     ws.onopen = () => this.setState({ status: "online" });
-    ws.onerror = () => this.setState({ status: "offline" });
-    ws.onclose = () => this.setState({ status: "offline" });
+    ws.onerror = this.onConnectionLost;
+    ws.onclose = this.onConnectionLost;
 
     this.setState({ ws });
 
     this.interval = window.setInterval(() => {
+      if (this.lastPong !== null && this.lastPong + 5000 < new Date().getTime()) {
+        this.onConnectionLost();
+      }
+
       if (this.state.ws) {
         this.state.ws.send(JSON.stringify({ command: "v1/ping" }));
       }
@@ -88,11 +96,26 @@ class App extends React.Component<unknown, AppState> {
   }
 
   /**
+   * Handles loss of connection.
+   */
+  onConnectionLost() {
+    if (this.state.status === "online") window.location.reload();
+    else this.setState({ status: "offline" });
+  }
+
+  /**
+   * Handles the `v1/pong` event to keep track of the connection status
+   */
+  onPong() {
+    this.lastPong = new Date().getTime();
+  }
+
+  /**
    * Renders the component.
    */
   render() {
     if (this.state.status === "online") {
-      return <OnlineApp ws={this.state.ws!} />;
+      return <OnlineApp ws={this.state.ws!} onPong={this.onPong} />;
     } else if (this.state.status === "offline") {
       return (
         <div className="App offline" data-tauri-drag-region>

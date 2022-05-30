@@ -42,7 +42,7 @@ class Api {
   /**
    * Creates the API instance and connects to the backend through WebSocket.
    */
-  constructor(ws: WebSocket) {
+  constructor(ws: WebSocket, onPong: () => void) {
     this.ready = false;
     this.uid = null;
     this.token = null;
@@ -50,7 +50,7 @@ class Api {
     this.minimisedToTray = false;
     this.trayIcon = "default";
 
-    this.subscriber = new Subscriber(ws);
+    this.subscriber = new Subscriber(ws, onPong);
     this.voice = new Voice(this.subscriber.ws);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
 

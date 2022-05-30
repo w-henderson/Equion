@@ -17,7 +17,8 @@ import UserInfo from "./components/UserInfo";
 import Members from "./components/Members";
 
 interface OnlineAppProps {
-  ws: WebSocket
+  ws: WebSocket,
+  onPong: () => void
 }
 
 interface OnlineAppState {
@@ -44,7 +45,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   constructor(props: OnlineAppProps) {
     super(props);
 
-    this.api = new Api(props.ws);
+    this.api = new Api(props.ws, props.onPong);
 
     this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
