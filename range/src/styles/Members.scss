@@ -38,6 +38,7 @@ div.Members {
     padding: 16px;
 
     div.member {
+      position: relative;
       display: flex;
       width: 100%;
       padding: 8px;
@@ -46,7 +47,7 @@ div.Members {
       cursor: pointer;
       overflow: hidden;
 
-      transition: background-color 200ms;
+      transition: background-color 200ms, opacity 200ms;
 
       h2 {
         margin: 0;
@@ -81,7 +82,33 @@ div.Members {
         margin-right: 12px;
       }
 
-      &:hover {
+      &::before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 34px;
+        left: 34px;
+        width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background-color: var(--green);
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+
+        &.offline {
+          background-color: var(--red);
+        }
+      }
+
+      &.offline {
+        opacity: 0.5;
+        filter: grayscale(100%);
+      }
+
+      &.offline:hover {
+        opacity: 0.75;
+      }
+
+      &:not(.offline):hover {
         background-color: var(--mid-light);
       }
     }

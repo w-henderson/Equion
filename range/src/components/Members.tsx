@@ -18,6 +18,9 @@ class Members extends React.Component<MembersProps> {
    * Renders the members list.
    */
   render() {
+    const onlineUsers = this.props.set.members.filter(user => user.online || user.uid === this.context?.uid);
+    const offlineUsers = this.props.set.members.filter(user => !user.online && user.uid !== this.context?.uid);
+
     return (
       <div className="Members">
         <div className="title">
@@ -38,8 +41,19 @@ class Members extends React.Component<MembersProps> {
         </div>
 
         <div className="list">
-          {this.props.set.members.map(member =>
+          {onlineUsers.map(member =>
             <div className="member" key={member.uid} onClick={() => this.props.userCallback(member.uid)}>
+              <img src={this.context!.getFileURL(member.image)} alt="Member" />
+
+              <div>
+                <h2>{member.displayName}</h2>
+                <span>@{member.username}</span>
+              </div>
+            </div>
+          )}
+
+          {offlineUsers.map(member =>
+            <div className="member offline" key={member.uid} onClick={() => this.props.userCallback(member.uid)}>
               <img src={this.context!.getFileURL(member.image)} alt="Member" />
 
               <div>

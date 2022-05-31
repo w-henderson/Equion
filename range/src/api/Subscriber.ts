@@ -84,6 +84,7 @@ class Subscriber {
           username: "",
           displayName: data.message.authorName,
           image: data.message.authorImage,
+          online: true
         },
         attachment: hasAttachment ? {
           id: data.message.attachment.id,
