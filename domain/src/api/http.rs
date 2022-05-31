@@ -1,6 +1,6 @@
 //! Provides handlers for HTTP endpoints.
 
-use crate::api::{files, matcher, not_found};
+use crate::api::{files, matcher};
 use crate::State;
 
 use humphrey::http::headers::HeaderType;
@@ -27,8 +27,14 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
         .and_then(|s| humphrey_json::from_str(&s).ok());
 
     let response_body: Value = if let Some(json) = json {
-        let handler = matcher(route).unwrap_or_else(|| Box::new(|_, _| not_found()));
-        handler(state, json)
+        if let Some(handler) = matcher(route) {
+            handler(state, json)
+        } else {
+            json!({
+                "success": false,
+                "error": "Invalid command"
+            })
+        }
     } else {
         json!({
             "success": false,

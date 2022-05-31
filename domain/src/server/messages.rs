@@ -182,7 +182,8 @@ impl State {
         token: impl AsRef<str>,
         subset: impl AsRef<str>,
         content: impl AsRef<str>,
-        attachment: Option<(String, String)>,
+        attachment_name: Option<String>,
+        attachment_content: Option<String>,
     ) -> Result<(), String> {
         let mut conn = self
             .pool
@@ -209,6 +210,15 @@ impl State {
         }
 
         let (set_id, user_id, author_name, author_image) = meta.unwrap();
+
+        let attachment = if let Some(attachment_name) = attachment_name {
+            Some((
+                attachment_name,
+                attachment_content.ok_or_else(|| "No attachment content provided".to_string())?,
+            ))
+        } else {
+            None
+        };
 
         let attachment_id = if let Some((attachment_name, attachment_content)) = attachment.as_ref()
         {
