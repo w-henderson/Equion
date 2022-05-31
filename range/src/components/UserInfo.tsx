@@ -184,7 +184,9 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
 
           {this.state.data !== null &&
             <>
-              <img src={this.context!.getFileURL(this.state.data.image)} alt="Profile" />
+              <div className={this.state.data.online ? "image online" : "image"}>
+                <img src={this.context!.getFileURL(this.state.data.image)} alt="Profile" />
+              </div>
 
               <h1>{this.state.data.displayName}</h1>
               <span className="username">@{this.state.data.username}</span>
@@ -198,7 +200,9 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
 
           {this.state.data === null &&
             <>
-              <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
+              <div className="image">
+                <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
+              </div>
 
               <h1 className="placeholder">Loading...</h1>
 
@@ -226,10 +230,12 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
             </svg>
           </div>
 
-          <img
-            src={this.state.displayedImage}
-            alt="Profile"
-            onClick={() => this.fileInput.current?.click()} />
+          <div className="image online">
+            <img
+              src={this.state.displayedImage}
+              alt="Profile"
+              onClick={() => this.fileInput.current?.click()} />
+          </div>
 
           <input
             type="text"
