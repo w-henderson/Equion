@@ -44,6 +44,7 @@ declare_endpoints! {
     "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None
 }
 
+/// Represents a function able to handle requests.
 pub type Handler = fn(Arc<State>, Value) -> Value;
 
 /// Matches the command to the appropriate handler.
