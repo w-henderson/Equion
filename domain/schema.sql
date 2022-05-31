@@ -3,7 +3,7 @@ USE equion;
 
 CREATE TABLE `users`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
-    `username` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL UNIQUE,
     `display_name` VARCHAR(255) NOT NULL,
     `email` VARCHAR(255) NOT NULL,
     `image` CHAR(36) NULL,
