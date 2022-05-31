@@ -1,6 +1,6 @@
 //! Provides the WebSocket interface for routing events.
 
-use crate::api::{error_context, get_string, matcher, not_found};
+use crate::api::{error_context, get_string, matcher};
 use crate::voice;
 use crate::State;
 
@@ -41,7 +41,10 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
                 }
                 "v1/leaveVoiceChannel" => voice::ws::leave_voice_channel(state, json, addr),
                 "v1/ping" => ping(),
-                _ => not_found(),
+                _ => json!({
+                    "success": false,
+                    "error": "Invalid command"
+                }),
             },
         }
     } else {

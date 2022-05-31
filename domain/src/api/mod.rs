@@ -1,12 +1,11 @@
 //! Provides the HTTP and WebSocket API endpoints and handles serialization and deserialization of JSON.
 
-pub mod auth;
 pub mod files;
 pub mod http;
-pub mod messages;
-pub mod sets;
-pub mod user;
 pub mod ws;
+
+#[macro_use]
+pub mod r#macro;
 
 use crate::State;
 
@@ -15,32 +14,44 @@ use humphrey_json::Value;
 
 use std::sync::Arc;
 
-/// Represents a function able to handle a request. The function is passed the state and the JSON body, and returns a JSON value.
-pub trait Handler: Fn(Arc<State>, Value) -> Value + Send + Sync + 'static {}
-impl<T> Handler for T where T: Fn(Arc<State>, Value) -> Value + Send + Sync + 'static {}
+declare_endpoints! {
+    // Authentication endpoints
+    "v1/signup" => signup("username", "password", "displayName", "email") -> {
+        "uid": uid,
+        "token": token
+    },
+    "v1/login" => login("username", "password") -> {
+        "uid": uid,
+        "token": token
+    },
+    "v1/logout" => logout("token") -> None,
+    "v1/validateToken" => validate_token("token") -> "uid",
+
+    // User endpoints
+    "v1/user" => get_user("uid") -> "user",
+    "v1/updateUser" => update_user("token", (optional "displayName"), (optional "email"), (optional "bio")) -> None,
+
+    // Sets endpoints
+    "v1/sets" => get_sets("token") -> "sets",
+    "v1/set" => get_set("token", "id") -> "set",
+    "v1/createSet" => create_set("token", "name", (optional "icon")) -> "id",
+    "v1/createSubset" => create_subset("token", "set", "name") -> "id",
+    "v1/joinSet" => join_set("token", "set") -> None,
+    "v1/leaveSet" => leave_set("token", "set") -> None,
+
+    // Messages endpoints
+    "v1/messages" => messages("token", "subset", (optional "before"), (numeric optional "limit")) -> "messages",
+    "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None
+}
+
+pub type Handler = fn(Arc<State>, Value) -> Value;
 
 /// Matches the command to the appropriate handler.
 ///
 /// - For HTTP requests, the command is specified by the API route, for example `/api/v1/user`.
 /// - For WebSocket requests, the command is specified in the message, for example `{ "command": "v1/user" }`.
-pub fn matcher(command: &str) -> Option<Box<dyn Handler>> {
-    match command {
-        "v1/signup" => Some(Box::new(auth::signup)),
-        "v1/login" => Some(Box::new(auth::login)),
-        "v1/logout" => Some(Box::new(auth::logout)),
-        "v1/validateToken" => Some(Box::new(auth::validate_token)),
-        "v1/user" => Some(Box::new(user::get_user)),
-        "v1/updateUser" => Some(Box::new(user::update_user)),
-        "v1/sets" => Some(Box::new(sets::get_sets)),
-        "v1/set" => Some(Box::new(sets::get_set)),
-        "v1/createSet" => Some(Box::new(sets::create_set)),
-        "v1/createSubset" => Some(Box::new(sets::create_subset)),
-        "v1/joinSet" => Some(Box::new(sets::join_set)),
-        "v1/leaveSet" => Some(Box::new(sets::leave_set)),
-        "v1/messages" => Some(Box::new(messages::get_messages)),
-        "v1/sendMessage" => Some(Box::new(messages::send_message)),
-        _ => None,
-    }
+pub fn matcher(command: &str) -> Option<Handler> {
+    get_endpoint!(command)
 }
 
 /// Runs the given closure in an error-catching context.
@@ -57,14 +68,6 @@ where
             "error": e
         }),
     }
-}
-
-/// Returns the "command not found" JSON response.
-pub fn not_found() -> Value {
-    json!({
-        "success": false,
-        "error": "Invalid API command"
-    })
 }
 
 /// Attempts to get a string at the given key from the JSON value.
