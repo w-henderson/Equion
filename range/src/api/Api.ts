@@ -430,6 +430,7 @@ class Api {
             username: "",
             displayName: m.authorName,
             image: m.authorImage,
+            online: false
           },
           attachment: hasAttachment ? {
             id: m.attachment.id,

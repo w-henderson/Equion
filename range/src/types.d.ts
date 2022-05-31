@@ -22,6 +22,7 @@ interface UserData {
   displayName: string,
   image?: string,
   bio?: string,
+  online: boolean
 }
 
 interface VoiceUserData {

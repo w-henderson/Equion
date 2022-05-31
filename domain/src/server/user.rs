@@ -20,6 +20,8 @@ pub struct User {
     pub image: Option<String>,
     /// The user's bio, or `None` if they have not set one.
     pub bio: Option<String>,
+    /// Whether the user is currently online.
+    pub online: bool,
 }
 
 json_map! {
@@ -29,7 +31,8 @@ json_map! {
     display_name => "displayName",
     email => "email",
     image => "image",
-    bio => "bio"
+    bio => "bio",
+    online => "online"
 }
 
 impl State {
@@ -56,6 +59,7 @@ impl State {
             .map_err(|_| "Could not get user from database".to_string())?;
 
         let user = user.map(|(uid, username, display_name, email, image, bio)| User {
+            online: self.voice.is_user_online(&uid),
             uid,
             username,
             display_name,
@@ -90,6 +94,7 @@ impl State {
             .map_err(|_| "Could not get user from database".to_string())?;
 
         let user = user.map(|(uid, username, display_name, email, image, bio)| User {
+            online: self.voice.is_user_online(&uid),
             uid,
             username,
             display_name,
@@ -162,6 +167,7 @@ impl State {
 
         let user = user
             .map(|(uid, username, display_name, email, image, bio)| User {
+                online: self.voice.is_user_online(&uid),
                 uid,
                 username,
                 display_name,
@@ -217,6 +223,7 @@ impl State {
 
         let user = user
             .map(|(uid, username, display_name, email, image, bio)| User {
+                online: self.voice.is_user_online(&uid),
                 uid,
                 username,
                 display_name,

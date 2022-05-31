@@ -45,17 +45,38 @@ div.UserInfo {
     resize: none;
   }
 
-  img {
+  div.image {
     width: 128px;
     height: 128px;
-    object-fit: cover;
-    background-color: var(--darkest);
-    border-radius: 64px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-
     position: absolute;
     top: -64px;
     left: calc(50% - 64px);
+
+    img {
+      width: 128px;
+      height: 128px;
+      object-fit: cover;
+      background-color: var(--darkest);
+      border-radius: 64px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    &::after {
+      content: "";
+      display: block;
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 24px;
+      background-color: #aaa;
+      border: 8px solid var(--darkest);
+    }
+
+    &.online::after {
+      background-color: var(--green);
+    }
   }
 
   &.editing {

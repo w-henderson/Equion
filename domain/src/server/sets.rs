@@ -110,6 +110,7 @@ impl State {
                 .map_err(|_| "Could not get members".to_string())?
                 .into_iter()
                 .map(|(uid, username, display_name, email, image, bio)| User {
+                    online: self.voice.is_user_online(&uid),
                     uid,
                     username,
                     display_name,
@@ -215,6 +216,7 @@ impl State {
                 .map_err(|_| "Could not get members".to_string())?
                 .into_iter()
                 .map(|(uid, username, display_name, email, image, bio)| User {
+                    online: self.voice.is_user_online(&uid),
                     uid,
                     username,
                     display_name,
@@ -400,6 +402,7 @@ impl State {
             .map_err(|_| "Invalid token".to_string())?;
 
         let user = user.map(|(uid, username, display_name, email, image, bio)| User {
+            online: self.voice.is_user_online(&uid),
             uid,
             username,
             display_name,

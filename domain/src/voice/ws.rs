@@ -17,7 +17,8 @@ pub fn connect_user_voice(state: Arc<State>, json: Value, addr: SocketAddr) -> V
         let peer_id = get_string(&json, "peerId")?;
         let user = state.get_user_by_token(token)?;
 
-        state.voice.connect_user_voice(user.uid, peer_id, addr);
+        state.voice.connect_user_voice(&user.uid, peer_id, addr);
+        state.broadcast_user_online(user.uid);
 
         Ok(json!({ "success": true }))
     })
@@ -29,7 +30,8 @@ pub fn disconnect_user_voice(state: Arc<State>, json: Value, _: SocketAddr) -> V
         let token = get_string(&json, "token")?;
         let user = state.get_user_by_token(token)?;
 
-        state.voice.disconnect_user_voice(user.uid);
+        state.voice.disconnect_user_voice(&user.uid);
+        state.broadcast_user_offline(user.uid);
 
         Ok(json!({ "success": true }))
     })
