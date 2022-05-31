@@ -128,8 +128,8 @@ pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
             state.broadcast_left_vc(channel_id, &voice_user.uid);
         }
 
-        let mut online_users = state.voice.online_users.write().unwrap();
-        online_users.remove(&voice_user.uid);
+        state.voice.disconnect_user_voice(&voice_user.uid);
+        state.broadcast_user_offline(&voice_user.uid);
     }
 }
 

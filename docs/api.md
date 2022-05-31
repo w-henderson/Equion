@@ -81,7 +81,8 @@ Output:
     "displayName": "",
     "email": "",
     "image?": "",
-    "bio?": ""
+    "bio?": "",
+    "online": true
   }
 }
 ```
@@ -150,7 +151,8 @@ Output:
           "displayName": "",
           "email": "",
           "image?": "",
-          "bio?": ""
+          "bio?": "",
+          "online": true
         }
       ],
       "voiceMembers": [
@@ -162,7 +164,8 @@ Output:
             "displayName": "",
             "email": "",
             "image?": "",
-            "bio?": ""
+            "bio?": "",
+            "online": true
           }
         }
       ]
@@ -201,7 +204,8 @@ Output:
         "displayName": "",
         "email": "",
         "image?": "",
-        "bio?": ""
+        "bio?": "",
+        "online": true
       }
     ],
     "voiceMembers": [
@@ -213,7 +217,8 @@ Output:
           "displayName": "",
           "email": "",
           "image?": "",
-          "bio?": ""
+          "bio?": "",
+          "online": true
         }
       }
     ]
@@ -504,7 +509,8 @@ Sent when a new user joins a set or an existing user's details are updated.
     "displayName": "",
     "email": "",
     "image?": "",
-    "bio?": ""
+    "bio?": "",
+    "online": true
   }
 }
 ```

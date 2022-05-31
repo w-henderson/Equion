@@ -254,6 +254,24 @@ impl State {
         Some(())
     }
 
+    /// Broadcasts the "update user" event when a user comes online.
+    ///
+    /// In the future, this will become a separate event for optimisation.
+    pub fn broadcast_user_online(&self, uid: impl AsRef<str>) -> Option<()> {
+        let user = self.get_user(uid).ok()?;
+
+        self.broadcast_update_user(user)
+    }
+
+    /// Broadcasts the "update user" event when a user goes offline.
+    ///
+    /// In the future, this will become a separate event for optimisation.
+    pub fn broadcast_user_offline(&self, uid: impl AsRef<str>) -> Option<()> {
+        let user = self.get_user(uid).ok()?;
+
+        self.broadcast_update_user(user)
+    }
+
     /// Broadcasts the "user left" event to all subscribers of the set.
     pub fn broadcast_left_user(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
         let subscriptions = self.subscriptions.read().unwrap();

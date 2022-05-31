@@ -35,6 +35,11 @@ impl VoiceServer {
         Self::default()
     }
 
+    /// Returns whether the user with the given ID is online.
+    pub fn is_user_online(&self, uid: impl AsRef<str>) -> bool {
+        self.online_users.read().unwrap().contains_key(uid.as_ref())
+    }
+
     /// Connects a user to the voice chat server.
     pub fn connect_user_voice(
         &self,
