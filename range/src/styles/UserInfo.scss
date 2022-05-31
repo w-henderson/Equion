@@ -65,13 +65,13 @@ div.UserInfo {
       content: "";
       display: block;
       position: absolute;
-      bottom: 2px;
-      right: 2px;
-      width: 32px;
-      height: 32px;
-      border-radius: 16px;
+      bottom: -4px;
+      right: -4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 24px;
       background-color: #aaa;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+      border: 8px solid var(--darkest);
     }
 
     &.online::after {
