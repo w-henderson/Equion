@@ -47,7 +47,15 @@ class RegionSelector extends React.Component<RegionSelectorProps, RegionSelector
         {this.state.visible &&
           <div className="regionsList">
             <span>
-              <span onClick={() => this.setState({ visible: false })}>x</span>
+              <span
+                onClick={() => this.setState({ visible: false })}
+                className="closeButton">
+                x
+              </span>
+
+              <span>
+                <b>Warning</b>: Regions are currently independent of each other, so data on one region is not available on another.
+              </span>
             </span>
 
             {REGIONS.map((region: RegionData, i) => (
