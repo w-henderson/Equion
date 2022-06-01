@@ -180,6 +180,7 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
           }
 
           <MessageBox
+            key={this.props.subset.id}
             subsetId={this.props.subset.id}
             members={this.props.members}
             sendCallback={() => {

@@ -62,13 +62,12 @@ class App extends React.Component<unknown, AppState> {
     const ws = new WebSocket(WS_ROUTE);
 
     ws.onopen = () => this.setState({ status: "online" });
-    ws.onerror = this.onConnectionLost;
     ws.onclose = this.onConnectionLost;
 
     this.setState({ ws });
 
     this.interval = window.setInterval(() => {
-      if (this.lastPong !== null && this.lastPong + 5000 < new Date().getTime()) {
+      if (this.lastPong !== null && this.lastPong + 10000 < new Date().getTime()) {
         this.onConnectionLost();
       }
 

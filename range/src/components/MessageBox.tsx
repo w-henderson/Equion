@@ -52,11 +52,11 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
   }
 
   /**
-   * If the message box re-renders, focus it.
+   * When the message box first renders, focus it.
    * 
    * This causes the box to be focussed whenever the subset is changed.
    */
-  componentDidUpdate() {
+  componentDidMount() {
     if (this.box.current) {
       this.box.current.focus();
     }

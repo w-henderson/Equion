@@ -6,6 +6,7 @@ import { open } from "@tauri-apps/api/shell";
 import "../styles/Message.scss";
 import defaultAttachment from "../images/default_attachment.jpg";
 import MessageSegment from "./MessageSegment";
+import LinkPreview from "./LinkPreview";
 
 interface MessageProps {
   message: MessageData,
@@ -37,6 +38,8 @@ class Message extends React.Component<MessageProps> {
     const isLocalSender = this.props.message.author.uid === this.context!.getUid();
 
     const parsedMessage = new MessageParser(this.props.message.text).parse();
+
+    const firstLink = parsedMessage.find(segment => segment.type === "link")?.value;
 
     let attachment = undefined;
 
@@ -94,6 +97,10 @@ class Message extends React.Component<MessageProps> {
                 userCallback={() => this.props.showUserCallback(el.value)} />
             )}
           </div>
+
+          {firstLink !== undefined && attachment === undefined &&
+            <LinkPreview link={firstLink} />
+          }
         </div>
       </div >
     );

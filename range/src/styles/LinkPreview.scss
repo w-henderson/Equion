@@ -1,0 +1,9 @@
+div.LinkPreview {
+  display: block;
+  border-radius: 0 0 0 16px;
+  overflow: hidden;
+
+  iframe {
+    display: block;
+  }
+}
