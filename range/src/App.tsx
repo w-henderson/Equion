@@ -1,12 +1,13 @@
 import React from "react";
 import OnlineApp from "./OnlineApp";
 import { open } from "@tauri-apps/api/shell";
+import { forage } from "@tauri-apps/tauri-forage";
 
 import REGIONS from "./servers.json";
 import RegionSelector from "./components/RegionSelector";
 
 interface AppState {
-  region: RegionData,
+  region: RegionData | null,
   ws: WebSocket | null,
   status: "online" | "offline" | "connecting",
   ping: number | null,
@@ -27,7 +28,7 @@ class App extends React.Component<unknown, AppState> {
     super(props);
 
     this.state = {
-      region: REGIONS[0],
+      region: null,
       ws: null,
       status: "connecting",
       ping: null
@@ -46,10 +47,21 @@ class App extends React.Component<unknown, AppState> {
   }
 
   /**
-   * Initializes the WebSocket connection.
+   * Initializes the component.
    */
-  componentDidMount() {
-    this.connect();
+  async componentDidMount() {
+    const regionId: string | null = await forage.getItem({ key: "region" })();
+
+    if (regionId) {
+      const regionIndex = REGIONS.findIndex(region => region.id === regionId);
+
+      if (regionIndex !== -1) {
+        this.setRegion(regionIndex);
+        return;
+      }
+    }
+
+    this.setState({ region: REGIONS[0] }, this.connect);
   }
 
   /**
@@ -65,7 +77,8 @@ class App extends React.Component<unknown, AppState> {
   setRegion(region: number) {
     this.setState({ status: "connecting" }, () => {
       this.disconnect();
-      this.setState({ region: REGIONS[region] }, () => {
+      this.setState({ region: REGIONS[region] }, async () => {
+        await forage.setItem({ key: "region", value: this.state.region!.id })();
         this.connect();
       });
     });
@@ -75,6 +88,8 @@ class App extends React.Component<unknown, AppState> {
    * Connects to the WebSocket server.
    */
   connect() {
+    if (!this.state.region) return;
+
     const ws = new WebSocket(this.state.region.wsRoute);
 
     ws.onopen = () => this.setState({ status: "online" });
@@ -141,6 +156,8 @@ class App extends React.Component<unknown, AppState> {
    * Renders the component.
    */
   render() {
+    if (!this.state.region) return <></>;
+
     if (this.state.status === "online") {
       return (
         <OnlineApp
@@ -161,7 +178,7 @@ class App extends React.Component<unknown, AppState> {
 
           <div>
             <button onClick={this.reconnect}>Reconnect</button>
-            <button onClick={() => open(this.state.region.apiRoute.replace("/api/v1", ""))}>Status Page</button>
+            <button onClick={() => open(this.state.region!.apiRoute.replace("/api/v1", ""))}>Status Page</button>
           </div>
 
           <RegionSelector
