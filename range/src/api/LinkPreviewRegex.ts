@@ -21,7 +21,7 @@ export const PROVIDERS: LinkPreviewProvider[] = [
     regex: /^https?:\/\/lichess\.org\/([a-zA-Z0-9]{8})[a-zA-Z0-9]*$/,
     type: "iframe",
     url: "https://lichess.org/embed/{{id}}?theme=blue2&bg=dark",
-    width: 600,
-    height: 397
+    width: 560,
+    height: 380
   },
 ];

@@ -2,9 +2,11 @@ import React from "react";
 import OnlineApp from "./OnlineApp";
 import { open } from "@tauri-apps/api/shell";
 
-import { API_ROUTE, WS_ROUTE } from "./api/Api";
+import REGIONS from "./servers.json";
+import RegionSelector from "./components/RegionSelector";
 
 interface AppState {
+  region: RegionData,
   ws: WebSocket | null,
   status: "online" | "offline" | "connecting",
   ping: number | null,
@@ -25,6 +27,7 @@ class App extends React.Component<unknown, AppState> {
     super(props);
 
     this.state = {
+      region: REGIONS[0],
       ws: null,
       status: "connecting",
       ping: null
@@ -34,6 +37,7 @@ class App extends React.Component<unknown, AppState> {
     this.lastPing = null;
     this.lastPong = null;
 
+    this.setRegion = this.setRegion.bind(this);
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
     this.reconnect = this.reconnect.bind(this);
@@ -56,15 +60,28 @@ class App extends React.Component<unknown, AppState> {
   }
 
   /**
+   * Sets the region to connect to.
+   */
+  setRegion(region: number) {
+    this.setState({ status: "connecting" }, () => {
+      this.disconnect();
+      this.setState({ region: REGIONS[region] }, () => {
+        this.connect();
+      });
+    });
+  }
+
+  /**
    * Connects to the WebSocket server.
    */
   connect() {
-    const ws = new WebSocket(WS_ROUTE);
+    const ws = new WebSocket(this.state.region.wsRoute);
 
     ws.onopen = () => this.setState({ status: "online" });
     ws.onclose = this.onConnectionLost;
 
     this.setState({ ws });
+    this.lastPong = null;
 
     this.interval = window.setInterval(() => {
       if (this.lastPong !== null && this.lastPong + 10000 < new Date().getTime()) {
@@ -83,6 +100,8 @@ class App extends React.Component<unknown, AppState> {
    */
   disconnect() {
     if (this.state.ws) {
+      // eslint-disable-next-line react/no-direct-mutation-state
+      this.state.ws.onclose = null;
       this.state.ws.close();
     }
 
@@ -126,6 +145,8 @@ class App extends React.Component<unknown, AppState> {
       return (
         <OnlineApp
           ws={this.state.ws!}
+          region={this.state.region}
+          setRegion={this.setRegion}
           ping={this.state.ping}
           onPong={this.onPong} />
       );
@@ -135,13 +156,17 @@ class App extends React.Component<unknown, AppState> {
           <h1>You're offline!</h1>
 
           <p>
-            Please check your internet connection, then click below to reconnect.
+            The Equion client couldn't connect to the server. Please check your internet connection and the status page.
           </p>
 
           <div>
             <button onClick={this.reconnect}>Reconnect</button>
-            <button onClick={() => open(API_ROUTE.replace("/api/v1", ""))}>Status Page</button>
+            <button onClick={() => open(this.state.region.apiRoute.replace("/api/v1", ""))}>Status Page</button>
           </div>
+
+          <RegionSelector
+            region={this.state.region}
+            setRegion={this.setRegion} />
         </div>
       );
     } else {

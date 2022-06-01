@@ -44,3 +44,17 @@ interface AttachmentData {
   name: string,
   type: string
 }
+
+interface RegionData {
+  id: string,
+  name: string,
+  country: string,
+  apiRoute: string,
+  wsRoute: string,
+  voice: {
+    host: string,
+    port: number
+    secure: boolean,
+    path: string
+  }
+}

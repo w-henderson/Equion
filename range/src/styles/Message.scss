@@ -1,7 +1,7 @@
 div.Message {
   display: flex;
   flex-direction: row;
-  max-width: 80%;
+  max-width: calc(100% - 56px);
   margin-top: 16px;
 
   >img {

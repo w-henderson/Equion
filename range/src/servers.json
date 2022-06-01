@@ -1,0 +1,41 @@
+[
+  {
+    "id": "eu-west-1",
+    "name": "EU West 1",
+    "country": "gb",
+    "apiRoute": "https://equion.whenderson.dev/api/v1",
+    "wsRoute": "wss://equion.whenderson.dev/ws",
+    "voice": {
+      "host": "equion.whenderson.dev",
+      "port": 443,
+      "secure": true,
+      "path": "/voice"
+    }
+  },
+  {
+    "id": "us-east-1",
+    "name": "US East 1",
+    "country": "us",
+    "apiRoute": "https://equion-us-east-1.whenderson.dev/api/v1",
+    "wsRoute": "wss://equion-us-east-1.whenderson.dev/ws",
+    "voice": {
+      "host": "equion-us-east-1.whenderson.dev",
+      "port": 443,
+      "secure": true,
+      "path": "/voice"
+    }
+  },
+  {
+    "id": "localhost",
+    "name": "Development",
+    "country": "xx",
+    "apiRoute": "https://localhost/api/v1",
+    "wsRoute": "wss://localhost/ws",
+    "voice": {
+      "host": "localhost",
+      "port": 443,
+      "secure": true,
+      "path": "/voice"
+    }
+  }
+]

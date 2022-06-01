@@ -5,10 +5,13 @@ import logo from "../images/logo.png";
 import toast from "react-hot-toast";
 import { appWindow } from "@tauri-apps/api/window";
 
+import RegionSelector from "./RegionSelector";
 import ApiContext from "../api/ApiContext";
 
 interface AuthDialogProps {
-  authComplete: () => void
+  region: RegionData,
+  setRegion: (region: number) => void,
+  authComplete: () => void,
 }
 
 interface AuthDialogState {
@@ -19,6 +22,7 @@ interface AuthDialogState {
   displayName: string,
   email: string,
   loading: boolean,
+  regionSelectorVisible: boolean
 }
 
 /**
@@ -42,7 +46,8 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
       confirmPassword: "",
       displayName: "",
       email: "",
-      loading: false
+      loading: false,
+      regionSelectorVisible: false
     };
 
     this.login = this.login.bind(this);
@@ -112,21 +117,11 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
    * Renders the component.
    */
   render() {
-    const windowButtons = <div className="windowButtons">
-      <div className="close" onClick={() => this.context!.minimiseToTray()} />
-      <div className="minimise" onClick={() => appWindow.minimize()} />
-      <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
-    </div>;
+    let inner = <></>;
 
     if (this.state.tab === "login") {
-      return (
-        <div className="AuthDialog" data-tauri-drag-region>
-          {windowButtons}
-
-          <img src={logo} alt="Equion logo" />
-
-          <h1>Welcome to Equion</h1>
-
+      inner = (
+        <>
           <form onSubmit={this.login}>
             <input
               type="text"
@@ -150,17 +145,11 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
           <span onClick={() => { if (!this.state.loading) this.setState({ tab: "signup" }); }}>
             Create a new account
           </span>
-        </div>
+        </>
       );
     } else {
-      return (
-        <div className="AuthDialog" data-tauri-drag-region>
-          {windowButtons}
-
-          <img src={logo} alt="Equion logo" />
-
-          <h1>Welcome to Equion</h1>
-
+      inner = (
+        <>
           <form onSubmit={this.signup}>
             <input
               type="text"
@@ -208,9 +197,29 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
           <span onClick={() => { if (!this.state.loading) this.setState({ tab: "login" }); }}>
             Sign in to an existing account
           </span>
-        </div>
+        </>
       );
     }
+
+    return (
+      <div className="AuthDialog" data-tauri-drag-region>
+        <div className="windowButtons">
+          <div className="close" onClick={() => this.context!.minimiseToTray()} />
+          <div className="minimise" onClick={() => appWindow.minimize()} />
+          <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
+        </div>
+
+        <img src={logo} alt="Equion logo" />
+
+        <h1>Welcome to Equion</h1>
+
+        {inner}
+
+        <RegionSelector
+          region={this.props.region}
+          setRegion={this.props.setRegion} />
+      </div>
+    );
   }
 }
 

@@ -8,9 +8,6 @@ import Subscriber from "./Subscriber";
 import Notifier from "./Notifier";
 import Voice from "./Voice";
 
-export const API_ROUTE = process.env.REACT_APP_EQUION_API_ROUTE || "http://localhost/api/v1";
-export const WS_ROUTE = process.env.REACT_APP_EQUION_WS_ROUTE || "ws://localhost/ws";
-
 export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
 
 /**
@@ -31,6 +28,8 @@ class Api {
   notifier: Notifier;
   voice: Voice;
 
+  region: RegionData;
+
   onShow: () => void;
   onMessage: (message: MessageData, set: string, subset: string) => void;
   onSubset: (subset: SubsetData, set: string) => void;
@@ -42,7 +41,7 @@ class Api {
   /**
    * Creates the API instance and connects to the backend through WebSocket.
    */
-  constructor(ws: WebSocket, onPong: () => void) {
+  constructor(ws: WebSocket, region: RegionData, onPong: () => void) {
     this.ready = false;
     this.uid = null;
     this.token = null;
@@ -53,6 +52,8 @@ class Api {
     this.subscriber = new Subscriber(ws, onPong);
     this.voice = new Voice(this.subscriber.ws);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
+
+    this.region = region;
 
     this.onShow = () => null;
     this.onMessage = () => null;
@@ -73,7 +74,7 @@ class Api {
     this.token = await forage.getItem({ key: "token" })();
 
     if (this.token) {
-      const response = await fetch(`${API_ROUTE}/validateToken`, {
+      const response = await fetch(`${this.region.apiRoute}/validateToken`, {
         method: "POST",
         body: JSON.stringify({ token: this.token })
       }).then(res => res.json());
@@ -184,7 +185,7 @@ class Api {
    * Attempts to log in the user with the given credentials.
    */
   public login(username: string, password: string): Promise<void> {
-    return fetch(`${API_ROUTE}/login`, {
+    return fetch(`${this.region.apiRoute}/login`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
     })
@@ -204,7 +205,7 @@ class Api {
    * Attempts to register the user with the given credentials.
    */
   public signup(username: string, password: string, displayName: string, email: string): Promise<void> {
-    return fetch(`${API_ROUTE}/signup`, {
+    return fetch(`${this.region.apiRoute}/signup`, {
       method: "POST",
       body: JSON.stringify({
         username,
@@ -232,7 +233,7 @@ class Api {
   public logout(): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/logout`, {
+    return fetch(`${this.region.apiRoute}/logout`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token
@@ -257,7 +258,7 @@ class Api {
   public getSets(): Promise<SetData[]> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/sets`, {
+    return fetch(`${this.region.apiRoute}/sets`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token
@@ -279,7 +280,7 @@ class Api {
   public getSet(id: string): Promise<SetData> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/set`, {
+    return fetch(`${this.region.apiRoute}/set`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -302,7 +303,7 @@ class Api {
   public createSet(name: string, icon?: string): Promise<SetData> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/createSet`, {
+    return fetch(`${this.region.apiRoute}/createSet`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -327,7 +328,7 @@ class Api {
   public joinSet(id: string): Promise<SetData> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/joinSet`, {
+    return fetch(`${this.region.apiRoute}/joinSet`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -351,7 +352,7 @@ class Api {
   public leaveSet(id: string): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/leaveSet`, {
+    return fetch(`${this.region.apiRoute}/leaveSet`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -374,7 +375,7 @@ class Api {
   public createSubset(name: string, set: string): Promise<void> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/createSubset`, {
+    return fetch(`${this.region.apiRoute}/createSubset`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -402,7 +403,7 @@ class Api {
   public getMessages(subsetId: string, before: string | undefined = undefined, limit = 25): Promise<MessageData[]> {
     if (this.token === null) return Promise.reject("Not logged in");
 
-    return fetch(`${API_ROUTE}/messages`, {
+    return fetch(`${this.region.apiRoute}/messages`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -466,7 +467,7 @@ class Api {
       };
     }
 
-    return fetch(`${API_ROUTE}/sendMessage`, {
+    return fetch(`${this.region.apiRoute}/sendMessage`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
@@ -489,7 +490,7 @@ class Api {
    * Gets the given user's details.
    */
   public getUserByUid(uid: string): Promise<UserData> {
-    return fetch(`${API_ROUTE}/user`, {
+    return fetch(`${this.region.apiRoute}/user`, {
       method: "POST",
       body: JSON.stringify({ uid })
     })
@@ -512,7 +513,7 @@ class Api {
     const promises = [];
 
     if (displayName !== undefined || bio !== undefined) {
-      promises.push(fetch(`${API_ROUTE}/updateUser`, {
+      promises.push(fetch(`${this.region.apiRoute}/updateUser`, {
         method: "POST",
         body: JSON.stringify({
           token: this.token,
@@ -531,7 +532,7 @@ class Api {
     }
 
     if (image !== undefined) {
-      promises.push(fetch(`${API_ROUTE}/updateUserImage`, {
+      promises.push(fetch(`${this.region.apiRoute}/updateUserImage`, {
         method: "POST",
         body: image,
         headers: {
@@ -549,7 +550,7 @@ class Api {
    */
   public getFileURL(id: string | null | undefined): string {
     if (id === null || id === undefined) return DEFAULT_PROFILE_IMAGE;
-    return `${API_ROUTE}/files/${id}`;
+    return `${this.region.apiRoute}/files/${id}`;
   }
 
   /**

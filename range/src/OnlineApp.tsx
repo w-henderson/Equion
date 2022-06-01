@@ -18,6 +18,8 @@ import Members from "./components/Members";
 
 interface OnlineAppProps {
   ws: WebSocket,
+  region: RegionData,
+  setRegion: (region: number) => void,
   ping: number | null,
   onPong: () => void
 }
@@ -46,7 +48,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   constructor(props: OnlineAppProps) {
     super(props);
 
-    this.api = new Api(props.ws, props.onPong);
+    this.api = new Api(props.ws, props.region, props.onPong);
 
     this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
@@ -111,6 +113,13 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         });
       }
     });
+  }
+
+  /**
+   * Allow rerenders after changing region.
+   */
+  componentWillUnmount() {
+    RENDERED = false;
   }
 
   /**
@@ -537,7 +546,10 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
       inner = (
         <ApiContext.Provider value={this.api}>
           <div className="App">
-            <AuthDialog authComplete={this.authComplete} />
+            <AuthDialog
+              authComplete={this.authComplete}
+              region={this.props.region}
+              setRegion={this.props.setRegion} />
           </div>
         </ApiContext.Provider>
       );

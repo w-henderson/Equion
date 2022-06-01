@@ -1,0 +1,56 @@
+div.RegionSelector {
+  position: absolute;
+  bottom: 64px;
+  right: 64px;
+  opacity: 0.5;
+  transition: opacity 150ms;
+
+  img {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+
+  div.regionsList {
+    background-color: var(--accent-dark);
+    margin-bottom: 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+
+    >span {
+      text-align: right;
+      padding: 8px;
+
+      >span {
+        cursor: pointer;
+      }
+    }
+
+    div:hover {
+      background-color: var(--accent-mid);
+    }
+  }
+
+  div.region {
+    display: flex;
+    place-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+
+    span {
+      margin-left: 12px;
+    }
+  }
+
+  >div.region {
+    float: right;
+  }
+
+  &:hover,
+  &.highlight {
+    opacity: 1;
+  }
+}
