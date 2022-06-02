@@ -9,6 +9,8 @@ import * as immutable from "object-path-immutable";
 import ApiContext from "./api/ApiContext";
 import Api from "./api/Api";
 
+import { GLOBAL_STATE } from "./App";
+
 import Sets from "./components/Sets";
 import Subsets from "./components/Subsets";
 import Messages from "./components/Messages";
@@ -32,8 +34,6 @@ interface OnlineAppState {
   selectedSubset: string | null,
   shownUser: string | null
 }
-
-let RENDERED = false;
 
 /**
  * Component for the main app with internet access.
@@ -93,8 +93,8 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
    * When the app has rendered, initialize the API.
    */
   componentDidMount() {
-    if (RENDERED) return;
-    RENDERED = true;
+    if (GLOBAL_STATE.rendered) return;
+    GLOBAL_STATE.rendered = true;
 
     this.api.init().then(authenticated => {
       if (authenticated) {
@@ -113,13 +113,6 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         });
       }
     });
-  }
-
-  /**
-   * Allow rerenders after changing region.
-   */
-  componentWillUnmount() {
-    RENDERED = false;
   }
 
   /**

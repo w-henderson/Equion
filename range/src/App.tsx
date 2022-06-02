@@ -6,6 +6,10 @@ import { forage } from "@tauri-apps/tauri-forage";
 import REGIONS from "./servers.json";
 import RegionSelector from "./components/RegionSelector";
 
+export const GLOBAL_STATE = {
+  rendered: false
+};
+
 interface AppState {
   region: RegionData | null,
   ws: WebSocket | null,
@@ -79,6 +83,7 @@ class App extends React.Component<unknown, AppState> {
       this.disconnect();
       this.setState({ region: REGIONS[region] }, async () => {
         await forage.setItem({ key: "region", value: this.state.region!.id })();
+        GLOBAL_STATE.rendered = false;
         this.connect();
       });
     });
