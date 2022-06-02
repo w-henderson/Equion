@@ -25,7 +25,7 @@ interface MessageBoxState {
  */
 class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
   context!: React.ContextType<typeof ApiContext>;
-  box: React.RefObject<HTMLInputElement>;
+  box: React.RefObject<HTMLTextAreaElement>;
 
   /**
    * Initializes the component.
@@ -79,7 +79,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
   /**
    * Handles keyboard events for pinging people.
    */
-  handleButtonPress(e: React.KeyboardEvent<HTMLInputElement>) {
+  handleButtonPress(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (this.state.mentioning !== undefined) {
       if (e.key === "ArrowUp") {
         e.preventDefault();
@@ -106,6 +106,11 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
           mentions: state.mentions.slice(0, state.mentions.length - 1)
         };
       });
+    }
+
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      this.messageSend();
     }
   }
 
@@ -176,7 +181,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
    * 
    * This keeps track of the current word to enable mentioning.
    */
-  messageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  messageChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const words = e.target.value.split(" ");
     let currentPosition = e.target.selectionStart || 0;
     let currentWordIndex = 0;
@@ -208,9 +213,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
   /**
    * Sends the message.
    */
-  messageSend(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
+  messageSend() {
     const formattedMentions = this.state.mentions.map(user => "<@" + user.uid + ">").join(" ");
     const message = (formattedMentions + " " + this.state.message).trim();
     const attachment = this.state.attachment;
@@ -247,7 +250,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
           +
         </div>
 
-        <form onSubmit={this.messageSend}>
+        <form>
           <div className="mentions">
             {this.state.mentions.map(user => (
               <div className="mention" key={user.uid}>
@@ -256,17 +259,15 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
             ))}
           </div>
 
-          <input
-            type="text"
+          <textarea
             value={this.state.message}
             onChange={this.messageChange}
             onKeyDown={this.handleButtonPress}
             onSelect={this.messageChange}
             placeholder={this.state.sending ? "Sending..." : "Type a message"}
             disabled={this.state.sending}
+            style={{ height: `${this.state.message.split("\n").length * 18 + 4}px` }}
             ref={this.box} />
-
-          <input hidden type="submit" />
         </form>
 
         <div className={this.state.attachment === undefined ? "attachDialog hidden" : "attachDialog"}>

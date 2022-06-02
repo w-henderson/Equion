@@ -92,6 +92,7 @@ class Message extends React.Component<MessageProps> {
             {parsedMessage.map((el, i) =>
               <MessageSegment
                 segment={el}
+                isLastSegment={i === parsedMessage.length - 1}
                 key={i}
                 scrollCallback={this.props.scrollCallback}
                 userCallback={() => this.props.showUserCallback(el.value)} />

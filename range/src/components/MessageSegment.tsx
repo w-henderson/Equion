@@ -6,6 +6,7 @@ import { MessageSegment as MessageSegmentData, MessageSegmentType } from "../api
 
 interface MessageSegmentProps {
   segment: MessageSegmentData,
+  isLastSegment: boolean,
   scrollCallback: (override?: boolean) => void,
   userCallback: () => void
 }
@@ -83,6 +84,12 @@ class MessageSegment extends React.Component<MessageSegmentProps, MessageSegment
           \[{this.props.segment.value}\]
         </MathJax>;
 
+      case MessageSegmentType.BlockCode:
+        return <pre style={this.props.isLastSegment ? { marginBottom: 0 } : undefined}>{this.props.segment.value}</pre>;
+
+      case MessageSegmentType.InlineCode:
+        return <code>{this.props.segment.value}</code>;
+
       case MessageSegmentType.Bold:
         return <b>{this.props.segment.value}</b>;
 
@@ -103,7 +110,10 @@ class MessageSegment extends React.Component<MessageSegmentProps, MessageSegment
         }
 
       case MessageSegmentType.Link:
-        return <a href={this.props.segment.value} target="_blank" rel="noopener noreferrer">{this.props.segment.value}</a>
+        return <a href={this.props.segment.value} target="_blank" rel="noopener noreferrer">{this.props.segment.value}</a>;
+
+      case MessageSegmentType.Newline:
+        return <br />;
 
       case MessageSegmentType.Unparsed:
         throw new Error("Unparsed message segment");

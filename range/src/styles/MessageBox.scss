@@ -1,15 +1,14 @@
 div.MessageBox {
   position: relative;
   display: flex;
-  place-items: center;
-  height: 60px;
+  min-height: 60px;
   background-color: var(--dark-mid);
   border-top: 1px solid rgba(0, 0, 0, 0.5);
 
   div.attachButton {
     width: 32px;
     height: 32px;
-    margin-left: 16px;
+    margin: 14px 0 0 16px;
     display: flex;
     place-items: center;
     place-content: center;
@@ -57,7 +56,7 @@ div.MessageBox {
       }
     }
 
-    input {
+    textarea {
       flex: 1;
       background-color: transparent;
       outline: none;
@@ -65,6 +64,8 @@ div.MessageBox {
       color: white;
       font-family: Inter;
       font-size: 16px;
+      resize: none;
+      line-height: 18px;
 
       &:focus {
         outline: none;

@@ -1,24 +1,30 @@
 const SEGMENT_REGEX = {
   blockLatex: /\\\[(.*?)\\\]/g,
   inlineLatex: /\\\((.*?)\\\)/g,
+  blockCode: /^```\w*\n([\s\S]*?)^```$/gm,
+  inlineCode: /`([^`\n]+?)`/g,
   bold: /\*\*(.*?)\*\*/g,
   italic: /(?<!\*)\*(?!\*)(.*?)\*/g,
   underline: /__(.*?)__/g,
   strike: /~~(.*?)~~/g,
   ping: /<@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>/g,
   link: /(https?:\/\/[^\s]+)/,
+  newline: /(\n)/g,
 };
 
 export enum MessageSegmentType {
   Plain = "plain",
   BlockLatex = "blockLatex",
   InlineLatex = "inlineLatex",
+  BlockCode = "blockCode",
+  InlineCode = "inlineCode",
   Bold = "bold",
   Italic = "italic",
   Underline = "underline",
   Strike = "strike",
   Ping = "ping",
   Link = "link",
+  Newline = "newline",
   Unparsed = "unparsed"
 }
 
@@ -76,6 +82,7 @@ export class MessageParser {
             location = newLocation;
             regex = newRegex;
             type = newType;
+            break;
           }
         }
 
