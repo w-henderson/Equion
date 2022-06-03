@@ -350,6 +350,23 @@ Output:
 { "success": true }
 ```
 
+### `v1/typing`: Send typing notification
+Informs members of the given set that the user has started or stopped typing.
+
+Input:
+```json
+{
+  "token": "",
+  "subset": "",
+  "typing": true
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## WebSocket-only Commands
 
 ### `v1/subscribe`: Subscribe to a set
@@ -554,6 +571,17 @@ Sent when a user leaves a voice channel.
 {
   "event": "v1/userLeftVoiceChannel",
   "set": "",
+  "uid": ""
+}
+```
+
+### `v1/userTyping`: User started or stopped typing
+Sent when a user starts or stops typing.
+
+```json
+{
+  "event": "v1/userTyping",
+  "subset": "",
   "uid": ""
 }
 ```
