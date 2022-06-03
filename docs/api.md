@@ -351,14 +351,13 @@ Output:
 ```
 
 ### `v1/typing`: Send typing notification
-Informs members of the given set that the user has started or stopped typing.
+Informs members of the given set that the user has recently typed in the message box.
 
 Input:
 ```json
 {
   "token": "",
-  "subset": "",
-  "typing": true
+  "subset": ""
 }
 ```
 
@@ -575,8 +574,8 @@ Sent when a user leaves a voice channel.
 }
 ```
 
-### `v1/userTyping`: User started or stopped typing
-Sent when a user starts or stops typing.
+### `v1/userTyping`: User recently typed
+Sent when a user types in the message box.
 
 ```json
 {
