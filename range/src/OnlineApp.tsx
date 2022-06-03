@@ -264,6 +264,12 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, true);
       }
 
+      const typingIndex = (state.sets[setIndex].subsets[subsetIndex].typing ?? []).findIndex(u => u.uid === message.author.uid);
+
+      if (typingIndex !== -1) {
+        newState.del(`sets.${setIndex}.subsets.${subsetIndex}.typing.${typingIndex}`);
+      }
+
       return newState.value();
     }, () => {
       const unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
@@ -401,6 +407,8 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
    * When a user starts or stops typing, update the state.
    */
   onTypingChange(subset: string, uid: string) {
+    if (this.api.uid === uid) return;
+
     this.setState(state => {
       const newState = immutable.wrap(state);
 

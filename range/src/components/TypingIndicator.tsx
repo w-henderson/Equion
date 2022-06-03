@@ -1,4 +1,5 @@
 import React from "react";
+import ApiContext from "../api/ApiContext";
 
 interface TypingIndicatorProps {
   members: UserData[],
@@ -9,6 +10,7 @@ interface TypingIndicatorProps {
  * Component for the typing indicator.
  */
 class TypingIndicator extends React.Component<TypingIndicatorProps> {
+  context!: React.ContextType<typeof ApiContext>;
   interval: number | null = null;
 
   /**
@@ -42,11 +44,39 @@ class TypingIndicator extends React.Component<TypingIndicatorProps> {
     }
 
     return (
-      <div className="TypingIndicator">
-        {typing.map(m => m.displayName).join(", ")} is typing...
+      <div className="Message typing">
+        <img
+          src={this.context!.getFileURL(typing[0].image)}
+          alt="Profile" />
+
+        <div className="content">
+          <div className="text">
+            <div className="TypingIndicator">
+              <div className="typingDot" style={{ animationDelay: "0s" }} />
+              <div className="typingDot" style={{ animationDelay: "0.2s" }} />
+              <div className="typingDot" style={{ animationDelay: "0.4s" }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="typingNames">
+          {typing.length === 1 &&
+            <>{typing[0].displayName} is typing...</>
+          }
+
+          {typing.length === 2 &&
+            <>{typing[0].displayName} and 1 other are typing...</>
+          }
+
+          {typing.length > 2 &&
+            <>{typing[0].displayName} and {typing.length - 1} others are typing...</>
+          }
+        </div>
       </div>
     );
   }
 }
+
+TypingIndicator.contextType = ApiContext;
 
 export default TypingIndicator;
