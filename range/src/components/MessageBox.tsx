@@ -26,6 +26,7 @@ interface MessageBoxState {
 class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
   context!: React.ContextType<typeof ApiContext>;
   box: React.RefObject<HTMLTextAreaElement>;
+  lastTypingPing = 0;
 
   /**
    * Initializes the component.
@@ -182,6 +183,13 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
    * This keeps track of the current word to enable mentioning.
    */
   messageChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const timestamp = new Date().getTime();
+
+    if (timestamp - this.lastTypingPing > 1000 && e.target.value !== this.state.message) {
+      this.lastTypingPing = timestamp;
+      this.context!.setTyping(this.props.subsetId);
+    }
+
     const words = e.target.value.split(" ");
     let currentPosition = e.target.selectionStart || 0;
     let currentWordIndex = 0;

@@ -37,6 +37,7 @@ class Api {
   onLeftUser: (set: string, uid: string) => void;
   onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
   onUserLeftVoiceChannel: (set: string, uid: string) => void;
+  onUserTyping: (subset: string, uid: string) => void;
 
   /**
    * Creates the API instance and connects to the backend through WebSocket.
@@ -62,6 +63,7 @@ class Api {
     this.onLeftUser = () => null;
     this.onUserJoinedVoiceChannel = () => null;
     this.onUserLeftVoiceChannel = () => null;
+    this.onUserTyping = () => null;
   }
 
   /**
@@ -89,6 +91,7 @@ class Api {
     // Initialise the subscriber
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
+    this.subscriber.onUserTyping = this.onUserTyping;
     this.subscriber.init();
 
     this.subscriber.onUserJoinedVoiceChannel = (set: string, user: VoiceUserData) => {
@@ -543,6 +546,17 @@ class Api {
     }
 
     return Promise.all(promises).then(() => { return; });
+  }
+
+  /**
+   * Informs the server as to the current typing state.
+   */
+  public setTyping(subset: string) {
+    this.subscriber.ws.send(JSON.stringify({
+      command: "v1/typing",
+      token: this.token!,
+      subset
+    }));
   }
 
   /**

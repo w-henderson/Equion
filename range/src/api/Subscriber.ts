@@ -12,6 +12,7 @@ class Subscriber {
   onLeftUser: (set: string, uid: string) => void;
   onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
   onUserLeftVoiceChannel: (set: string, uid: string) => void;
+  onUserTyping: (subset: string, uid: string) => void;
 
   /**
    * Creates a new Subscriber instance, connecting through WebSocket to the given URL.
@@ -32,6 +33,7 @@ class Subscriber {
     this.onLeftUser = () => null;
     this.onUserJoinedVoiceChannel = () => null;
     this.onUserLeftVoiceChannel = () => null;
+    this.onUserTyping = () => null;
   }
 
   /**
@@ -103,6 +105,8 @@ class Subscriber {
       this.onUserJoinedVoiceChannel(data.set, data.user);
     } else if (data.event === "v1/userLeftVoiceChannel") {
       this.onUserLeftVoiceChannel(data.set, data.uid);
+    } else if (data.event === "v1/userTyping") {
+      this.onUserTyping(data.subset, data.uid);
     } else if (data.event === "v1/pong") {
       this.onPong();
     } else {

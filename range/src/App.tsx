@@ -81,7 +81,7 @@ class App extends React.Component<unknown, AppState> {
   setRegion(region: number) {
     this.setState({ status: "connecting" }, () => {
       this.disconnect();
-      this.setState({ region: REGIONS[region] }, async () => {
+      this.setState({ region: REGIONS[region], ws: null }, async () => {
         await forage.setItem({ key: "region", value: this.state.region!.id })();
         GLOBAL_STATE.rendered = false;
         this.connect();
@@ -93,7 +93,7 @@ class App extends React.Component<unknown, AppState> {
    * Connects to the WebSocket server.
    */
   connect() {
-    if (!this.state.region) return;
+    if (!this.state.region || this.state.ws !== null) return;
 
     const ws = new WebSocket(this.state.region.wsRoute);
 

@@ -13,7 +13,8 @@ interface SubsetData {
   name: string,
   messages?: MessageData[],
   loadedToTop?: boolean,
-  unread?: boolean
+  unread?: boolean,
+  typing?: TypingUser[],
 }
 
 interface UserData {
@@ -29,6 +30,11 @@ interface VoiceUserData {
   peerId: string,
   speaking?: boolean,
   user: UserData
+}
+
+interface TypingUser {
+  uid: string,
+  lastTyped: number
 }
 
 interface MessageData {
