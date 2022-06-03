@@ -350,6 +350,22 @@ Output:
 { "success": true }
 ```
 
+### `v1/typing`: Send typing notification
+Informs members of the given set that the user has recently typed in the message box.
+
+Input:
+```json
+{
+  "token": "",
+  "subset": ""
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## WebSocket-only Commands
 
 ### `v1/subscribe`: Subscribe to a set
@@ -554,6 +570,17 @@ Sent when a user leaves a voice channel.
 {
   "event": "v1/userLeftVoiceChannel",
   "set": "",
+  "uid": ""
+}
+```
+
+### `v1/userTyping`: User recently typed
+Sent when a user types in the message box.
+
+```json
+{
+  "event": "v1/userTyping",
+  "subset": "",
   "uid": ""
 }
 ```

@@ -15,9 +15,12 @@ div.Message {
     display: inline-block;
     margin: 0 16px 0 0;
     align-self: flex-end;
-    cursor: pointer;
 
     transition: transform 200ms, box-shadow 200ms;
+  }
+
+  &:not(.typing)>img {
+    cursor: pointer;
 
     &:hover {
       transform: translateY(-4px);
@@ -163,7 +166,34 @@ div.Message {
         padding: 2px;
         border-radius: 4px;
       }
+
+      div.TypingIndicator {
+        margin: 16px 0 4px 0;
+
+        div.typingDot {
+          display: inline-block;
+          height: 12px;
+          width: 12px;
+          margin: 4px 4px 1px 4px;
+          opacity: 0.5;
+          border-radius: 100%;
+          background-color: var(--accent-light);
+          animation-name: bounce;
+          animation-duration: 1s;
+          animation-timing-function: ease;
+          animation-iteration-count: infinite;
+          transform: translateY(6px);
+        }
+      }
     }
+  }
+
+  div.typingNames {
+    display: flex;
+    place-items: end;
+    opacity: 0.25;
+    font-weight: 200;
+    margin-left: 16px;
   }
 
   &.local {
@@ -179,5 +209,19 @@ div.Message {
       border-radius: 16px 16px 0 16px;
       background-color: var(--accent-dark);
     }
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(6px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(6px);
   }
 }

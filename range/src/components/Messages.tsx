@@ -8,6 +8,7 @@ import "../styles/UserInfo.scss";
 import Message from "./Message";
 import MessageBox from "./MessageBox";
 import Modal from "./Modal";
+import TypingIndicator from "./TypingIndicator";
 
 interface MessagesProps {
   subset: SubsetData | undefined,
@@ -169,6 +170,10 @@ class Messages extends React.Component<MessagesProps, MessagesState> {
                   }
                 }} />
             )}
+
+            <TypingIndicator
+              members={this.props.members}
+              typing={this.props.subset.typing || []} />
           </div>
 
           {!this.state.scrollLockedToBottom &&

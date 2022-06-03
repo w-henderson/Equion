@@ -41,7 +41,8 @@ declare_endpoints! {
 
     // Messages endpoints
     "v1/messages" => messages("token", "subset", (optional "before"), (numeric optional "limit")) -> "messages",
-    "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None
+    "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None,
+    "v1/typing" => set_typing("token", "subset") -> None
 }
 
 /// Represents a function able to handle requests.
@@ -85,6 +86,14 @@ pub fn get_int(json: &Value, key: &str) -> Result<u64, String> {
         .ok_or_else(|| format!("Missing {}", key))
         .and_then(|v| v.as_number().ok_or_else(|| format!("Invalid {}", key)))
         .map(|n| n as u64)
+}
+
+/// Attempts to get a boolean value at the given key from the JSON value.
+#[allow(dead_code)]
+pub fn get_bool(json: &Value, key: &str) -> Result<bool, String> {
+    deep_index(json, key)
+        .ok_or_else(|| format!("Missing {}", key))
+        .and_then(|v| v.as_bool().ok_or_else(|| format!("Invalid {}", key)))
 }
 
 /// From [https://github.com/w-henderson/JasonDB/blob/master/jasondb/src/util/indexing.rs]

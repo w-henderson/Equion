@@ -280,4 +280,35 @@ impl State {
 
         Ok(())
     }
+
+    /// Updates the user's typing status.
+    pub fn set_typing(
+        &self,
+        token: impl AsRef<str>,
+        subset: impl AsRef<str>,
+    ) -> Result<(), String> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())?;
+
+        let uid: Option<String> = conn
+            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
+            .map_err(|_| "Could not check for invalid token".to_string())?;
+
+        let set: Option<String> = conn
+            .exec_first(
+                "SELECT set_id FROM subsets WHERE id = ?",
+                (subset.as_ref(),),
+            )
+            .map_err(|_| "Could not check for invalid subset".to_string())?;
+
+        if let Some((uid, set)) = uid.and_then(|u| set.map(|s| (u, s))) {
+            self.broadcast_typing(set, subset, uid);
+
+            Ok(())
+        } else {
+            Err("Insufficient permissions or invalid subset".to_string())
+        }
+    }
 }

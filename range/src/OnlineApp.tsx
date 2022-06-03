@@ -57,6 +57,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     this.api.onLeftUser = this.onLeftUser.bind(this);
     this.api.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
     this.api.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
+    this.api.onUserTyping = this.onTypingChange.bind(this);
 
     this.api.voice.allowedToCall = this.allowedToCall.bind(this);
     this.api.voice.onSpeakingChange = this.onSpeakingChange.bind(this);
@@ -263,6 +264,12 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, true);
       }
 
+      const typingIndex = (state.sets[setIndex].subsets[subsetIndex].typing ?? []).findIndex(u => u.uid === message.author.uid);
+
+      if (typingIndex !== -1) {
+        newState.del(`sets.${setIndex}.subsets.${subsetIndex}.typing.${typingIndex}`);
+      }
+
       return newState.value();
     }, () => {
       const unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
@@ -391,6 +398,43 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
       if (memberIndex === -1) return state;
 
       newState.set(`sets.${setIndex}.voiceMembers.${memberIndex}.speaking`, speaking);
+
+      return newState.value();
+    });
+  }
+
+  /**
+   * When a user starts or stops typing, update the state.
+   */
+  onTypingChange(subset: string, uid: string) {
+    if (this.api.uid === uid) return;
+
+    this.setState(state => {
+      const newState = immutable.wrap(state);
+
+      const setIndex = state.sets.findIndex(set => set.subsets.some(s => s.id === subset));
+      if (setIndex === -1) return state;
+
+      const subsetIndex = state.sets[setIndex].subsets.findIndex(s => s.id === subset);
+      if (subsetIndex === -1) return state;
+
+      if (state.sets[setIndex].subsets[subsetIndex].typing !== undefined) {
+        const typingIndex = state.sets[setIndex].subsets[subsetIndex].typing!.findIndex(t => t.uid === uid);
+
+        if (typingIndex === -1) {
+          newState.push(`sets.${setIndex}.subsets.${subsetIndex}.typing`, {
+            uid,
+            lastTyped: new Date().getTime()
+          });
+        } else {
+          newState.set(`sets.${setIndex}.subsets.${subsetIndex}.typing.${typingIndex}.lastTyped`, new Date().getTime());
+        }
+      } else {
+        newState.set(`sets.${setIndex}.subsets.${subsetIndex}.typing`, [{
+          uid,
+          lastTyped: new Date().getTime()
+        }]);
+      }
 
       return newState.value();
     });

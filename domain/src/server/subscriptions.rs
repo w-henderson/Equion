@@ -340,4 +340,32 @@ impl State {
             }
         }
     }
+
+    /// Broadcasts the "user typing" event.
+    pub fn broadcast_typing(
+        &self,
+        set: impl AsRef<str>,
+        subset: impl AsRef<str>,
+        uid: impl AsRef<str>
+    ) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/userTyping",
+                "subset": (subset.as_ref()),
+                "uid": (uid.as_ref())
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
 }

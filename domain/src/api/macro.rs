@@ -108,6 +108,11 @@ macro_rules! endpoint_param {
         $crate::api::get_int($json, $key).ok().map(|v| v as usize)
     };
 
+    // Optional boolean parameter.
+    ($json:expr, (boolean optional $key:expr)) => {
+        $crate::api::get_bool($json, $key).ok()
+    };
+
     // Optional string parameter.
     ($json:expr, (optional $key:expr)) => {
         $crate::api::get_string($json, $key).ok()
@@ -116,6 +121,11 @@ macro_rules! endpoint_param {
     // Required numeric parameter.
     ($json:expr, (numeric $key:expr)) => {
         $crate::api::get_int($json, $key)? as usize
+    };
+
+    // Required boolean parameter.
+    ($json:expr, (boolean $key:expr)) => {
+        $crate::api::get_bool($json, $key)?
     };
 
     // Required string parameter.
