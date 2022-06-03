@@ -51,7 +51,7 @@ class Api {
     this.trayIcon = "default";
 
     this.subscriber = new Subscriber(ws, onPong);
-    this.voice = new Voice(this.subscriber.ws);
+    this.voice = new Voice(this.subscriber.ws, region);
     this.notifier = new Notifier(this.getFileURL.bind(this), this.doesMessagePingMe.bind(this));
 
     this.region = region;

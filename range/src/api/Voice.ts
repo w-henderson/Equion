@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Peer, { MediaConnection } from "peerjs";
 
-const VOICE_HOST = process.env.REACT_APP_EQUION_VOICE_HOST || "localhost";
-const VOICE_PORT = parseInt(process.env.REACT_APP_EQUION_VOICE_PORT || "80");
-const VOICE_PATH = process.env.REACT_APP_EQUION_VOICE_PATH || "/voice";
-const VOICE_SECURE: boolean = JSON.parse(process.env.REACT_APP_EQUION_VOICE_SECURE || "false");
-
 const SPEAKING_THRESHOLD = 0.005;
 
 interface Call {
@@ -51,13 +46,8 @@ class Voice {
    * 
    * Connects to the PeerJS server.
    */
-  constructor(ws: WebSocket) {
-    this.peer = new Peer({
-      host: VOICE_HOST,
-      port: VOICE_PORT,
-      path: VOICE_PATH,
-      secure: VOICE_SECURE
-    });
+  constructor(ws: WebSocket, region: RegionData) {
+    this.peer = new Peer(region.voice);
 
     this.asyncPeerId = new Promise(resolve => {
       this.peer.on("open", id => {
