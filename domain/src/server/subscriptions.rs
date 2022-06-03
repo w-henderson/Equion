@@ -346,8 +346,7 @@ impl State {
         &self,
         set: impl AsRef<str>,
         subset: impl AsRef<str>,
-        uid: impl AsRef<str>,
-        typing: bool,
+        uid: impl AsRef<str>
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
@@ -355,8 +354,7 @@ impl State {
             json!({
                 "event": "v1/userTyping",
                 "subset": (subset.as_ref()),
-                "uid": (uid.as_ref()),
-                "typing": typing
+                "uid": (uid.as_ref())
             })
             .serialize(),
         );

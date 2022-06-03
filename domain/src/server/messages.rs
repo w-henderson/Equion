@@ -286,7 +286,6 @@ impl State {
         &self,
         token: impl AsRef<str>,
         subset: impl AsRef<str>,
-        typing: bool,
     ) -> Result<(), String> {
         let mut conn = self
             .pool
@@ -305,7 +304,7 @@ impl State {
             .map_err(|_| "Could not check for invalid subset".to_string())?;
 
         if let Some((uid, set)) = uid.and_then(|u| set.map(|s| (u, s))) {
-            self.broadcast_typing(set, subset, uid, typing);
+            self.broadcast_typing(set, subset, uid);
 
             Ok(())
         } else {

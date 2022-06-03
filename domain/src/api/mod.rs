@@ -42,7 +42,7 @@ declare_endpoints! {
     // Messages endpoints
     "v1/messages" => messages("token", "subset", (optional "before"), (numeric optional "limit")) -> "messages",
     "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None,
-    "v1/typing" => set_typing("token", "subset", (boolean "typing")) -> None
+    "v1/typing" => set_typing("token", "subset") -> None
 }
 
 /// Represents a function able to handle requests.
@@ -89,6 +89,7 @@ pub fn get_int(json: &Value, key: &str) -> Result<u64, String> {
 }
 
 /// Attempts to get a boolean value at the given key from the JSON value.
+#[allow(dead_code)]
 pub fn get_bool(json: &Value, key: &str) -> Result<bool, String> {
     deep_index(json, key)
         .ok_or_else(|| format!("Missing {}", key))
