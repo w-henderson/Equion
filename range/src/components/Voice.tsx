@@ -1,17 +1,23 @@
 import React from "react";
 import ApiContext from "../api/ApiContext";
 import "../styles/Voice.scss";
+
 import VoiceMember from "./VoiceMember";
+import Screenshare from "./Screenshare";
 
 interface VoiceProps {
   id: string,
   members: VoiceUserData[]
 }
 
+interface VoiceState {
+  screenshare: MediaStream | null
+}
+
 /**
  * Component for the voice chat.
  */
-class Voice extends React.Component<VoiceProps> {
+class Voice extends React.Component<VoiceProps, VoiceState> {
   context!: React.ContextType<typeof ApiContext>;
 
   /**
@@ -19,6 +25,10 @@ class Voice extends React.Component<VoiceProps> {
    */
   constructor(props: VoiceProps) {
     super(props);
+
+    this.state = {
+      screenshare: null
+    };
 
     this.joinVoice = this.joinVoice.bind(this);
     this.leaveVoice = this.leaveVoice.bind(this);
@@ -78,6 +88,10 @@ class Voice extends React.Component<VoiceProps> {
         {this.props.members.length === 0 &&
           <span className="none">Nobody's in the voice channel yet.</span>
         }
+
+        <Screenshare
+          stream={this.state.screenshare}
+          close={() => this.setState({ screenshare: null })} />
       </div>
     );
   }
