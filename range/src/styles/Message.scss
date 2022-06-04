@@ -190,7 +190,7 @@ div.Message {
 
   div.typingNames {
     display: flex;
-    place-items: end;
+    place-items: flex-end;
     opacity: 0.25;
     font-weight: 200;
     margin-left: 16px;
