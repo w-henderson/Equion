@@ -1,9 +1,11 @@
 div.Screenshare {
-  width: 80%;
+  max-width: 80%;
+  max-height: 90%;
   padding: 0 !important;
 
   video {
-    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
     margin-bottom: -4px;
     border-radius: 8px;
   }

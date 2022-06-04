@@ -29,7 +29,8 @@ interface UserData {
 interface VoiceUserData {
   peerId: string,
   speaking?: boolean,
-  user: UserData
+  user: UserData,
+  screenshare?: MediaStream
 }
 
 interface TypingUser {

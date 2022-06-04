@@ -11,7 +11,10 @@ interface VoiceProps {
 }
 
 interface VoiceState {
-  screenshare: MediaStream | null
+  screenshare: {
+    stream: MediaStream,
+    peerId: string
+  } | null
 }
 
 /**
@@ -32,6 +35,15 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
 
     this.joinVoice = this.joinVoice.bind(this);
     this.leaveVoice = this.leaveVoice.bind(this);
+  }
+
+  /**
+   * Ensures that the stream is no longer displayed when the stream is closed.
+   */
+  componentDidUpdate() {
+    if (this.state.screenshare && !this.props.members.some(m => m.peerId === this.state.screenshare!.peerId && m.screenshare !== undefined)) {
+      this.setState({ screenshare: null });
+    }
   }
 
   /**
@@ -80,6 +92,14 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
               <VoiceMember
                 member={member}
                 inVoiceChat={inVoiceChat}
+                startScreenShareCallback={() => this.context!.voice.shareScreen()}
+                stopScreenShareCallback={() => this.context!.voice.stopSharingScreen()}
+                watchScreenShareCallback={() => this.setState({
+                  screenshare: {
+                    stream: member.screenshare!,
+                    peerId: member.peerId
+                  }
+                })}
                 key={member.peerId} />
             )}
           </div>
@@ -90,7 +110,7 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
         }
 
         <Screenshare
-          stream={this.state.screenshare}
+          stream={this.state.screenshare?.stream ?? null}
           close={() => this.setState({ screenshare: null })} />
       </div>
     );

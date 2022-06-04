@@ -11,6 +11,11 @@ interface Call {
   speaking: boolean,
 }
 
+interface Screenshare {
+  connection: MediaConnection,
+  stream: MediaStream | null,
+}
+
 interface Microphone {
   inputStream: MediaStream,
   analyser: AnalyserNode,
@@ -30,11 +35,17 @@ class Voice {
 
   currentChannel: string | null;
   microphone?: Microphone;
+  screenshare?: MediaStream;
+
   calls: Call[];
+  screenshares: Screenshare[];
+  outboundScreenshares: Screenshare[];
 
   allowedToCall: (id: string) => boolean;
 
   onSpeakingChange: (speaking: boolean, peerId: string) => void;
+  onNewScreenshare: (peerId: string, stream: MediaStream) => void;
+  onEndScreenshare: (peerId: string) => void;
 
   audioContext: AudioContext;
   analyserThread?: number;
@@ -60,9 +71,13 @@ class Voice {
 
     this.currentChannel = null;
     this.calls = [];
+    this.screenshares = [];
+    this.outboundScreenshares = [];
 
     this.allowedToCall = () => false;
     this.onSpeakingChange = () => null;
+    this.onNewScreenshare = () => null;
+    this.onEndScreenshare = () => null;
 
     this.audioContext = new AudioContext();
     this.userJoinAudio = new Audio("/audio/equion-02.ogg");
@@ -106,17 +121,48 @@ class Voice {
 
     this.peer.on("call", async call => {
       if (this.allowedToCall(call.peer)) {
-        this.calls.push({
-          connection: call,
-          stream: null,
-          analyser: null,
-          gain: null,
-          speaking: false
-        });
+        if (call.metadata.mode === "voice") {
+          this.calls.push({
+            connection: call,
+            stream: null,
+            analyser: null,
+            gain: null,
+            speaking: false
+          });
 
-        call.answer(this.microphone!.outputStream.stream);
+          call.answer(this.microphone!.outputStream.stream);
 
-        call.on("stream", remoteStream => this.initStream(remoteStream, call.peer));
+          call.on("stream", remoteStream => this.initStream(remoteStream, call.peer));
+
+          // If screensharing, share with new peer
+          if (this.screenshare) {
+            const screenshare = this.peer.call(call.peer, this.screenshare, {
+              metadata: {
+                mode: "screenshare"
+              }
+            });
+
+            this.outboundScreenshares.push({
+              connection: screenshare,
+              stream: null,
+            });
+          }
+        } else if (call.metadata.mode === "screenshare") {
+          this.screenshares.push({
+            connection: call,
+            stream: null
+          });
+
+          call.answer();
+
+          call.on("stream", remoteStream => this.initScreenshareStream(remoteStream, call.peer));
+          call.on("close", () => this.onEndScreenshare(call.peer));
+          call.on("iceStateChanged", state => {
+            if (state === "closed" || state === "failed" || state === "disconnected") {
+              this.onEndScreenshare(call.peer);
+            }
+          });
+        }
       } else {
         console.warn("Someone tried to join your voice chat without permission.");
       }
@@ -131,6 +177,13 @@ class Voice {
    */
   async getAudioStream() {
     return await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  }
+
+  /**
+   * Gets the screenshare stream from the display.
+   */
+  async getScreenshareStream() {
+    return await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
   }
 
   /**
@@ -157,6 +210,20 @@ class Voice {
 
       mediaStreamSource.connect(this.calls[callIndex].gain!);
       this.calls[callIndex].gain!.connect(this.audioContext.destination);
+    }
+  }
+
+  /**
+   * Initialises a screenshare stream.
+   * 
+   * This is called whenever a new screenshare is received from a peer.
+   */
+  public initScreenshareStream(stream: MediaStream, peerId: string) {
+    const screenshareIndex = this.screenshares.findIndex(c => c.connection.peer === peerId);
+
+    if (screenshareIndex !== -1) {
+      this.screenshares[screenshareIndex].stream = stream;
+      this.onNewScreenshare(peerId, stream);
     }
   }
 
@@ -266,7 +333,12 @@ class Voice {
    */
   public async connectToPeers(peers: string[]) {
     for (const peer of peers) {
-      const call = this.peer.call(peer, this.microphone!.outputStream.stream);
+      const call = this.peer.call(peer, this.microphone!.outputStream.stream, {
+        metadata: {
+          mode: "voice"
+        }
+      });
+
       this.calls.push({
         connection: call,
         stream: null,
@@ -287,7 +359,17 @@ class Voice {
       call.connection.close();
     }
 
+    for (const screenshare of this.screenshares) {
+      screenshare.connection.close();
+    }
+
+    for (const outboundScreenshare of this.outboundScreenshares) {
+      outboundScreenshare.connection.close();
+    }
+
     this.calls = [];
+    this.screenshares = [];
+    this.outboundScreenshares = [];
   }
 
   /**
@@ -299,6 +381,67 @@ class Voice {
     if (callIndex !== -1) {
       this.calls[callIndex].connection.close();
       this.calls.splice(callIndex, 1);
+    }
+
+    const screenshareIndex = this.screenshares.findIndex(c => c.connection.peer === peerId);
+
+    if (screenshareIndex !== -1) {
+      this.screenshares[screenshareIndex].connection.close();
+      this.screenshares.splice(screenshareIndex, 1);
+    }
+
+    const outboundScreenshareIndex = this.outboundScreenshares.findIndex(c => c.connection.peer === peerId);
+
+    if (outboundScreenshareIndex !== -1) {
+      this.outboundScreenshares[outboundScreenshareIndex].connection.close();
+      this.outboundScreenshares.splice(outboundScreenshareIndex, 1);
+    }
+  }
+
+  /**
+   * Starts sharing the screen with every connected peer.
+   */
+  public async shareScreen() {
+    const stream = await this.getScreenshareStream();
+
+    stream.getVideoTracks()[0].onended = this.stopSharingScreen.bind(this);
+
+    this.screenshare = stream;
+
+    this.onNewScreenshare(this.peerId!, stream);
+
+    for (const call of this.calls) {
+      const peer = call.connection.peer;
+
+      const screenshare = this.peer.call(peer, this.screenshare, {
+        metadata: {
+          mode: "screenshare"
+        }
+      });
+
+      this.outboundScreenshares.push({
+        connection: screenshare,
+        stream: null,
+      });
+    }
+  }
+
+  /**
+   * Stops sharing the screen.
+   */
+  public async stopSharingScreen() {
+    if (this.screenshare) {
+      for (const track of this.screenshare!.getTracks()) {
+        track.stop();
+      }
+
+      this.screenshare = undefined;
+    }
+
+    this.onEndScreenshare(this.peerId!);
+
+    for (const screenshare of this.outboundScreenshares) {
+      screenshare.connection.close();
     }
   }
 
