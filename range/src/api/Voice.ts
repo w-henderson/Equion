@@ -384,6 +384,14 @@ class Voice {
       outboundScreenshare.connection.close();
     }
 
+    if (this.screenshare) {
+      for (const track of this.screenshare!.getTracks()) {
+        track.stop();
+      }
+
+      this.screenshare = undefined;
+    }
+
     this.calls = [];
     this.screenshares = [];
     this.outboundScreenshares = [];
