@@ -51,6 +51,8 @@ class Voice {
   analyserThread?: number;
   userJoinAudio: HTMLAudioElement;
   userLeaveAudio: HTMLAudioElement;
+  userStartScreenshareAudio: HTMLAudioElement;
+  userEndScreenshareAudio: HTMLAudioElement;
 
   /**
    * Creates a new voice chat instance.
@@ -80,10 +82,16 @@ class Voice {
     this.onEndScreenshare = () => null;
 
     this.audioContext = new AudioContext();
+
     this.userJoinAudio = new Audio("/audio/equion-02.ogg");
     this.userLeaveAudio = new Audio("/audio/equion-03.ogg");
+    this.userStartScreenshareAudio = new Audio("/audio/equion-04.ogg");
+    this.userEndScreenshareAudio = new Audio("/audio/equion-05.ogg");
+
     this.userJoinAudio.load();
     this.userLeaveAudio.load();
+    this.userStartScreenshareAudio.load();
+    this.userEndScreenshareAudio.load();
   }
 
   /**
@@ -138,7 +146,8 @@ class Voice {
           if (this.screenshare) {
             const screenshare = this.peer.call(call.peer, this.screenshare, {
               metadata: {
-                mode: "screenshare"
+                mode: "screenshare",
+                initial: false
               }
             });
 
@@ -155,11 +164,14 @@ class Voice {
 
           call.answer();
 
-          call.on("stream", remoteStream => this.initScreenshareStream(remoteStream, call.peer));
+          call.on("stream", remoteStream => this.initScreenshareStream(remoteStream, call.peer, call.metadata.initial));
           call.on("close", () => this.onEndScreenshare(call.peer));
           call.on("iceStateChanged", state => {
             if (state === "closed" || state === "failed" || state === "disconnected") {
               this.onEndScreenshare(call.peer);
+
+              this.userEndScreenshareAudio.load();
+              this.userEndScreenshareAudio.play();
             }
           });
         }
@@ -218,12 +230,17 @@ class Voice {
    * 
    * This is called whenever a new screenshare is received from a peer.
    */
-  public initScreenshareStream(stream: MediaStream, peerId: string) {
+  public initScreenshareStream(stream: MediaStream, peerId: string, playSound: boolean) {
     const screenshareIndex = this.screenshares.findIndex(c => c.connection.peer === peerId);
 
     if (screenshareIndex !== -1) {
       this.screenshares[screenshareIndex].stream = stream;
       this.onNewScreenshare(peerId, stream);
+
+      if (playSound) {
+        this.userStartScreenshareAudio.load();
+        this.userStartScreenshareAudio.play();
+      }
     }
   }
 
@@ -410,12 +427,16 @@ class Voice {
 
     this.onNewScreenshare(this.peerId!, stream);
 
+    this.userStartScreenshareAudio.load();
+    this.userStartScreenshareAudio.play();
+
     for (const call of this.calls) {
       const peer = call.connection.peer;
 
       const screenshare = this.peer.call(peer, this.screenshare, {
         metadata: {
-          mode: "screenshare"
+          mode: "screenshare",
+          initial: true
         }
       });
 
