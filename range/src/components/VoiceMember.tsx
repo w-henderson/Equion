@@ -97,7 +97,7 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
 
     return (
       <div
-        className={this.props.member.speaking === true ? "member speaking" : "member"}
+        className={this.props.member.speaking === true && this.props.inVoiceChat ? "member speaking" : "member"}
         ref={this.wrapperRef}
         onClick={() => {
           if (!this.state.optionsVisible && this.props.inVoiceChat) {
@@ -106,7 +106,14 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
         }}>
 
         <img src={this.context!.getFileURL(this.props.member.user.image)} alt="User" />
-        <h2>{this.props.member.user.displayName}</h2>
+        <h2>{this.props.member.user.displayName} long name</h2>
+
+        {this.props.member.screenshare !== undefined &&
+          <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 3.6V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V3.6C3 3.26863 3.26863 3 3.6 3H20.4C20.7314 3 21 3.26863 21 3.6Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9.89768 8.51296C9.49769 8.28439 9 8.57321 9 9.03391V14.9661C9 15.4268 9.49769 15.7156 9.89768 15.487L15.0883 12.5209C15.4914 12.2906 15.4914 11.7094 15.0883 11.4791L9.89768 8.51296Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        }
 
         {this.state.optionsVisible &&
           <div

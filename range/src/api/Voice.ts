@@ -461,6 +461,9 @@ class Voice {
 
     this.onEndScreenshare(this.peerId!);
 
+    this.userEndScreenshareAudio.load();
+    this.userEndScreenshareAudio.play();
+
     for (const screenshare of this.outboundScreenshares) {
       screenshare.connection.close();
     }
