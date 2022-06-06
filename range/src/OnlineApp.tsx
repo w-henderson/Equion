@@ -61,6 +61,8 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
 
     this.api.voice.allowedToCall = this.allowedToCall.bind(this);
     this.api.voice.onSpeakingChange = this.onSpeakingChange.bind(this);
+    this.api.voice.onNewScreenshare = this.onNewScreenshare.bind(this);
+    this.api.voice.onEndScreenshare = this.onEndScreenshare.bind(this);
 
     this.state = {
       init: false,
@@ -88,6 +90,8 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     this.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
     this.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
     this.onSpeakingChange = this.onSpeakingChange.bind(this);
+    this.onNewScreenshare = this.onNewScreenshare.bind(this);
+    this.onEndScreenshare = this.onEndScreenshare.bind(this);
   }
 
   /**
@@ -379,6 +383,44 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
       const voiceMembers = state.sets[setIndex].voiceMembers.filter(m => m.user.uid !== uid);
 
       newState.set(`sets.${setIndex}.voiceMembers`, voiceMembers);
+
+      return newState.value();
+    });
+  }
+
+  /**
+   * Updates the state with a new screenshare.
+   */
+  onNewScreenshare(peerId: string, stream: MediaStream) {
+    this.setState(state => {
+      const newState = immutable.wrap(state);
+
+      const setIndex = state.sets.findIndex(s => s.voiceMembers.some(m => m.peerId === peerId));
+      if (setIndex === -1) return state;
+
+      const memberIndex = state.sets[setIndex].voiceMembers.findIndex(m => m.peerId === peerId);
+      if (memberIndex === -1) return state;
+
+      newState.set(`sets.${setIndex}.voiceMembers.${memberIndex}.screenshare`, stream);
+
+      return newState.value();
+    });
+  }
+
+  /**
+   * Removes an ended screenshare.
+   */
+  onEndScreenshare(peerId: string) {
+    this.setState(state => {
+      const newState = immutable.wrap(state);
+
+      const setIndex = state.sets.findIndex(s => s.voiceMembers.some(m => m.peerId === peerId));
+      if (setIndex === -1) return state;
+
+      const memberIndex = state.sets[setIndex].voiceMembers.findIndex(m => m.peerId === peerId);
+      if (memberIndex === -1) return state;
+
+      newState.set(`sets.${setIndex}.voiceMembers.${memberIndex}.screenshare`, undefined);
 
       return newState.value();
     });
