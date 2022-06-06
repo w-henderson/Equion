@@ -22,7 +22,9 @@ class Subset extends React.Component<SubsetProps> {
 
     return (
       <div className={className} onClick={this.props.onClick}>
-        {this.props.name}
+        <h2>
+          {this.props.name}
+        </h2>
       </div>
     );
   }

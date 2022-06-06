@@ -10,6 +10,16 @@ div.Subset {
 
   transition: opacity 100ms, background-color 100ms;
 
+  h2 {
+    font-size: 16px;
+    font-weight: 400;
+    margin: 0;
+
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
   &.unread {
     position: relative;
     opacity: 1;
