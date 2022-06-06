@@ -1,0 +1,33 @@
+{
+  "name": "equion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "equion",
+  "author": "William Henderson",
+  "keywords": [
+    "gatsby"
+  ],
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "gatsby": "^4.15.2",
+    "gatsby-plugin-react-helmet": "^5.15.0",
+    "gatsby-plugin-sass": "^5.15.1",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-helmet": "^6.1.0",
+    "sass": "^1.52.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.5",
+    "typescript": "^4.7.2"
+  }
+}
