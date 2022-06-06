@@ -6,7 +6,7 @@ import ApiContext from "../api/ApiContext";
 import { DEFAULT_PROFILE_IMAGE } from "../api/Api";
 
 import Modal from "./Modal";
-import { EditButton, LogOutButton } from "./Svg";
+import { EditButton, LogOutButton, SaveButton } from "./Svg";
 
 interface UserInfoProps {
   id: string | null,
@@ -219,7 +219,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
           className="UserInfo editing">
 
           <div className="editButton" onClick={this.save}>
-            <EditButton />
+            <SaveButton />
           </div>
 
           <div className="image online">
