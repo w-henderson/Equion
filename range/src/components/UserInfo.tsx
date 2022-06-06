@@ -180,7 +180,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
 
           {this.state.data !== null &&
             <>
-              <div className={this.state.data.online ? "image online" : "image"}>
+              <div className={this.state.data.online || this.state.data.uid === this.context?.getUid() ? "image online" : "image"}>
                 <img src={this.context!.getFileURL(this.state.data.image)} alt="Profile" />
               </div>
 
