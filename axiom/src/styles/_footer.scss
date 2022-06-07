@@ -1,0 +1,40 @@
+footer {
+  width: 100%;
+  padding: 64px max(calc(50% - 600px), 64px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: $dark;
+  box-sizing: border-box;
+
+  div.citations {
+    opacity: 0.5;
+    font-weight: 200;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  hr {
+    margin: 64px 0;
+    border-style: outset;
+    border: 1px solid #444;
+  }
+
+  div.bottom {
+    display: flex;
+    flex-wrap: wrap;
+    place-items: center;
+    gap: 20px;
+
+    h2 {
+      margin: 0;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    img {
+      width: 36px;
+      height: 36px;
+    }
+  }
+}

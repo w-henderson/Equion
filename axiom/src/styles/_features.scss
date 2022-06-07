@@ -1,0 +1,57 @@
+div.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+
+  width: 100%;
+  margin: 4rem 0 8rem 0;
+
+  >div {
+    flex: 1;
+    background-color: $darkest;
+    border-radius: 16px;
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.2);
+    padding: 48px;
+    min-width: 250px;
+
+    display: flex;
+    flex-direction: column;
+    place-items: center;
+    text-align: center;
+
+    div {
+      background-color: $mid;
+      padding: 16px;
+      border-radius: 8px;
+
+      svg {
+        display: block;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    span {
+      font-size: 1.2rem;
+    }
+
+    transition: transform 200ms,
+    box-shadow 200ms;
+
+    &:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 64px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  div.features>div {
+    min-width: unset;
+  }
+}
