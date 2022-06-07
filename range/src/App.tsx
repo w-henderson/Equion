@@ -185,7 +185,7 @@ class App extends React.Component<unknown, AppState> {
 
           <div>
             <button onClick={this.reconnect}>Reconnect</button>
-            <button onClick={() => open(this.state.region!.apiRoute.replace("/api/v1", ""))}>Status Page</button>
+            <button onClick={() => open(this.state.region!.apiRoute.replace("/api/v1", "/status"))}>Status Page</button>
           </div>
 
           <RegionSelector
