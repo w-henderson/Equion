@@ -8,6 +8,23 @@ import screenshot from "../images/screenshot.png";
 import { DownloadIcon, LaTeXIcon, VoiceIcon, SpeedIcon } from "./svg";
 
 class Index extends React.Component {
+  featuresRef: React.RefObject<HTMLDivElement>;
+  downloadRef: React.RefObject<HTMLDivElement>;
+
+  constructor(props: {}) {
+    super(props);
+
+    this.featuresRef = React.createRef();
+    this.downloadRef = React.createRef();
+  }
+
+  componentDidMount() {
+    switch (window.location.hash) {
+      case "#features": return this.featuresRef.current!.scrollIntoView();
+      case "#download": return this.downloadRef.current!.scrollIntoView();
+    }
+  }
+
   render() {
     return (
       <main>
@@ -24,8 +41,8 @@ class Index extends React.Component {
           </div>
 
           <ul>
-            <li><a href="#">Features</a></li>
-            <li><a href="#">Download</a></li>
+            <li><a href="#features" onClick={() => this.featuresRef.current!.scrollIntoView({ behavior: "smooth" })}>Features</a></li>
+            <li><a href="#download" onClick={() => this.downloadRef.current!.scrollIntoView({ behavior: "smooth" })}>Download</a></li>
           </ul>
         </nav>
 
@@ -38,7 +55,7 @@ class Index extends React.Component {
           <span>Integrate Together.</span>
 
           <div className="bigButtons">
-            <a href="#">
+            <a href="/download/windows">
               <DownloadIcon />
               <span>Download for Windows</span>
             </a>
@@ -52,7 +69,7 @@ class Index extends React.Component {
           <img src={screenshot} alt="Equion screenshot" />
         </section>
 
-        <section>
+        <section ref={this.featuresRef}>
           <div className="title">
             <h2>Features</h2>
             <span>An intuitive chat platform for work and play.</span>
@@ -92,14 +109,14 @@ class Index extends React.Component {
           </div>
         </section>
 
-        <section>
+        <section ref={this.downloadRef}>
           <div className="title">
             <h2>Download</h2>
             <span>Start integrating today for free.</span>
           </div>
 
           <div className="bigButtons">
-            <a href="#">
+            <a href="/download/windows">
               <DownloadIcon />
               <span>Download for Windows</span>
             </a>
