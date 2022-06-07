@@ -1,7 +1,6 @@
 services:
 
   server:
-    build: ./domain
     image: whenderson/equion_server
     restart: always
     expose:
@@ -30,14 +29,12 @@ services:
     command: [ "--port", "9000", "--path", "/", "--proxied" ]
 
   web:
-    build: ./axiom
     image: whenderson/equion_web
     command: [ "/var/www/html" ]
     volumes:
       - website:/var/www/html
 
   download_manager:
-    build: ./matrix
     image: whenderson/equion_download_manager
     restart: always
     expose:
@@ -58,8 +55,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./cert:/cert
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf
       - website:/var/www/html
 
 volumes:
