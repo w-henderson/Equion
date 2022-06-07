@@ -47,3 +47,18 @@ export function SpeedIcon() {
     </svg>
   );
 }
+
+export default function SvgIcon(props: { name: string }) {
+  switch (props.name) {
+    case "download":
+      return <DownloadIcon />;
+    case "latex":
+      return <LaTeXIcon />;
+    case "voice":
+      return <VoiceIcon />;
+    case "speed":
+      return <SpeedIcon />;
+    default:
+      return null;
+  }
+}
