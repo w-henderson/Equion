@@ -16,21 +16,33 @@ use std::collections::HashMap;
 use std::env::var;
 use std::sync::{Arc, Mutex};
 
+/// The app's internal state.
 struct State {
+    /// The Humphrey HTTP client.
     client: Mutex<Client>,
+    /// The latest cached release.
     cached_release: Mutex<Option<Release>>,
+    /// The GitHub username.
     user: String,
+    /// The GitHub repository name.
     repo: String,
+    /// The GitHub API token.
     token: String,
 }
 
+/// A cached release.
 struct Release {
+    /// The tag of the release, e.g. `v1.0.0`.
     tag: String,
+    /// The assets for different platforms.
     platforms: HashMap<Platform, Asset>,
 }
 
+/// A cached asset as part of a release.
 struct Asset {
+    /// The filename of the asset.
     filename: String,
+    /// The downloadable content of the asset.
     download: Vec<u8>,
 }
 
@@ -52,6 +64,7 @@ fn main() {
     app.run("0.0.0.0:80").unwrap();
 }
 
+/// Handles requests to the download routes.
 fn download(request: Request, state: Arc<State>) -> Response {
     error_context(move || {
         let platform = match request.uri.strip_prefix('/').unwrap() {
@@ -109,6 +122,7 @@ fn download(request: Request, state: Arc<State>) -> Response {
     })
 }
 
+/// Serves a cached release to the user.
 fn serve_release(release: &Release, platform: &Platform) -> Result<Response, String> {
     let asset = release
         .platforms
@@ -124,6 +138,7 @@ fn serve_release(release: &Release, platform: &Platform) -> Result<Response, Str
         ))
 }
 
+/// Retrieves and caches a release from the GitHub API.
 fn retrieve_release(fetched_release: &GitHubRelease, state: Arc<State>) -> Result<Release, String> {
     let mut platforms = HashMap::new();
 
@@ -166,6 +181,7 @@ fn retrieve_release(fetched_release: &GitHubRelease, state: Arc<State>) -> Resul
     })
 }
 
+/// Converts errors into responses.
 fn error_context<F>(f: F) -> Response
 where
     F: Fn() -> Result<Response, String>,

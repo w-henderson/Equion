@@ -1,13 +1,20 @@
+//! Handles platform-specific logic.
+
 use std::fmt::Display;
 
+/// Represents a platform.
 #[derive(PartialEq, Eq, Hash)]
 pub enum Platform {
+    /// The Windows platform.
     Windows,
+    /// The Linux platform.
     Linux,
+    /// The MacOS platform.
     MacOS,
 }
 
 impl Platform {
+    /// Checks whether the filename corresponds to an asset for the given platform.
     pub fn does_filename_match(&self, filename: &str) -> bool {
         match self {
             Platform::Windows => {
