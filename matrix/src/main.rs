@@ -1,8 +1,16 @@
+//! Simple caching release manager.
+
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
+mod platform;
+mod schema;
+use platform::*;
+use schema::*;
+
 use humphrey::http::headers::HeaderType;
 use humphrey::http::{Request, Response, StatusCode};
 use humphrey::{App, Client};
-
-use humphrey_json::Value;
 
 use std::collections::HashMap;
 use std::env::var;
@@ -10,23 +18,20 @@ use std::sync::{Arc, Mutex};
 
 struct State {
     client: Mutex<Client>,
-    latest_releases: Mutex<HashMap<Platform, Release>>,
+    cached_release: Mutex<Option<Release>>,
     user: String,
     repo: String,
     token: String,
 }
 
-enum Platform {
-    Windows,
-    Linux,
-    MacOS,
-}
-
 struct Release {
     tag: String,
-    timestamp: String,
-    download: Vec<u8>,
+    platforms: HashMap<Platform, Asset>,
+}
+
+struct Asset {
     filename: String,
+    download: Vec<u8>,
 }
 
 fn main() {
@@ -36,13 +41,15 @@ fn main() {
 
     let state = State {
         client: Mutex::new(Client::new()),
-        latest_releases: Mutex::new(HashMap::with_capacity(3)),
+        cached_release: Mutex::new(None),
         user,
         repo,
         token,
     };
 
     let app: App<State> = App::new_with_config(32, state).with_route("/*", download);
+
+    app.run("0.0.0.0:80").unwrap();
 }
 
 fn download(request: Request, state: Arc<State>) -> Response {
@@ -54,32 +61,108 @@ fn download(request: Request, state: Arc<State>) -> Response {
             _ => return Err("Invalid platform".into()),
         };
 
-        let api_response: Value = {
+        let api_response: Vec<GitHubRelease> = {
             let mut client = state.client.lock().unwrap();
 
             let auth = format!(
                 "Basic {}",
-                base64::encode(format!("{}:{}", state.user, state.repo))
+                base64::encode(format!("{}:{}", state.user, state.token))
             );
 
-            let response = String::from_utf8(
-                client
-                    .get(format!(
-                        "https://api.github.com/repos/{}/{}/releases",
-                        state.user, state.repo
-                    ))
-                    .map_err(|_| "Failed to access GitHub API".to_string())?
-                    .with_header(HeaderType::Authorization, auth)
-                    .send()
-                    .map_err(|_| "Failed to access GitHub API".to_string())?
-                    .body,
-            )
-            .map_err(|_| "Failed to read GitHub API response")?;
+            let response = client
+                .get(format!(
+                    "https://api.github.com/repos/{}/{}/releases",
+                    state.user, state.repo
+                ))
+                .map_err(|_| "Failed to access GitHub API".to_string())?
+                .with_header(HeaderType::Authorization, auth)
+                .with_header(HeaderType::Accept, "application/vnd.github.v3+json")
+                .with_header(HeaderType::UserAgent, "equion/matrix")
+                .send()
+                .map_err(|_| "Failed to access GitHub API".to_string())?;
 
-            humphrey_json::from_str(&response).map_err(|_| "Failed to parse JSON")?
+            let response = String::from_utf8(response.body)
+                .map_err(|_| "Failed to read GitHub API response")?;
+
+            humphrey_json::from_str(&response)
+                .map_err(|e| format!("Failed to parse JSON: {}", e))?
         };
 
-        Err("Not implemented".into())
+        let mut cached_release = state.cached_release.lock().unwrap();
+        let fetched_release = api_response.iter().max_by_key(|r| r.published_at.clone());
+
+        if let Some(fetched_release) = fetched_release {
+            if let Some(cached_release) = cached_release.as_mut() {
+                if cached_release.tag != fetched_release.tag_name {
+                    *cached_release = retrieve_release(fetched_release, state.clone())?;
+                }
+            } else {
+                *cached_release = Some(retrieve_release(fetched_release, state.clone())?);
+            }
+
+            serve_release(cached_release.as_ref().unwrap(), &platform)
+        } else {
+            *cached_release = None;
+
+            Err("No releases found".into())
+        }
+    })
+}
+
+fn serve_release(release: &Release, platform: &Platform) -> Result<Response, String> {
+    let asset = release
+        .platforms
+        .get(platform)
+        .ok_or_else(|| format!("No release for {}", platform))?;
+
+    Ok(Response::empty(StatusCode::OK)
+        .with_bytes(asset.download.clone())
+        .with_header(HeaderType::ContentType, "application/octet-stream")
+        .with_header(
+            HeaderType::ContentDisposition,
+            format!("attachment; filename={}", asset.filename),
+        ))
+}
+
+fn retrieve_release(fetched_release: &GitHubRelease, state: Arc<State>) -> Result<Release, String> {
+    let mut platforms = HashMap::new();
+
+    'platform: for platform in [Platform::Windows, Platform::Linux, Platform::MacOS] {
+        for asset in &fetched_release.assets {
+            if platform.does_filename_match(&asset.name) {
+                let mut client = state.client.lock().unwrap();
+
+                let auth = format!(
+                    "Basic {}",
+                    base64::encode(format!("{}:{}", state.user, state.token))
+                );
+
+                let response = client
+                    .get(&asset.url)
+                    .map_err(|_| "Failed to access GitHub API".to_string())?
+                    .with_redirects(true)
+                    .with_header(HeaderType::Authorization, auth)
+                    .with_header(HeaderType::Accept, "application/octet-stream")
+                    .with_header(HeaderType::UserAgent, "equion/matrix")
+                    .send()
+                    .map_err(|_| "Failed to access GitHub API".to_string())?;
+
+                platforms.insert(
+                    platform,
+                    Asset {
+                        filename: asset.name.clone(),
+                        download: response.body,
+                    },
+                );
+
+                continue 'platform;
+            }
+        }
+    }
+
+    Ok(Release {
+        tag: fetched_release.tag_name.clone(),
+        platforms,
     })
 }
 
