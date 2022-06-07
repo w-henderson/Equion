@@ -32,7 +32,7 @@ services:
   web:
     build: ./axiom
     image: whenderson/equion_web
-    command: [ "/var/www/html" ]
+    entrypoint: sh -c "cp -R /app/public/* /var/www/html"
     volumes:
       - website:/var/www/html
 
