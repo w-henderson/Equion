@@ -27,6 +27,30 @@ impl State {
         display_name: impl AsRef<str>,
         email: impl AsRef<str>,
     ) -> Result<AuthResponse, String> {
+        let valid_username = username
+            .as_ref()
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-');
+
+        if username.as_ref().len() < 3 {
+            return Err("Username must be at least 3 characters long.".to_string());
+        }
+
+        if !valid_username {
+            return Err(
+                "Username can only contain ASCII letters, numbers, underscores and hyphens."
+                    .to_string(),
+            );
+        }
+
+        if password.as_ref().len() < 6 {
+            return Err("Password must be at least 6 characters long.".to_string());
+        }
+
+        if display_name.as_ref().trim().is_empty() {
+            return Err("You must enter a display name.".to_string());
+        }
+
         let mut conn = self
             .pool
             .get_conn()
