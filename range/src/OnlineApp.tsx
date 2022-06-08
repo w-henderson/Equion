@@ -8,6 +8,7 @@ import * as immutable from "object-path-immutable";
 
 import ApiContext from "./api/ApiContext";
 import Api from "./api/Api";
+import { SetEvent, SubsetEvent } from "./api/Subscriber";
 
 import { GLOBAL_STATE } from "./App";
 
@@ -53,11 +54,9 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
     this.api.onSubset = this.onSubset.bind(this);
-    this.api.onUpdateUser = this.onUpdateUser.bind(this);
-    this.api.onLeftUser = this.onLeftUser.bind(this);
-    this.api.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
-    this.api.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
-    this.api.onUserTyping = this.onTypingChange.bind(this);
+    this.api.onUser = this.onUser.bind(this);
+    this.api.onVoice = this.onVoice.bind(this);
+    this.api.onTyping = this.onTyping.bind(this);
 
     this.api.voice.allowedToCall = this.allowedToCall.bind(this);
     this.api.voice.onSpeakingChange = this.onSpeakingChange.bind(this);
@@ -75,23 +74,14 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
 
     this.sets = React.createRef();
 
-    this.allowedToCall = this.allowedToCall.bind(this);
     this.showUser = this.showUser.bind(this);
     this.refresh = this.refresh.bind(this);
-    this.onShow = this.onShow.bind(this);
-    this.onMessage = this.onMessage.bind(this);
-    this.onSubset = this.onSubset.bind(this);
     this.selectSet = this.selectSet.bind(this);
     this.selectSubset = this.selectSubset.bind(this);
     this.authComplete = this.authComplete.bind(this);
     this.createdSet = this.createdSet.bind(this);
     this.leaveSet = this.leaveSet.bind(this);
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
-    this.onUserJoinedVoiceChannel = this.onUserJoinedVoiceChannel.bind(this);
-    this.onUserLeftVoiceChannel = this.onUserLeftVoiceChannel.bind(this);
-    this.onSpeakingChange = this.onSpeakingChange.bind(this);
-    this.onNewScreenshare = this.onNewScreenshare.bind(this);
-    this.onEndScreenshare = this.onEndScreenshare.bind(this);
   }
 
   /**
@@ -245,30 +235,41 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   }
 
   /**
-   * When a message is received, display it or store it.
+   * When a message is received, edited or deleted, display it or store it.
    */
-  onMessage(message: MessageData, set: string, subset: string) {
-    const setIndex = this.state.sets.findIndex(s => s.id === set);
-    const subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === subset);
+  onMessage(e: SubsetEvent<MessageData>) {
+    const setIndex = this.state.sets.findIndex(s => s.id === e.set);
+    const subsetIndex = this.state.sets[setIndex].subsets.findIndex(s => s.id === e.subset);
+    const messageIndex = (this.state.sets[setIndex].subsets[subsetIndex].messages ?? []).findIndex(m => m.id === e.value.id);
 
-    if (this.state.selectedSubset !== subset || this.api.minimisedToTray) {
-      this.api.notifier.notify(message);
+    if ((this.state.selectedSubset !== e.subset || this.api.minimisedToTray) && messageIndex === -1) {
+      this.api.notifier.notify(e.value);
     }
 
     this.setState(state => {
       const newState = immutable.wrap(state);
 
       if (state.sets[setIndex].subsets[subsetIndex].messages === undefined) {
-        newState.set(`sets.${setIndex}.subsets.${subsetIndex}.messages`, [message]);
+        if (e.deleted) return state;
+
+        newState.set(`sets.${setIndex}.subsets.${subsetIndex}.messages`, [e.value]);
       } else {
-        newState.push(`sets.${setIndex}.subsets.${subsetIndex}.messages`, message);
+        if (e.deleted) {
+          newState.del(`sets.${setIndex}.subsets.${subsetIndex}.messages.${messageIndex}`);
+        } else {
+          if (messageIndex === -1) {
+            newState.push(`sets.${setIndex}.subsets.${subsetIndex}.messages`, e.value);
+          } else {
+            newState.set(`sets.${setIndex}.subsets.${subsetIndex}.messages.${messageIndex}`, e.value);
+          }
+        }
       }
 
-      if (this.state.selectedSubset !== subset || this.api.minimisedToTray) {
+      if ((this.state.selectedSubset !== e.subset || this.api.minimisedToTray) && messageIndex === -1) {
         newState.set(`sets.${setIndex}.subsets.${subsetIndex}.unread`, true);
       }
 
-      const typingIndex = (state.sets[setIndex].subsets[subsetIndex].typing ?? []).findIndex(u => u.uid === message.author.uid);
+      const typingIndex = (state.sets[setIndex].subsets[subsetIndex].typing ?? []).findIndex(u => u.uid === e.value.author.uid);
 
       if (typingIndex !== -1) {
         newState.del(`sets.${setIndex}.subsets.${subsetIndex}.typing.${typingIndex}`);
@@ -276,41 +277,50 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
 
       return newState.value();
     }, () => {
-      const unreadMessages = this.state.sets.reduce((acc1, set) => acc1 || set.subsets.reduce((acc2, subset) => acc2 || (subset.unread ?? false), false), false);
+      const unreadMessages = this.state.sets.some(set => set.subsets.some(subset => subset.unread ?? false));
 
       this.api.setTrayIcon(unreadMessages ? "notification" : "default");
     });
   }
 
   /**
-   * When a new subset is created, add it to the state.
+   * When a subset is created, updated or deleted, change it in the state.
    */
-  onSubset(subset: SubsetData, set: string) {
-    const setIndex = this.state.sets.findIndex(s => s.id === set);
-
+  onSubset(e: SetEvent<SubsetData>) {
     this.setState(state => {
+      const setIndex = state.sets.findIndex(s => s.id === e.set);
+      const subsetIndex = state.sets[setIndex].subsets.findIndex(s => s.id === e.value.id);
+
       const newState = immutable.wrap(state);
 
-      newState.push(`sets.${setIndex}.subsets`, subset);
+      if (e.deleted) {
+        newState.del(`sets.${setIndex}.subsets.${subsetIndex}`);
+      } else if (subsetIndex === -1) {
+        newState.push(`sets.${setIndex}.subsets`, e.value);
+      } else {
+        newState.set(`sets.${setIndex}.subsets.${subsetIndex}`, e.value);
+      }
 
       return newState.value();
     });
   }
 
   /**
-   * When a user's details are updated, update the state.
+   * When a user joins, leaves or updates their details, reflect this in the state.
    */
-  onUpdateUser(set: string, user: UserData) {
+  onUser(e: SetEvent<UserData>) {
     this.setState(state => {
+      const setIndex = state.sets.findIndex(s => s.id === e.set);
+      const memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === e.value.uid);
+
       const newState = immutable.wrap(state);
 
-      const setIndex = state.sets.findIndex(s => s.id === set);
-      const memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === user.uid);
-
-      if (memberIndex === -1) {
-        newState.push(`sets.${setIndex}.members`, user);
+      if (e.deleted) {
+        newState.del(`sets.${setIndex}.members.${memberIndex}`);
+      } else if (memberIndex === -1) {
+        newState.push(`sets.${setIndex}.members`, e.value);
       } else {
-        newState.set(`sets.${setIndex}.members.${memberIndex}`, user);
+        newState.set(`sets.${setIndex}.members.${memberIndex}`, e.value);
       }
 
       return newState.value();
@@ -318,71 +328,37 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   }
 
   /**
-   * When a user leaves a set, remove them from the state.
-   */
-  onLeftUser(set: string, uid: string) {
-    this.setState(state => {
-      const newState = immutable.wrap(state);
-
-      const setIndex = state.sets.findIndex(s => s.id === set);
-      const memberIndex = state.sets[setIndex].members.findIndex(m => m.uid === uid);
-
-      newState.del(`sets.${setIndex}.members.${memberIndex}`);
-
-      return newState.value();
-    }); // could refresh but not for now
-  }
-
-  /**
-   * When a user joins the voice channel, add them to the state.
+   * When a user joins, leaves, or changes their details in the voice channel, update this in the state.
    * 
-   * If the user is the current user, start the initialisation process for the voice chat by connecting to the peers.
+   * If the user is the current user and has joined, start the initialisation process for the voice chat by connecting to the peers.
+   * If the user is the current user and has left, close any existing WebRTC connections.
    */
-  onUserJoinedVoiceChannel(set: string, user: VoiceUserData) {
-    if (user.user.uid === this.api.uid) {
-      const setIndex = this.state.sets.findIndex(s => s.id === set);
+  onVoice(e: SetEvent<VoiceUserData>) {
+    const setIndex = this.state.sets.findIndex(s => s.id === e.set);
+    const memberIndex = this.state.sets[setIndex].voiceMembers.findIndex(m => m.user.uid === e.value.user.uid);
+    const peerId = this.state.sets[setIndex].voiceMembers.find(m => m.user.uid === e.value.user.uid)?.peerId;
+
+    if (e.value.user.uid === this.api.uid && peerId === undefined) {
       const peers = this.state.sets[setIndex].voiceMembers.map(peer => peer.peerId);
       this.api.voice.connectToPeers(peers);
-    }
-
-    this.setState(state => {
-      const newState = immutable.wrap(state);
-
-      const setIndex = state.sets.findIndex(s => s.id === set);
-      if (setIndex === -1) return state;
-
-      newState.push(`sets.${setIndex}.voiceMembers`, user);
-
-      return newState.value();
-    });
-  }
-
-  /**
-   * When a user leaves the voice channel, remove them from the state.
-   * 
-   * If the user is the current user, close the WebRTC connections.
-   */
-  onUserLeftVoiceChannel(set: string, uid: string) {
-    if (uid === this.api.uid) {
+    } else if (e.value.user.uid === this.api.uid && e.deleted) {
       this.api.voice.disconnect();
     }
 
-    const setIndex = this.state.sets.findIndex(s => s.id === set);
-    const peerId = this.state.sets[setIndex].voiceMembers.find(m => m.user.uid === uid)?.peerId;
-
-    if (peerId) {
+    if (e.deleted && peerId) {
       this.api.voice.disconnectPeer(peerId);
     }
 
     this.setState(state => {
       const newState = immutable.wrap(state);
 
-      const setIndex = state.sets.findIndex(s => s.id === set);
-      if (setIndex === -1) return state;
-
-      const voiceMembers = state.sets[setIndex].voiceMembers.filter(m => m.user.uid !== uid);
-
-      newState.set(`sets.${setIndex}.voiceMembers`, voiceMembers);
+      if (e.deleted) {
+        newState.del(`sets.${setIndex}.voiceMembers.${memberIndex}`);
+      } else if (memberIndex === -1) {
+        newState.push(`sets.${setIndex}.voiceMembers`, e.value);
+      } else {
+        newState.set(`sets.${setIndex}.voiceMembers.${memberIndex}`, e.value);
+      }
 
       return newState.value();
     });
@@ -448,7 +424,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * When a user starts or stops typing, update the state.
    */
-  onTypingChange(subset: string, uid: string) {
+  onTyping(subset: string, uid: string) {
     if (this.api.uid === uid) return;
 
     this.setState(state => {

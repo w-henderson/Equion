@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { appWindow } from "@tauri-apps/api/window";
 import toast from "react-hot-toast";
 
-import Subscriber from "./Subscriber";
+import Subscriber, { SetEvent, SubsetEvent } from "./Subscriber";
 import Notifier from "./Notifier";
 import Voice from "./Voice";
 
@@ -31,13 +31,11 @@ class Api {
   region: RegionData;
 
   onShow: () => void;
-  onMessage: (message: MessageData, set: string, subset: string) => void;
-  onSubset: (subset: SubsetData, set: string) => void;
-  onUpdateUser: (set: string, user: UserData) => void;
-  onLeftUser: (set: string, uid: string) => void;
-  onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
-  onUserLeftVoiceChannel: (set: string, uid: string) => void;
-  onUserTyping: (subset: string, uid: string) => void;
+  onMessage: (e: SubsetEvent<MessageData>) => void;
+  onSubset: (e: SetEvent<SubsetData>) => void;
+  onUser: (e: SetEvent<UserData>) => void;
+  onVoice: (e: SetEvent<VoiceUserData>) => void;
+  onTyping: (subset: string, uid: string) => void;
 
   /**
    * Creates the API instance and connects to the backend through WebSocket.
@@ -59,11 +57,9 @@ class Api {
     this.onShow = () => null;
     this.onMessage = () => null;
     this.onSubset = () => null;
-    this.onUpdateUser = () => null;
-    this.onLeftUser = () => null;
-    this.onUserJoinedVoiceChannel = () => null;
-    this.onUserLeftVoiceChannel = () => null;
-    this.onUserTyping = () => null;
+    this.onUser = () => null;
+    this.onVoice = () => null;
+    this.onTyping = () => null;
   }
 
   /**
@@ -91,39 +87,33 @@ class Api {
     // Initialise the subscriber
     this.subscriber.onMessage = this.onMessage;
     this.subscriber.onSubset = this.onSubset;
-    this.subscriber.onUserTyping = this.onUserTyping;
+    this.subscriber.onTyping = this.onTyping;
     this.subscriber.init();
 
-    this.subscriber.onUserJoinedVoiceChannel = (set: string, user: VoiceUserData) => {
-      if (this.uid === user.user.uid) {
-        this.voice.currentChannel = set;
+    this.subscriber.onVoice = e => {
+      if (e.deleted) {
+        if (this.voice.currentChannel === e.set) {
+          this.voice.playLeaveAudio();
+        }
+
+        if (this.uid === e.value.user.uid) {
+          this.voice.currentChannel = null;
+        }
+      } else {
+        if (this.uid === e.value.user.uid) {
+          this.voice.currentChannel = e.set;
+        }
+
+        if (this.voice.currentChannel === e.set) {
+          this.voice.playJoinAudio();
+        }
       }
 
-      if (this.voice.currentChannel === set) {
-        this.voice.playJoinAudio();
-      }
-
-      this.onUserJoinedVoiceChannel(set, user);
+      this.onVoice(e);
     };
 
-    this.subscriber.onUserLeftVoiceChannel = (set: string, uid: string) => {
-      if (this.voice.currentChannel === set) {
-        this.voice.playLeaveAudio();
-      }
-
-      if (this.uid === uid) {
-        this.voice.currentChannel = null;
-      }
-
-      this.onUserLeftVoiceChannel(set, uid);
-    };
-
-    this.subscriber.onUpdateUser = (set, user) => {
-      if (user.uid !== this.uid) this.onUpdateUser(set, user);
-    };
-
-    this.subscriber.onLeftUser = (set, uid) => {
-      if (uid !== this.uid) this.onLeftUser(set, uid);
+    this.subscriber.onUser = e => {
+      if (e.value.uid !== this.uid) this.onUser(e);
     };
 
     listen("show", () => {
