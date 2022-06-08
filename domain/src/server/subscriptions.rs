@@ -131,8 +131,8 @@ impl State {
         Ok(())
     }
 
-    /// Broadcasts the "new subset" event to all subscribers of the set.
-    pub fn broadcast_new_subset(
+    /// Broadcasts the "subset" event to all subscribers of the set.
+    pub fn broadcast_subset(
         &self,
         set: impl AsRef<str>,
         id: impl AsRef<str>,
@@ -142,12 +142,13 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/newSubset",
+                "event": "v1/subset",
                 "set": (set.as_ref()),
                 "subset": {
                     "id": (id.as_ref()),
                     "name": (name.as_ref())
-                }
+                },
+                "deleted": false
             })
             .serialize(),
         );
@@ -162,8 +163,8 @@ impl State {
         }
     }
 
-    /// Broadcasts the "new message" event to all subscribers of the set.
-    pub fn broadcast_new_message(
+    /// Broadcasts the "message" event to all subscribers of the set.
+    pub fn broadcast_message(
         &self,
         set: impl AsRef<str>,
         subset: impl AsRef<str>,
@@ -173,10 +174,11 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/newMessage",
+                "event": "v1/message",
                 "set": (set.as_ref()),
                 "subset": (subset.as_ref()),
-                "message": message
+                "message": message,
+                "deleted": false
             })
             .serialize(),
         );
@@ -197,9 +199,10 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/updateUser",
+                "event": "v1/user",
                 "set": (set.as_ref()),
-                "user": user
+                "user": user,
+                "deleted": false
             })
             .serialize(),
         );
@@ -234,9 +237,10 @@ impl State {
         for set in set_ids {
             let message = Message::new(
                 json!({
-                    "event": "v1/updateUser",
+                    "event": "v1/user",
                     "set": (&set),
-                    "user": (user.clone())
+                    "user": (user.clone()),
+                    "deleted": false
                 })
                 .serialize(),
             );
@@ -273,14 +277,15 @@ impl State {
     }
 
     /// Broadcasts the "user left" event to all subscribers of the set.
-    pub fn broadcast_left_user(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+    pub fn broadcast_left_user(&self, set: impl AsRef<str>, user: User) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/leftUser",
+                "event": "v1/user",
                 "set": (set.as_ref()),
-                "uid": (uid.as_ref())
+                "user": user,
+                "deleted": true
             })
             .serialize(),
         );
@@ -301,9 +306,10 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/userJoinedVoiceChannel",
+                "event": "v1/voice",
                 "set": (set.as_ref()),
-                "user": user
+                "user": user,
+                "deleted": false
             })
             .serialize(),
         );
@@ -319,14 +325,15 @@ impl State {
     }
 
     /// Broadcasts the "user left voice chat" event to all subscribers of the set.
-    pub fn broadcast_left_vc(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+    pub fn broadcast_left_vc(&self, set: impl AsRef<str>, user: WrappedVoiceUser) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/userLeftVoiceChannel",
+                "event": "v1/voice",
                 "set": (set.as_ref()),
-                "uid": (uid.as_ref())
+                "user": user,
+                "deleted": true
             })
             .serialize(),
         );
@@ -346,13 +353,13 @@ impl State {
         &self,
         set: impl AsRef<str>,
         subset: impl AsRef<str>,
-        uid: impl AsRef<str>
+        uid: impl AsRef<str>,
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/userTyping",
+                "event": "v1/typing",
                 "subset": (subset.as_ref()),
                 "uid": (uid.as_ref())
             })

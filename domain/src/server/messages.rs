@@ -265,7 +265,7 @@ impl State {
             }),
         };
 
-        self.broadcast_new_message(set_id, subset.as_ref(), message);
+        self.broadcast_message(set_id, subset.as_ref(), message);
 
         crate::log!(
             "User {} sent message with ID {} to subset {}",

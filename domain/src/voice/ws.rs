@@ -45,9 +45,20 @@ pub fn connect_to_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -
 
         let user = state.get_user_by_token(token)?;
 
-        if let Some(channel_id) = state.voice.get_user_channel(&user.uid) {
+        let voice_user = state
+            .voice
+            .get_user(&user.uid)
+            .ok_or("User is not connected to the voice server")?;
+
+        if let Some(channel_id) = voice_user.channel_id.as_ref() {
             state.voice.leave_voice_channel(&user.uid)?;
-            state.broadcast_left_vc(channel_id, &user.uid);
+            state.broadcast_left_vc(
+                channel_id,
+                WrappedVoiceUser {
+                    user: user.clone(),
+                    peer_id: voice_user.peer_id,
+                },
+            );
         }
 
         let peer_id = state
@@ -65,15 +76,27 @@ pub fn leave_voice_channel(state: Arc<State>, json: Value, _: SocketAddr) -> Val
     error_context(|| {
         let token = get_string(&json, "token")?;
 
-        let user = state.get_user_by_token(token)?;
-        let channel_id = state
+        let db_user = state.get_user_by_token(token)?;
+
+        let voice_user = state
             .voice
-            .get_user_channel(&user.uid)
+            .get_user(&db_user.uid)
+            .ok_or("User is not connected to the voice server")?;
+
+        let channel_id = voice_user
+            .channel_id
+            .as_ref()
             .ok_or("User is not in a voice channel")?;
 
-        state.voice.leave_voice_channel(&user.uid)?;
+        state.voice.leave_voice_channel(&db_user.uid)?;
 
-        state.broadcast_left_vc(channel_id, &user.uid);
+        state.broadcast_left_vc(
+            channel_id,
+            WrappedVoiceUser {
+                user: db_user,
+                peer_id: voice_user.peer_id,
+            },
+        );
 
         Ok(json!({ "success": true }))
     })

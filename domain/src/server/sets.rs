@@ -364,7 +364,7 @@ impl State {
             )
             .map_err(|_| "Could not add new subset".to_string())?;
 
-        self.broadcast_new_subset(set, &new_subset_id, name);
+        self.broadcast_subset(set, &new_subset_id, name);
 
         crate::log!("User {} created subset {}", user_id, new_subset_id);
 
@@ -456,19 +456,12 @@ impl State {
             .get_conn()
             .map_err(|_| "Could not connect to database".to_string())?;
 
+        let user = self.get_user_by_token(token)?;
+        let user_id = user.uid.clone();
+
         let mut transaction = conn
             .start_transaction(TxOpts::default())
             .map_err(|_| "Could not start transaction".to_string())?;
-
-        let user_id: Option<String> = transaction
-            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
-            .map_err(|_| "Could not get user by token".to_string())?;
-
-        if user_id.is_none() {
-            return Err("Invalid token".to_string());
-        }
-
-        let user_id = user_id.unwrap();
 
         let has_membership: Option<u8> = transaction
             .exec_first(
@@ -488,7 +481,7 @@ impl State {
             )
             .map_err(|_| "Could not remove membership".to_string())?;
 
-        self.broadcast_left_user(set.as_ref(), &user_id);
+        self.broadcast_left_user(set.as_ref(), user);
 
         crate::log!("User {} left set {}", user_id, set.as_ref());
 
