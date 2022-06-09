@@ -408,6 +408,9 @@ impl State {
         }
 
         if delete == Some(true) {
+            transaction.exec_drop("DELETE FROM messages WHERE subset = ?", (subset.as_ref(),))
+                .map_err(|_| "Could not delete messages".to_string())?;
+
             transaction
                 .exec_drop("DELETE FROM subsets WHERE id = ?", (subset.as_ref(),))
                 .map_err(|_| "Could not delete subset".to_string())?;
