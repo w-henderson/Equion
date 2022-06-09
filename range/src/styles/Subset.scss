@@ -18,6 +18,21 @@ div.Subset {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+
+    input {
+      font-size: 16px;
+      padding: 4px;
+      color: white;
+      font-family: Inter;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: var(--mid);
+      max-width: 100%;
+
+      &:focus {
+        outline: none;
+      }
+    }
   }
 
   &.unread {

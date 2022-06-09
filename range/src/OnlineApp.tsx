@@ -295,10 +295,14 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
 
       if (e.deleted) {
         newState.del(`sets.${setIndex}.subsets.${subsetIndex}`);
+
+        if (state.selectedSubset === e.value.id) {
+          newState.set("selectedSubset", null);
+        }
       } else if (subsetIndex === -1) {
         newState.push(`sets.${setIndex}.subsets`, e.value);
       } else {
-        newState.set(`sets.${setIndex}.subsets.${subsetIndex}`, e.value);
+        newState.set(`sets.${setIndex}.subsets.${subsetIndex}.name`, e.value.name);
       }
 
       return newState.value();

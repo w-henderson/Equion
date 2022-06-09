@@ -387,6 +387,31 @@ class Api {
   }
 
   /**
+   * Updates or deletes the given subset.
+   */
+  public updateSubset(id: string, name?: string, remove?: boolean): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${this.region.apiRoute}/updateSubset`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        subset: id,
+        name: name ?? null,
+        delete: remove ?? null
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
    * Gets the messages of the given subset.
    * 
    * @param subsetId The ID of the subset.
