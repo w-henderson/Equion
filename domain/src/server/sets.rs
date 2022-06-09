@@ -364,7 +364,7 @@ impl State {
             )
             .map_err(|_| "Could not add new subset".to_string())?;
 
-        self.broadcast_subset(set, &new_subset_id, name);
+        self.broadcast_subset(set, &new_subset_id, name, false);
 
         crate::log!("User {} created subset {}", user_id, new_subset_id);
 
@@ -373,6 +373,66 @@ impl State {
             .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(new_subset_id)
+    }
+
+    /// Updates or deletes the given subset.
+    pub fn update_subset(
+        &self,
+        token: impl AsRef<str>,
+        subset: impl AsRef<str>,
+        name: Option<String>,
+        delete: Option<bool>,
+    ) -> Result<(), String> {
+        let mut conn = self
+            .pool
+            .get_conn()
+            .map_err(|_| "Could not connect to database".to_string())?;
+
+        let mut transaction = conn
+            .start_transaction(TxOpts::default())
+            .map_err(|_| "Could not start transaction".to_string())?;
+
+        let (admin, set_id, subset_name, user_id): (bool, String, String, String) = transaction
+            .exec_first(
+                "SELECT memberships.admin, subsets.set_id, subsets.name, users.id FROM memberships
+                    JOIN users ON memberships.user_id = users.id
+                    JOIN subsets ON memberships.set_id = subsets.set_id
+                    WHERE users.token = ? AND subsets.id = ?",
+                (token.as_ref(), subset.as_ref()),
+            )
+            .map_err(|_| "Could not verify permissions".to_string())?
+            .ok_or_else(|| "Not a member of this set".to_string())?;
+
+        if !admin {
+            return Err("Insuffient permissions".to_string());
+        }
+
+        if delete == Some(true) {
+            transaction
+                .exec_drop("DELETE FROM subsets WHERE id = ?", (subset.as_ref(),))
+                .map_err(|_| "Could not delete subset".to_string())?;
+
+            self.broadcast_subset(set_id, &subset, subset_name, true);
+
+            crate::log!("User {} deleted subset {}", user_id, subset.as_ref());
+        } else if let Some(name) = name {
+            transaction
+                .exec_drop(
+                    "UPDATE subsets SET name = ? WHERE id = ?",
+                    (&name, subset.as_ref()),
+                )
+                .map_err(|_| "Could not update subset".to_string())?;
+
+            self.broadcast_subset(set_id, &subset, name, false);
+
+            crate::log!("User {} updated subset {}", user_id, subset.as_ref());
+        }
+
+        transaction
+            .commit()
+            .map_err(|_| "Could not commit transaction".to_string())?;
+
+        Ok(())
     }
 
     /// Adds the authenticated user to the given set.

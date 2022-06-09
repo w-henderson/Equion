@@ -292,6 +292,24 @@ Output:
 { "success": true }
 ```
 
+### `v1/updateSubset`: Update or delete subset
+Updates the details of the given subset or deletes it. Requires admin privileges over the set.
+
+Input:
+```json
+{
+  "token": "",
+  "subset": "",
+  "name?": "",
+  "delete?": false
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## Messages
 
 ### `v1/messages`: Get messages for a subset

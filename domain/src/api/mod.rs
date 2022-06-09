@@ -36,6 +36,7 @@ declare_endpoints! {
     "v1/set" => get_set("token", "id") -> "set",
     "v1/createSet" => create_set("token", "name", (optional "icon")) -> "id",
     "v1/createSubset" => create_subset("token", "set", "name") -> "id",
+    "v1/updateSubset" => update_subset("token", "subset", (optional "name"), (boolean optional "delete")) -> None,
     "v1/joinSet" => join_set("token", "set") -> None,
     "v1/leaveSet" => leave_set("token", "set") -> None,
 

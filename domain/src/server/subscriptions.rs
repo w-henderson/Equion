@@ -137,6 +137,7 @@ impl State {
         set: impl AsRef<str>,
         id: impl AsRef<str>,
         name: impl AsRef<str>,
+        deleted: bool,
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
@@ -148,7 +149,7 @@ impl State {
                     "id": (id.as_ref()),
                     "name": (name.as_ref())
                 },
-                "deleted": false
+                "deleted": deleted
             })
             .serialize(),
         );
