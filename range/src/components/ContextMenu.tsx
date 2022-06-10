@@ -94,6 +94,7 @@ export function handler(ref: React.RefObject<ContextMenu>): (e: React.MouseEvent
   return (e: React.MouseEvent<HTMLDivElement>) => {
     if (ref.current) {
       ref.current.show(e);
+      e.preventDefault();
     }
   };
 }

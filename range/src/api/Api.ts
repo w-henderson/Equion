@@ -412,6 +412,31 @@ class Api {
   }
 
   /**
+   * Updates or deletes the given message.
+   */
+  public updateMessage(id: string, content?: string, remove?: boolean): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${this.region.apiRoute}/updateMessage`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        message: id,
+        content: content ?? null,
+        delete: remove ?? null
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
    * Gets the messages of the given subset.
    * 
    * @param subsetId The ID of the subset.

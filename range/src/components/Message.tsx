@@ -2,11 +2,16 @@ import React from "react";
 import ApiContext from "../api/ApiContext";
 import { MessageParser } from "../api/MessageParser";
 import { open } from "@tauri-apps/api/shell";
+import { clipboard } from "@tauri-apps/api";
+import toast from "react-hot-toast";
 
 import "../styles/Message.scss";
+
 import defaultAttachment from "../images/default_attachment.jpg";
 import MessageSegment from "./MessageSegment";
 import LinkPreview from "./LinkPreview";
+
+import ContextMenu, { handler } from "./ContextMenu";
 
 interface MessageProps {
   message: MessageData,
@@ -20,6 +25,7 @@ interface MessageProps {
  */
 class Message extends React.Component<MessageProps> {
   context!: React.ContextType<typeof ApiContext>;
+  contextMenuRef: React.RefObject<ContextMenu> = React.createRef();
 
   /**
    * Prevents unnecessary re-renders.
@@ -74,36 +80,59 @@ class Message extends React.Component<MessageProps> {
     }
 
     return (
-      <div className={isLocalSender ? "Message local" : "Message"}>
-        <img
-          src={this.context!.getFileURL(this.props.message.author.image)}
-          alt="Profile"
-          onClick={() => this.props.showUserCallback(this.props.message.author.uid)} />
+      <>
+        <div className={isLocalSender ? "Message local" : "Message"}>
+          <img
+            src={this.context!.getFileURL(this.props.message.author.image)}
+            alt="Profile"
+            onClick={() => this.props.showUserCallback(this.props.message.author.uid)} />
 
-        <div className={this.context!.doesMessagePingMe(this.props.message.text) ? "content pingsMe" : "content"}>
-          {attachment}
+          <div
+            className={this.context!.doesMessagePingMe(this.props.message.text) ? "content pingsMe" : "content"}
+            onContextMenu={handler(this.contextMenuRef)}>
 
-          <div className="meta">
-            <span className="name">{this.props.message.author.displayName}</span>
-            <span className="date">{sendDateString}</span>
+            {attachment}
+
+            <div className="meta">
+              <span className="name">{this.props.message.author.displayName}</span>
+              <span className="date">{sendDateString}</span>
+            </div>
+
+            <div className="text">
+              {parsedMessage.map((el, i) =>
+                <MessageSegment
+                  segment={el}
+                  isLastSegment={i === parsedMessage.length - 1}
+                  key={i}
+                  scrollCallback={this.props.scrollCallback}
+                  userCallback={() => this.props.showUserCallback(el.value)} />
+              )}
+            </div>
+
+            {firstLink !== undefined && attachment === undefined &&
+              <LinkPreview link={firstLink} />
+            }
           </div>
+        </div >
 
-          <div className="text">
-            {parsedMessage.map((el, i) =>
-              <MessageSegment
-                segment={el}
-                isLastSegment={i === parsedMessage.length - 1}
-                key={i}
-                scrollCallback={this.props.scrollCallback}
-                userCallback={() => this.props.showUserCallback(el.value)} />
-            )}
-          </div>
+        <ContextMenu ref={this.contextMenuRef}>
+          <div onClick={() => {
+            clipboard.writeText(this.props.message.id).then(() => {
+              toast.success("Message ID copied to clipboard!");
+            }, () => {
+              toast.error("Could not copy message ID to clipboard.");
+            });
+          }}>Copy ID</div>
 
-          {firstLink !== undefined && attachment === undefined &&
-            <LinkPreview link={firstLink} />
+          {isLocalSender &&
+            <>
+              <hr />
+
+              <div onClick={() => this.context!.updateMessage(this.props.message.id, undefined, true)} className="delete">Delete Message</div>
+            </>
           }
-        </div>
-      </div >
+        </ContextMenu>
+      </>
     );
   }
 }
