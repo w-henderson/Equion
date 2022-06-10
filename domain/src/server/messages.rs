@@ -6,7 +6,7 @@ use humphrey::http::mime::MimeType;
 use humphrey_json::prelude::*;
 
 use chrono::{TimeZone, Utc};
-use mysql::{prelude::*, TxOpts, Value};
+use mysql::Value;
 use uuid::Uuid;
 
 /// Represents a message response from the server.
@@ -55,6 +55,50 @@ json_map! {
     type_ => "type"
 }
 
+impl Message {
+    /// Converts a row of the database to a message.
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn from_row(
+        row: (
+            String,         // 0. Message ID
+            String,         // 1. Message content
+            String,         // 2. Message author ID
+            String,         // 3. Message author name
+            Option<String>, // 4. Message author image
+            Value,          // 5. Message send time
+            Option<String>, // 6. Attachment ID
+            Option<String>, // 7. Attachment name
+        ),
+    ) -> Self {
+        Message {
+            id: row.0,
+            content: row.1,
+            author_id: row.2,
+            author_name: row.3,
+            author_image: row.4,
+            attachment: row.6.map(|id| {
+                let name = row.7.unwrap();
+                Attachment {
+                    id,
+                    name: name.clone(),
+                    type_: MimeType::from_extension(name.split('.').last().unwrap_or(""))
+                        .to_string(),
+                }
+            }),
+            send_time: match row.5 {
+                Value::Date(year, month, day, hour, min, sec, micro) => {
+                    let dt = Utc
+                        .ymd(year.into(), month.into(), day.into())
+                        .and_hms_micro(hour.into(), min.into(), sec.into(), micro);
+
+                    dt.timestamp().try_into().unwrap()
+                }
+                _ => panic!("Invalid date"),
+            },
+        }
+    }
+}
+
 impl State {
     /// Gets the messages for the given subset.
     pub fn messages(
@@ -64,114 +108,29 @@ impl State {
         before: Option<String>,
         limit: Option<usize>,
     ) -> Result<Vec<Message>, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        let user: Option<String> = transaction
-            .exec_first(
-                "SELECT users.username FROM users
-                    JOIN memberships ON users.id = memberships.user_id
-                    JOIN sets ON memberships.set_id = sets.id
-                    JOIN subsets ON sets.id = subsets.set_id
-                    WHERE users.token = ? AND subsets.id = ?",
-                (token.as_ref(), subset.as_ref()),
-            )
-            .map_err(|_| "Could not check for invalid token".to_string())?;
+        let user = transaction
+            .select_username_by_subset_membership_token(token.as_ref(), subset.as_ref())?;
 
         if user.is_none() {
             return Err("Insufficient permissions".to_string());
         }
 
-        #[allow(clippy::type_complexity)]
-        let messages: Vec<(
-            String,          // Message ID
-            String,          // Message content
-            String,          // Message author ID
-            String,          // Message author name
-            Option<String>,  // Message author image
-            Value,           // Message send time
-            Option<String>,  // Attachment ID
-            Option<String>   // Attachment name
-        )> = if let Some(before) = before { transaction.exec(
-            "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
-                JOIN users ON messages.sender = users.id
-                JOIN subsets ON messages.subset = subsets.id
-                LEFT JOIN files ON messages.attachment = files.id
-                WHERE subsets.id = ? AND messages.send_time < (
-                    SELECT send_time FROM messages WHERE id = ?
-                )
-                ORDER BY messages.send_time DESC
-                LIMIT ?",
-                (subset.as_ref(), before, limit.unwrap_or(25)),
-        ) } else {
-            transaction.exec(
-                "SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
-                    JOIN users ON messages.sender = users.id
-                    JOIN subsets ON messages.subset = subsets.id
-                    LEFT JOIN files ON messages.attachment = files.id
-                    WHERE subsets.id = ?
-                    ORDER BY messages.send_time DESC
-                    LIMIT ?",
-                    (subset.as_ref(), limit.unwrap_or(25)),
-            )
-        }.map_err(|_| "Could not get messages".to_string())?;
+        let messages = if let Some(before) = before {
+            transaction.select_messages_before(subset.as_ref(), &before, limit.unwrap_or(25))?
+        } else {
+            transaction.select_messages(subset.as_ref(), limit.unwrap_or(25))?
+        };
 
-        let messages: Vec<Message> = messages
-            .into_iter()
-            .map(
-                |(
-                    id,
-                    content,
-                    author_id,
-                    author_name,
-                    author_image,
-                    send_time,
-                    attachment_id,
-                    attachment_name,
-                )| Message {
-                    id,
-                    content,
-                    author_id,
-                    author_name,
-                    author_image,
-                    attachment: attachment_id.map(|id| {
-                        let name = attachment_name.unwrap();
-                        Attachment {
-                            id,
-                            name: name.clone(),
-                            type_: MimeType::from_extension(name.split('.').last().unwrap_or(""))
-                                .to_string(),
-                        }
-                    }),
-                    send_time: match send_time {
-                        Value::Date(year, month, day, hour, min, sec, micro) => {
-                            let dt = Utc
-                                .ymd(year.into(), month.into(), day.into())
-                                .and_hms_micro(hour.into(), min.into(), sec.into(), micro);
-
-                            dt.timestamp().try_into().unwrap()
-                        }
-                        _ => panic!("Invalid date"),
-                    },
-                },
-            )
-            .collect();
+        transaction.commit()?;
 
         crate::log!(
             "User {} retrieved messages for subset {}",
             user.unwrap(),
             subset.as_ref()
         );
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(messages)
     }
@@ -185,25 +144,10 @@ impl State {
         attachment_name: Option<String>,
         attachment_content: Option<String>,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        let meta: Option<(String, String, String, Option<String>)> = transaction
-            .exec_first(
-                "SELECT sets.id, users.id, users.display_name, users.image FROM sets
-                    JOIN memberships ON sets.id = memberships.set_id
-                    JOIN users ON memberships.user_id = users.id
-                    JOIN subsets ON sets.id = subsets.set_id
-                    WHERE users.token = ? AND subsets.id = ?",
-                (token.as_ref(), subset.as_ref()),
-            )
-            .map_err(|_| "Could not check for invalid token".to_string())?;
+        let meta = transaction.select_subset_metadata(token.as_ref(), subset.as_ref())?;
 
         if meta.is_none() {
             return Err("Insufficient permissions".to_string());
@@ -229,7 +173,7 @@ impl State {
                 attachment_name,
                 attachment_content,
                 &user_id,
-                Some(&mut transaction),
+                &mut transaction,
             )?)
         } else {
             None
@@ -237,17 +181,15 @@ impl State {
 
         let new_message_id = Uuid::new_v4().to_string();
 
-        transaction.exec_drop(
-            "INSERT INTO messages (id, content, subset, sender, send_time, attachment) VALUES (?, ?, ?, ?, NOW(), ?)",
-            (
-                &new_message_id,
-                content.as_ref(),
-                subset.as_ref(),
-                &user_id,
-                &attachment_id
-            ),
-        )
-        .map_err(|_| "Could not send message".to_string())?;
+        transaction.insert_message(
+            &new_message_id,
+            content.as_ref(),
+            subset.as_ref(),
+            &user_id,
+            &attachment_id,
+        )?;
+
+        transaction.commit()?;
 
         let send_time = Utc::now().timestamp() as u64;
 
@@ -265,7 +207,7 @@ impl State {
             }),
         };
 
-        self.broadcast_new_message(set_id, subset.as_ref(), message);
+        self.broadcast_message(set_id, subset.as_ref(), message, false);
 
         crate::log!(
             "User {} sent message with ID {} to subset {}",
@@ -274,9 +216,51 @@ impl State {
             subset.as_ref()
         );
 
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
+        Ok(())
+    }
+
+    /// Updates or deletes the given message.
+    pub fn update_message(
+        &self,
+        token: impl AsRef<str>,
+        message_id: impl AsRef<str>,
+        content: Option<String>,
+        delete: Option<bool>,
+    ) -> Result<(), String> {
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
+
+        let message =
+            transaction.select_message_by_id_and_token(message_id.as_ref(), token.as_ref())?;
+
+        if message.is_none() {
+            return Err("Insufficient permissions".to_string());
+        }
+
+        let mut message = message.unwrap();
+        let user_id = message.author_id.clone();
+
+        let (set, subset) = transaction
+            .select_message_set_and_subset(&message.id)?
+            .ok_or_else(|| "Message not found".to_string())?;
+
+        if delete == Some(true) {
+            transaction.delete_message(&message.id)?;
+            transaction.commit()?;
+
+            self.broadcast_message(set, subset, message, true);
+
+            crate::log!("User {} deleted message {}", user_id, message_id.as_ref());
+        } else if let Some(content) = content {
+            transaction.update_message(&content, message_id.as_ref())?;
+            transaction.commit()?;
+
+            message.content = content;
+
+            self.broadcast_message(set, subset, message, false);
+
+            crate::log!("User {} updated subset {}", user_id, message_id.as_ref());
+        }
 
         Ok(())
     }
@@ -287,21 +271,13 @@ impl State {
         token: impl AsRef<str>,
         subset: impl AsRef<str>,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let uid: Option<String> = conn
-            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
-            .map_err(|_| "Could not check for invalid token".to_string())?;
+        let uid = transaction.select_id_by_token(token.as_ref())?;
+        let set = transaction.select_set_by_subset(subset.as_ref())?;
 
-        let set: Option<String> = conn
-            .exec_first(
-                "SELECT set_id FROM subsets WHERE id = ?",
-                (subset.as_ref(),),
-            )
-            .map_err(|_| "Could not check for invalid subset".to_string())?;
+        transaction.commit()?;
 
         if let Some((uid, set)) = uid.and_then(|u| set.map(|s| (u, s))) {
             self.broadcast_typing(set, subset, uid);

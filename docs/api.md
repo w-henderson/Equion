@@ -292,6 +292,42 @@ Output:
 { "success": true }
 ```
 
+### `v1/updateSubset`: Update or delete subset
+Updates the details of the given subset or deletes it. Requires admin privileges over the set.
+
+Input:
+```json
+{
+  "token": "",
+  "subset": "",
+  "name?": "",
+  "delete?": false
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+### `v1/updateMessage`: Update or delete message
+Updates the content of the given message or deletes it. Requires the user to be the author of the message.
+
+Input:
+```json
+{
+  "token": "",
+  "message": "",
+  "content?": "",
+  "delete?": false
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## Messages
 
 ### `v1/messages`: Get messages for a subset
@@ -474,26 +510,27 @@ Output:
 ## WebSocket-only Events
 These are sent to the client when events happen in a set.
 
-### `v1/newSubset`: New subset
-Sent when a new subset is created.
+### `v1/subset`: Subset event
+Sent when a subset is created, modified or deleted.
 
 ```json
 {
-  "event": "v1/newSubset",
+  "event": "v1/subset",
   "set": "",
   "subset": {
     "id": "",
     "name": "",
-  }
+  },
+  "deleted": false
 }
 ```
 
-### `v1/newMessage`: New message in a subset
-Sent when a new message is sent to a subset.
+### `v1/message`: Message event
+Sent when a message is sent, modified or deleted.
 
 ```json
 {
-  "event": "v1/newMessage",
+  "event": "v1/message",
   "set": "",
   "subset": "",
   "message": {
@@ -508,16 +545,17 @@ Sent when a new message is sent to a subset.
       "type": "",
     },
     "sendTime": "",
-  }
+  },
+  "deleted": false
 }
 ```
 
-### `v1/updateUser`: Update user in a set
-Sent when a new user joins a set or an existing user's details are updated.
+### `v1/user`: User event
+Sent when a user joins a set, updates their details, or leaves a set.
 
 ```json
 {
-  "event": "v1/updateUser",
+  "event": "v1/user",
   "set": "",
   "user": {
     "uid": "",
@@ -527,27 +565,17 @@ Sent when a new user joins a set or an existing user's details are updated.
     "image?": "",
     "bio?": "",
     "online": true
-  }
+  },
+  "deleted": false
 }
 ```
 
-### `v1/leftUser`: User left a set
-Sent when a user leaves a set.
+### `v1/voice`: Voice event
+Sent when a user joins or leaves a voice channel.
 
 ```json
 {
-  "event": "v1/leftUser",
-  "set": "",
-  "uid": ""
-}
-```
-
-### `v1/userJoinedVoiceChannel`: User joined voice channel
-Sent when a user joins a voice channel.
-
-```json
-{
-  "event": "v1/userJoinedVoiceChannel",
+  "event": "v1/voice",
   "set": "",
   "user": {
     "peerId": "",
@@ -559,27 +587,17 @@ Sent when a user joins a voice channel.
       "image?": "",
       "bio?": ""
     }
-  }
+  },
+  "deleted": false
 }
 ```
 
-### `v1/userLeftVoiceChannel`: User left voice channel
-Sent when a user leaves a voice channel.
-
-```json
-{
-  "event": "v1/userLeftVoiceChannel",
-  "set": "",
-  "uid": ""
-}
-```
-
-### `v1/userTyping`: User recently typed
+### `v1/typing`: User recently typed
 Sent when a user types in the message box.
 
 ```json
 {
-  "event": "v1/userTyping",
+  "event": "v1/typing",
   "subset": "",
   "uid": ""
 }

@@ -9,8 +9,6 @@ use humphrey_ws::Message;
 
 use humphrey_json::prelude::*;
 
-use mysql::{prelude::*, TxOpts};
-
 use std::collections::hash_map::Entry;
 use std::net::SocketAddr;
 
@@ -22,25 +20,12 @@ impl State {
         set: impl AsRef<str>,
         addr: SocketAddr,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let membership = transaction.select_membership(token.as_ref(), set.as_ref())?;
 
-        let user: Option<String> = transaction
-            .exec_first(
-                "SELECT memberships.user_id FROM memberships
-                    JOIN users ON users.id = memberships.user_id
-                    WHERE users.token = ? AND memberships.set_id = ?",
-                (token.as_ref(), set.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
-
-        if user.is_none() {
+        if membership.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -59,16 +44,14 @@ impl State {
             }
         }
 
+        transaction.commit()?;
+
         crate::log!(
             Debug,
             "User {} subscribed to set {}",
-            user.unwrap(),
+            membership.unwrap().1,
             set.as_ref()
         );
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }
@@ -80,25 +63,12 @@ impl State {
         set: impl AsRef<str>,
         addr: SocketAddr,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let membership = transaction.select_membership(token.as_ref(), set.as_ref())?;
 
-        let user: Option<String> = transaction
-            .exec_first(
-                "SELECT memberships.user_id FROM memberships
-                    JOIN users ON users.id = memberships.user_id
-                    WHERE users.token = ? AND memberships.set_id = ?",
-                (token.as_ref(), set.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
-
-        if user.is_none() {
+        if membership.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -117,37 +87,37 @@ impl State {
             }
         }
 
+        transaction.commit()?;
+
         crate::log!(
             Debug,
             "User {} unsubscribed from set {}",
-            user.unwrap(),
+            membership.unwrap().1,
             set.as_ref()
         );
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }
 
-    /// Broadcasts the "new subset" event to all subscribers of the set.
-    pub fn broadcast_new_subset(
+    /// Broadcasts the "subset" event to all subscribers of the set.
+    pub fn broadcast_subset(
         &self,
         set: impl AsRef<str>,
         id: impl AsRef<str>,
         name: impl AsRef<str>,
+        deleted: bool,
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/newSubset",
+                "event": "v1/subset",
                 "set": (set.as_ref()),
                 "subset": {
                     "id": (id.as_ref()),
                     "name": (name.as_ref())
-                }
+                },
+                "deleted": deleted
             })
             .serialize(),
         );
@@ -162,21 +132,23 @@ impl State {
         }
     }
 
-    /// Broadcasts the "new message" event to all subscribers of the set.
-    pub fn broadcast_new_message(
+    /// Broadcasts the "message" event to all subscribers of the set.
+    pub fn broadcast_message(
         &self,
         set: impl AsRef<str>,
         subset: impl AsRef<str>,
         message: messages::Message,
+        deleted: bool,
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/newMessage",
+                "event": "v1/message",
                 "set": (set.as_ref()),
                 "subset": (subset.as_ref()),
-                "message": message
+                "message": message,
+                "deleted": deleted
             })
             .serialize(),
         );
@@ -197,9 +169,10 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/updateUser",
+                "event": "v1/user",
                 "set": (set.as_ref()),
-                "user": user
+                "user": user,
+                "deleted": false
             })
             .serialize(),
         );
@@ -216,27 +189,21 @@ impl State {
 
     /// Broadcasts the "update user" event to all subscribers of the set.
     pub fn broadcast_update_user(&self, user: User) -> Option<()> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())
-            .ok()?;
+        let mut conn = self.db.connection().ok()?;
+        let mut transaction = conn.transaction().ok()?;
 
-        let set_ids: Vec<String> = conn
-            .exec(
-                "SELECT set_id FROM memberships WHERE user_id = ?",
-                (&user.uid,),
-            )
-            .ok()?;
+        let set_ids = transaction.select_user_set_ids(&user.uid).ok()?;
+        transaction.commit().ok()?;
 
         let subscriptions = self.subscriptions.read().unwrap();
 
         for set in set_ids {
             let message = Message::new(
                 json!({
-                    "event": "v1/updateUser",
+                    "event": "v1/user",
                     "set": (&set),
-                    "user": (user.clone())
+                    "user": (user.clone()),
+                    "deleted": false
                 })
                 .serialize(),
             );
@@ -273,14 +240,15 @@ impl State {
     }
 
     /// Broadcasts the "user left" event to all subscribers of the set.
-    pub fn broadcast_left_user(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+    pub fn broadcast_left_user(&self, set: impl AsRef<str>, user: User) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/leftUser",
+                "event": "v1/user",
                 "set": (set.as_ref()),
-                "uid": (uid.as_ref())
+                "user": user,
+                "deleted": true
             })
             .serialize(),
         );
@@ -301,9 +269,10 @@ impl State {
 
         let message = Message::new(
             json!({
-                "event": "v1/userJoinedVoiceChannel",
+                "event": "v1/voice",
                 "set": (set.as_ref()),
-                "user": user
+                "user": user,
+                "deleted": false
             })
             .serialize(),
         );
@@ -319,14 +288,15 @@ impl State {
     }
 
     /// Broadcasts the "user left voice chat" event to all subscribers of the set.
-    pub fn broadcast_left_vc(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+    pub fn broadcast_left_vc(&self, set: impl AsRef<str>, user: WrappedVoiceUser) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/userLeftVoiceChannel",
+                "event": "v1/voice",
                 "set": (set.as_ref()),
-                "uid": (uid.as_ref())
+                "user": user,
+                "deleted": true
             })
             .serialize(),
         );
@@ -346,13 +316,13 @@ impl State {
         &self,
         set: impl AsRef<str>,
         subset: impl AsRef<str>,
-        uid: impl AsRef<str>
+        uid: impl AsRef<str>,
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
         let message = Message::new(
             json!({
-                "event": "v1/userTyping",
+                "event": "v1/typing",
                 "subset": (subset.as_ref()),
                 "uid": (uid.as_ref())
             })

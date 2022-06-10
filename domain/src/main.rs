@@ -6,6 +6,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 mod api;
+mod db;
 mod server;
 mod status;
 mod util;
@@ -15,6 +16,7 @@ mod voice;
 mod log;
 
 use crate::api::{http, ws};
+use crate::db::Database;
 
 use humphrey::http::cors::Cors;
 use humphrey::App;
@@ -39,8 +41,8 @@ static DB_URL: &str = "mysql://root:hunter2@localhost:3306/equion";
 /// The state of the server.
 #[derive(Clone)]
 pub struct State {
-    /// A pool of database connections.
-    pool: Arc<Pool>,
+    /// A pool of connections to the database.
+    db: Arc<Database>,
     /// The sender to send messages to clients using WebSocket.
     global_sender: Arc<Mutex<Option<AsyncSender>>>,
     /// A hashmap of set IDs to WebSocket connections that are subscribed to them.
@@ -54,14 +56,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let db_url = std::env::var("EQUION_DATABASE_URL").unwrap_or_else(|_| String::from(DB_URL));
 
     // Connect to the database.
-    let pool = Pool::new(Opts::from_url(&db_url)?)?;
+    let db = Database::new(Pool::new(Opts::from_url(&db_url)?)?);
 
     log!("Connected to MySQL database at {}", db_url);
 
     // Initialise the app's state.
     // At the moment, everything is in `Arc`s due to limitations with Humphrey's API, but this should be fixed in the future.
     let state = State {
-        pool: Arc::new(pool),
+        db: Arc::new(db),
         global_sender: Arc::new(Mutex::new(None)),
         subscriptions: Arc::new(RwLock::new(HashMap::new())),
         voice: Arc::new(VoiceServer::new()),

@@ -131,9 +131,11 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
           <div className="setList">
             {this.props.set.subsets.map(subset =>
               <Subset
+                id={subset.id}
                 name={subset.name}
                 selected={subset.id === this.props.selectedSubset}
                 unread={subset.unread ?? false}
+                admin={this.props.set?.admin ?? false}
                 onClick={() => this.props.selectCallback(subset.id)}
                 key={subset.id} />
             )}

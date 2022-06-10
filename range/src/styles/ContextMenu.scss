@@ -1,0 +1,47 @@
+div.ContextMenu {
+  position: fixed;
+  min-width: 200px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  z-index: 100;
+
+  color: rgba(255, 255, 255, 0.8);
+  background-color: var(--darkest);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
+
+  span {
+    display: block;
+    padding: 8px;
+    margin: 2px 0;
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  div {
+    padding: 8px;
+    margin: 2px 0;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      color: white;
+      background-color: var(--accent-light);
+    }
+
+    &.delete {
+      color: var(--red);
+
+      &:hover {
+        color: white;
+        background-color: var(--red);
+      }
+    }
+  }
+
+  hr {
+    margin: 8px;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

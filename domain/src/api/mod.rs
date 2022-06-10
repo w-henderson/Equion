@@ -36,12 +36,14 @@ declare_endpoints! {
     "v1/set" => get_set("token", "id") -> "set",
     "v1/createSet" => create_set("token", "name", (optional "icon")) -> "id",
     "v1/createSubset" => create_subset("token", "set", "name") -> "id",
+    "v1/updateSubset" => update_subset("token", "subset", (optional "name"), (boolean optional "delete")) -> None,
     "v1/joinSet" => join_set("token", "set") -> None,
     "v1/leaveSet" => leave_set("token", "set") -> None,
 
     // Messages endpoints
     "v1/messages" => messages("token", "subset", (optional "before"), (numeric optional "limit")) -> "messages",
     "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None,
+    "v1/updateMessage" => update_message("token", "message", (optional "content"), (boolean optional "delete")) -> None,
     "v1/typing" => set_typing("token", "subset") -> None
 }
 

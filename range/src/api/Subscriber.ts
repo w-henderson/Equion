@@ -1,4 +1,23 @@
 /**
+ * An event which occurs at the set level.
+ */
+export type SetEvent<T> = {
+  set: string,
+  deleted: boolean,
+  value: T,
+}
+
+/**
+ * An event which occurs at the subset level.
+ */
+export type SubsetEvent<T> = {
+  set: string,
+  subset: string,
+  deleted: boolean,
+  value: T,
+}
+
+/**
  * Manages subscriptions to events.
  */
 class Subscriber {
@@ -6,13 +25,11 @@ class Subscriber {
   ready: boolean;
 
   onPong: () => void;
-  onMessage: (message: MessageData, set: string, subset: string) => void;
-  onSubset: (subset: SubsetData, set: string) => void;
-  onUpdateUser: (set: string, user: UserData) => void;
-  onLeftUser: (set: string, uid: string) => void;
-  onUserJoinedVoiceChannel: (set: string, user: VoiceUserData) => void;
-  onUserLeftVoiceChannel: (set: string, uid: string) => void;
-  onUserTyping: (subset: string, uid: string) => void;
+  onMessage: (e: SubsetEvent<MessageData>) => void;
+  onSubset: (e: SetEvent<SubsetData>) => void;
+  onUser: (e: SetEvent<UserData>) => void;
+  onVoice: (e: SetEvent<VoiceUserData>) => void;
+  onTyping: (subset: string, uid: string) => void;
 
   /**
    * Creates a new Subscriber instance, connecting through WebSocket to the given URL.
@@ -29,11 +46,9 @@ class Subscriber {
 
     this.onMessage = () => null;
     this.onSubset = () => null;
-    this.onUpdateUser = () => null;
-    this.onLeftUser = () => null;
-    this.onUserJoinedVoiceChannel = () => null;
-    this.onUserLeftVoiceChannel = () => null;
-    this.onUserTyping = () => null;
+    this.onUser = () => null;
+    this.onVoice = () => null;
+    this.onTyping = () => null;
   }
 
   /**
@@ -75,38 +90,45 @@ class Subscriber {
   onEvent(e: MessageEvent) {
     const data = JSON.parse(e.data);
 
-    if (data.event === "v1/newMessage") {
-      const hasAttachment = data.message.attachment !== null;
-
+    if (data.event === "v1/message") {
       this.onMessage({
-        id: data.message.id,
-        text: data.message.content,
-        author: {
-          uid: data.message.authorId,
-          username: "",
-          displayName: data.message.authorName,
-          image: data.message.authorImage,
-          online: true
-        },
-        attachment: hasAttachment ? {
-          id: data.message.attachment.id,
-          name: data.message.attachment.name,
-          type: data.message.attachment.type
-        } : null,
-        timestamp: data.message.sendTime * 1000
-      }, data.set, data.subset);
-    } else if (data.event === "v1/newSubset") {
-      this.onSubset(data.subset, data.set);
-    } else if (data.event === "v1/updateUser") {
-      this.onUpdateUser(data.set, data.user);
-    } else if (data.event === "v1/leftUser") {
-      this.onLeftUser(data.set, data.uid);
-    } else if (data.event === "v1/userJoinedVoiceChannel") {
-      this.onUserJoinedVoiceChannel(data.set, data.user);
-    } else if (data.event === "v1/userLeftVoiceChannel") {
-      this.onUserLeftVoiceChannel(data.set, data.uid);
-    } else if (data.event === "v1/userTyping") {
-      this.onUserTyping(data.subset, data.uid);
+        set: data.set,
+        subset: data.subset,
+        deleted: data.deleted,
+        value: {
+          id: data.message.id,
+          text: data.message.content,
+          author: {
+            uid: data.message.authorId,
+            username: "",
+            displayName: data.message.authorName,
+            image: data.message.authorImage,
+            online: true
+          },
+          attachment: data.message.attachment ?? null,
+          timestamp: data.message.sendTime * 1000
+        }
+      });
+    } else if (data.event === "v1/subset") {
+      this.onSubset({
+        set: data.set,
+        deleted: data.deleted,
+        value: data.subset
+      });
+    } else if (data.event === "v1/user") {
+      this.onUser({
+        set: data.set,
+        deleted: data.deleted,
+        value: data.user
+      });
+    } else if (data.event === "v1/voice") {
+      this.onVoice({
+        set: data.set,
+        deleted: data.deleted,
+        value: data.user
+      });
+    } else if (data.event === "v1/typing") {
+      this.onTyping(data.subset, data.uid);
     } else if (data.event === "v1/pong") {
       this.onPong();
     } else {

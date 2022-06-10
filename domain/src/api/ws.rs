@@ -2,6 +2,7 @@
 
 use crate::api::{error_context, get_string, matcher};
 use crate::voice;
+use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 
 use humphrey_ws::{AsyncStream, Message};
@@ -124,8 +125,16 @@ pub fn unsubscribe_all(stream: AsyncStream, state: Arc<State>) {
 
     if let Some(voice_user) = voice_user {
         if let Some(channel_id) = voice_user.channel_id {
-            state.voice.leave_voice_channel(&voice_user.uid).ok();
-            state.broadcast_left_vc(channel_id, &voice_user.uid);
+            if let Ok(user) = state.get_user(&voice_user.uid) {
+                state.voice.leave_voice_channel(&voice_user.uid).ok();
+                state.broadcast_left_vc(
+                    channel_id,
+                    WrappedVoiceUser {
+                        user,
+                        peer_id: voice_user.peer_id,
+                    },
+                );
+            }
         }
 
         state.voice.disconnect_user_voice(&voice_user.uid);

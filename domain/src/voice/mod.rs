@@ -89,15 +89,6 @@ impl VoiceServer {
             .unwrap_or_default()
     }
 
-    /// Gets the channel that the user is currently in, if any.
-    pub fn get_user_channel(&self, uid: impl AsRef<str>) -> Option<String> {
-        let online_users = self.online_users.read().unwrap();
-
-        online_users
-            .get(uid.as_ref())
-            .and_then(|user| user.channel_id.clone())
-    }
-
     /// Gets the peer ID of the given user.
     pub fn get_peer_id(&self, uid: impl AsRef<str>) -> Option<String> {
         let online_users = self.online_users.read().unwrap();
@@ -105,6 +96,13 @@ impl VoiceServer {
         online_users
             .get(uid.as_ref())
             .map(|user| user.peer_id.clone())
+    }
+
+    /// Gets a voice user by ID.
+    pub fn get_user(&self, uid: impl AsRef<str>) -> Option<VoiceUser> {
+        let online_users = self.online_users.read().unwrap();
+
+        online_users.get(uid.as_ref()).cloned()
     }
 
     /// Connects the given user to a voice channel.
