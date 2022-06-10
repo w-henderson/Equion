@@ -17,6 +17,7 @@ interface ContextMenuState {
  */
 class ContextMenu extends React.Component<ContextMenuProps, ContextMenuState> {
   ref: React.RefObject<HTMLDivElement>;
+  timeout: number | null = null;
 
   /**
    * Initializes the component.
@@ -38,8 +39,12 @@ class ContextMenu extends React.Component<ContextMenuProps, ContextMenuState> {
    * Shows the context menu at the given position.
    */
   show(e: React.MouseEvent<HTMLDivElement>) {
-    window.addEventListener("click", this.hide);
-    window.addEventListener("contextmenu", this.hide);
+    console.log("show");
+
+    this.timeout = window.setTimeout(() => {
+      window.addEventListener("click", this.hide);
+      window.addEventListener("contextmenu", this.hide);
+    }, 100);
 
     this.setState({
       position: {
@@ -53,10 +58,34 @@ class ContextMenu extends React.Component<ContextMenuProps, ContextMenuState> {
    */
   // eslint-disable-next-line
   hide(e: any) {
-    if (this.ref.current && e.pageX !== this.state.position?.x && e.pageY !== this.state.position?.y) {
+    if (this.ref.current) {
+      console.log("hide");
       this.setState({ position: null });
+
+      if (this.timeout !== null) {
+        window.clearTimeout(this.timeout);
+        this.timeout = null;
+      }
+
       window.removeEventListener("click", this.hide);
       window.removeEventListener("contextmenu", this.hide);
+    }
+  }
+
+  /**
+   * Ensures that the whole context menu is always on the screen.
+   */
+  componentDidUpdate() {
+    if (this.state.position) {
+      const rect = this.ref.current!.getBoundingClientRect();
+      let { x, y } = this.state.position;
+
+      if (rect.bottom > window.innerHeight) y = window.innerHeight - rect.height;
+      if (rect.right > window.innerWidth) x = window.innerWidth - rect.width;
+
+      if (x !== this.state.position.x || y !== this.state.position.y) {
+        this.setState({ position: { x, y } });
+      }
     }
   }
 
@@ -64,6 +93,11 @@ class ContextMenu extends React.Component<ContextMenuProps, ContextMenuState> {
    * Cleans up the event listener.
    */
   componentWillUnmount() {
+    if (this.timeout !== null) {
+      window.clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+
     window.removeEventListener("click", this.hide);
     window.removeEventListener("contextmenu", this.hide);
   }
