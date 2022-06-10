@@ -237,7 +237,7 @@ impl State {
             return Err("Insufficient permissions".to_string());
         }
 
-        let message = message.unwrap();
+        let mut message = message.unwrap();
         let user_id = message.author_id.clone();
 
         let (set, subset) = transaction
@@ -254,6 +254,8 @@ impl State {
         } else if let Some(content) = content {
             transaction.update_message(&content, message_id.as_ref())?;
             transaction.commit()?;
+
+            message.content = content;
 
             self.broadcast_message(set, subset, message, false);
 
