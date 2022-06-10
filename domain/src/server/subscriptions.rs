@@ -138,6 +138,7 @@ impl State {
         set: impl AsRef<str>,
         subset: impl AsRef<str>,
         message: messages::Message,
+        deleted: bool,
     ) {
         let subscriptions = self.subscriptions.read().unwrap();
 
@@ -147,7 +148,7 @@ impl State {
                 "set": (set.as_ref()),
                 "subset": (subset.as_ref()),
                 "message": message,
-                "deleted": false
+                "deleted": deleted
             })
             .serialize(),
         );

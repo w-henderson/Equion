@@ -167,6 +167,15 @@ impl<'a> Transaction<'a> {
     }
 
     db! {
+        select_message_by_id_and_token(message: &str, token: &str) -> Option<Message> {
+            first("SELECT messages.id, messages.content, messages.sender, users.display_name, users.image, messages.send_time, messages.attachment, files.name FROM messages
+                JOIN users ON messages.sender = users.id
+                LEFT JOIN files ON messages.attachment = files.id
+                WHERE messages.id = ? AND users.token = ?") => Message::from_row
+        }
+    }
+
+    db! {
         select_subset_metadata(token: &str, subset: &str) -> Option<(String, String, String, Option<String>)> {
             first("SELECT sets.id, users.id, users.display_name, users.image FROM sets
                 JOIN memberships ON sets.id = memberships.set_id
@@ -185,6 +194,14 @@ impl<'a> Transaction<'a> {
     db! {
         select_set_by_subset(subset: &str) -> Option<String> {
             first("SELECT set_id FROM subsets WHERE id = ?")
+        }
+    }
+
+    db! {
+        select_message_set_and_subset(message: &str) -> Option<(String, String)> {
+            first("SELECT subsets.set_id, subsets.id FROM subsets
+                JOIN messages ON subsets.id = messages.subset
+                WHERE messages.id = ?")
         }
     }
 
@@ -270,6 +287,12 @@ impl<'a> Transaction<'a> {
     }
 
     db! {
+        delete_message(message: &str) {
+            "DELETE FROM messages WHERE id = ?"
+        }
+    }
+
+    db! {
         update_subset_name(name: &str, subset: &str) {
             "UPDATE subsets SET name = ? WHERE id = ?"
         }
@@ -328,6 +351,12 @@ impl<'a> Transaction<'a> {
     db! {
         update_user_image(image: &str, token: &str) {
             "UPDATE users SET image = ? WHERE token = ?"
+        }
+    }
+
+    db! {
+        update_message(message: &str, id: &str) {
+            "UPDATE messages SET content = ? WHERE id = ?"
         }
     }
 }

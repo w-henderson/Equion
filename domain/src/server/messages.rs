@@ -207,7 +207,7 @@ impl State {
             }),
         };
 
-        self.broadcast_message(set_id, subset.as_ref(), message);
+        self.broadcast_message(set_id, subset.as_ref(), message, false);
 
         crate::log!(
             "User {} sent message with ID {} to subset {}",
@@ -215,6 +215,50 @@ impl State {
             new_message_id,
             subset.as_ref()
         );
+
+        Ok(())
+    }
+
+    /// Updates or deletes the given message.
+    pub fn update_message(
+        &self,
+        token: impl AsRef<str>,
+        message_id: impl AsRef<str>,
+        content: Option<String>,
+        delete: Option<bool>,
+    ) -> Result<(), String> {
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
+
+        let message =
+            transaction.select_message_by_id_and_token(message_id.as_ref(), token.as_ref())?;
+
+        if message.is_none() {
+            return Err("Insufficient permissions".to_string());
+        }
+
+        let message = message.unwrap();
+        let user_id = message.author_id.clone();
+
+        let (set, subset) = transaction
+            .select_message_set_and_subset(&message.id)?
+            .ok_or_else(|| "Message not found".to_string())?;
+
+        if delete == Some(true) {
+            transaction.delete_message(&message.id)?;
+            transaction.commit()?;
+
+            self.broadcast_message(set, subset, message, true);
+
+            crate::log!("User {} deleted message {}", user_id, message_id.as_ref());
+        } else if let Some(content) = content {
+            transaction.update_message(&content, message_id.as_ref())?;
+            transaction.commit()?;
+
+            self.broadcast_message(set, subset, message, false);
+
+            crate::log!("User {} updated subset {}", user_id, message_id.as_ref());
+        }
 
         Ok(())
     }

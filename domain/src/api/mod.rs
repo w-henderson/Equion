@@ -43,6 +43,7 @@ declare_endpoints! {
     // Messages endpoints
     "v1/messages" => messages("token", "subset", (optional "before"), (numeric optional "limit")) -> "messages",
     "v1/sendMessage" => send_message("token", "subset", "message", (optional "attachment.name"), (optional "attachment.data")) -> None,
+    "v1/updateMessage" => update_message("token", "message", (optional "content"), (boolean optional "delete")) -> None,
     "v1/typing" => set_typing("token", "subset") -> None
 }
 
