@@ -310,6 +310,24 @@ Output:
 { "success": true }
 ```
 
+### `v1/updateMessage`: Update or delete message
+Updates the content of the given message or deletes it. Requires the user to be the author of the message.
+
+Input:
+```json
+{
+  "token": "",
+  "message": "",
+  "content?": "",
+  "delete?": false
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## Messages
 
 ### `v1/messages`: Get messages for a subset
