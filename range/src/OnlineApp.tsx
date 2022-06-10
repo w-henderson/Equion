@@ -3,6 +3,7 @@ import "./styles/App.scss";
 
 import { confirm } from "@tauri-apps/api/dialog";
 import { MathJaxContext } from "better-react-mathjax";
+import { appWindow } from "@tauri-apps/api/window";
 import toast, { Toaster } from "react-hot-toast";
 import * as immutable from "object-path-immutable";
 
@@ -555,7 +556,8 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
           selectedSet={this.state.selectedSet}
           showUserCallback={this.showUser}
           selectCallback={this.selectSet}
-          createdCallback={this.createdSet} />
+          createdCallback={this.createdSet}
+          leaveCallback={this.leaveSet} />
 
         {selectedSet &&
           <>
@@ -574,10 +576,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
 
             <Members
               set={selectedSet}
-              userCallback={this.showUser}
-              leaveCallback={() => {
-                if (selectedSet !== undefined) this.leaveSet(selectedSet.id);
-              }} />
+              userCallback={this.showUser} />
           </>
         }
 
@@ -623,6 +622,12 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
               enableMenu: false
             }
           }}>
+
+          <div className="windowButtons">
+            <div className="close" onClick={() => this.api.minimiseToTray()} />
+            <div className="minimise" onClick={() => appWindow.minimize()} />
+            <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
+          </div>
 
           {inner}
 

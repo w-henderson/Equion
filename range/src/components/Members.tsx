@@ -1,13 +1,11 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
 import "../styles/Members.scss";
 
-import { LeaveSetButton } from "./Svg";
+import ApiContext from "../api/ApiContext";
 
 interface MembersProps {
   set: SetData,
   userCallback: (id: string) => void,
-  leaveCallback: () => void,
 }
 
 /**
@@ -27,8 +25,6 @@ class Members extends React.Component<MembersProps> {
       <div className="Members">
         <div className="title">
           <h1>Members</h1>
-
-          <LeaveSetButton onClick={this.props.leaveCallback} />
         </div>
 
         <div className="list">

@@ -1,9 +1,7 @@
 import React from "react";
-import "../styles/AuthDialog.scss";
 import logo from "../images/logo.png";
-
 import toast from "react-hot-toast";
-import { appWindow } from "@tauri-apps/api/window";
+import "../styles/AuthDialog.scss";
 
 import RegionSelector from "./RegionSelector";
 import ApiContext from "../api/ApiContext";
@@ -203,12 +201,6 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
     return (
       <div className="AuthDialog" data-tauri-drag-region>
-        <div className="windowButtons">
-          <div className="close" onClick={() => this.context!.minimiseToTray()} />
-          <div className="minimise" onClick={() => appWindow.minimize()} />
-          <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
-        </div>
-
         <img src={logo} alt="Equion logo" />
 
         <h1>Welcome to Equion</h1>

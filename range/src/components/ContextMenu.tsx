@@ -39,8 +39,6 @@ class ContextMenu extends React.Component<ContextMenuProps, ContextMenuState> {
    * Shows the context menu at the given position.
    */
   show(e: React.MouseEvent<HTMLDivElement>) {
-    console.log("show");
-
     this.timeout = window.setTimeout(() => {
       window.addEventListener("click", this.hide);
       window.addEventListener("contextmenu", this.hide);
@@ -59,7 +57,6 @@ class ContextMenu extends React.Component<ContextMenuProps, ContextMenuState> {
   // eslint-disable-next-line
   hide(e: any) {
     if (this.ref.current) {
-      console.log("hide");
       this.setState({ position: null });
 
       if (this.timeout !== null) {

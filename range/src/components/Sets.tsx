@@ -2,7 +2,6 @@ import React from "react";
 import "../styles/Sets.scss";
 
 import ApiContext from "../api/ApiContext";
-import { appWindow } from "@tauri-apps/api/window";
 import toast from "react-hot-toast";
 
 import SetIcon from "./SetIcon";
@@ -16,7 +15,8 @@ interface SetsProps {
   ping: number | null,
   showUserCallback: (id: string) => void,
   selectCallback: (id: string) => void,
-  createdCallback: (set: SetData) => void
+  createdCallback: (set: SetData) => void,
+  leaveCallback: (id: string) => void
 }
 
 interface SetsState {
@@ -106,18 +106,13 @@ class Sets extends React.Component<SetsProps, SetsState> {
   render() {
     return (
       <div data-tauri-drag-region className="Sets">
-        <div className="windowButtons">
-          <div className="close" onClick={() => this.context!.minimiseToTray()} />
-          <div className="minimise" onClick={() => appWindow.minimize()} />
-          <div className="maximise" onClick={() => appWindow.toggleMaximize()} />
-        </div>
-
         <div className="setList" data-tauri-drag-region>
           {this.props.sets.map(set =>
             <SetIcon
               set={set}
               selected={set.id === this.props.selectedSet}
               onClick={() => this.props.selectCallback(set.id)}
+              leaveCallback={() => this.props.leaveCallback(set.id)}
               key={set.id} />
           )}
 

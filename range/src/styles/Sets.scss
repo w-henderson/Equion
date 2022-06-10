@@ -1,7 +1,8 @@
 div.Sets {
   display: flex;
   flex-direction: column;
-  width: 116px;
+  max-width: 116px;
+  min-width: 116px;
   height: 100%;
   border-right: 1px solid rgba(0, 0, 0, 0.5);
   background: var(--mid);
@@ -9,6 +10,7 @@ div.Sets {
   div.setList {
     overflow: auto;
     flex: 1;
+    padding-top: 20px;
   }
 
   div.userButton {
@@ -75,36 +77,6 @@ div.Sets {
           transform: scale(1);
         }
       }
-    }
-  }
-}
-
-div.windowButtons {
-  width: 68px;
-  margin: 24px;
-  display: flex;
-  justify-content: space-between;
-
-  div {
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    display: inline-block;
-
-    &:hover {
-      filter: brightness(0.8);
-    }
-
-    &.close {
-      background: var(--red);
-    }
-
-    &.minimise {
-      background: var(--yellow);
-    }
-
-    &.maximise {
-      background: var(--green);
     }
   }
 }
