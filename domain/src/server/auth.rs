@@ -6,8 +6,6 @@ use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 
-use mysql::{prelude::*, TxOpts};
-
 use uuid::Uuid;
 
 /// Represents an authentication response from the server.
@@ -51,23 +49,12 @@ impl State {
             return Err("You must enter a display name.".to_string());
         }
 
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
-
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
         // Check if the username already exists and prevent duplicate usernames
-        let exists: Option<u8> = transaction
-            .exec_first(
-                "SELECT 1 FROM users WHERE username = ?",
-                (username.as_ref(),),
-            )
-            .map_err(|_| "Could not check for existing username".to_string())?;
-        let exists = exists.unwrap_or(0) != 0;
+        let exists = transaction.exists_user_by_username(username.as_ref())?;
+
         if exists {
             return Err("Username already exists".to_string());
         }
@@ -84,25 +71,18 @@ impl State {
         // Generate a token for the user
         let token = Uuid::new_v4().to_string();
 
-        transaction
-            .exec_drop(
-                "INSERT INTO users (id, username, password, display_name, email, token, creation_date) VALUES (?, ?, ?, ?, ?, ?, NOW())",
-                (
-                    &uid,
-                    username.as_ref(),
-                    &hash,
-                    display_name.as_ref(),
-                    email.as_ref(),
-                    &token
-                ),
-            )
-            .map_err(|_| "Could not set user in database".to_string())?;
+        transaction.insert_user(
+            &uid,
+            username.as_ref(),
+            &hash,
+            display_name.as_ref(),
+            email.as_ref(),
+            &token,
+        )?;
+
+        transaction.commit()?;
 
         crate::log!("User signed up with username {}", username.as_ref());
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(AuthResponse { uid, token })
     }
@@ -113,21 +93,10 @@ impl State {
         username: impl AsRef<str>,
         password: impl AsRef<str>,
     ) -> Result<AuthResponse, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        let user: Option<(String, String)> = transaction
-            .exec_first(
-                "SELECT id, password FROM users WHERE username = ?",
-                (username.as_ref(),),
-            )
-            .map_err(|_| "Could not get user data from database".to_string())?;
+        let user = transaction.select_id_and_password_by_username(username.as_ref())?;
 
         if let Some((uid, hash)) = user {
             let argon2 = Argon2::default();
@@ -139,15 +108,11 @@ impl State {
             if valid {
                 let token = Uuid::new_v4().to_string();
 
-                transaction
-                    .exec_drop("UPDATE users SET token = ? WHERE id = ?", (&token, &uid))
-                    .map_err(|_| "Could not set token in database".to_string())?;
+                transaction.update_token_by_id(&token, &uid)?;
+
+                transaction.commit()?;
 
                 crate::log!("User logged in with username {}", username.as_ref());
-
-                transaction
-                    .commit()
-                    .map_err(|_| "Could not commit transaction".to_string())?;
 
                 return Ok(AuthResponse { uid, token });
             }
@@ -158,18 +123,16 @@ impl State {
 
     /// Logs out the user with the given token.
     pub fn logout(&self, token: impl AsRef<str>) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        conn.exec_drop(
-            "UPDATE users SET token = NULL WHERE token = ?",
-            (token.as_ref(),),
-        )
-        .map_err(|_| "Could not remove token from database".to_string())?;
+        transaction.update_invalidate_token(token.as_ref())?;
 
-        if conn.affected_rows() == 0 {
+        let affected_rows = transaction.inner.affected_rows();
+
+        transaction.commit()?;
+
+        if affected_rows == 0 {
             Err("Invalid token".to_string())
         } else {
             Ok(())
@@ -178,14 +141,12 @@ impl State {
 
     /// Validates the token and if valid, returns the user's ID.
     pub fn validate_token(&self, token: impl AsRef<str>) -> Result<String, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let uid: Option<String> = conn
-            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
-            .map_err(|_| "Could not get user data from database".to_string())?;
+        let uid = transaction.select_id_by_token(token.as_ref())?;
+
+        transaction.commit()?;
 
         uid.ok_or_else(|| "Invalid token".to_string())
     }

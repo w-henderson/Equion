@@ -3,7 +3,6 @@
 use crate::State;
 
 use humphrey_json::prelude::*;
-use mysql::{prelude::*, TxOpts};
 
 /// Represents a user response from the server.
 #[derive(Clone)]
@@ -35,75 +34,65 @@ json_map! {
     online => "online"
 }
 
+impl User {
+    /// Converts a row of the database to a user.
+    pub(crate) fn from_row(
+        row: (
+            String,
+            String,
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+        ),
+    ) -> Self {
+        Self {
+            uid: row.0,
+            username: row.1,
+            display_name: row.2,
+            email: row.3,
+            image: row.4,
+            bio: row.5,
+            online: false,
+        }
+    }
+}
+
 impl State {
     /// Gets the user with the given ID from the database.
     pub fn get_user(&self, uid: impl AsRef<str>) -> Result<User, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        #[allow(clippy::type_complexity)]
-        let user: Option<(
-            String,
-            String,
-            String,
-            String,
-            Option<String>,
-            Option<String>,
-        )> = conn
-            .exec_first(
-                "SELECT id, username, display_name, email, image, bio FROM users WHERE id = ?",
-                (uid.as_ref(),),
-            )
-            .map_err(|_| "Could not get user from database".to_string())?;
+        let user = transaction
+            .select_user_by_uid(uid.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
+            })
+            .ok_or_else(|| "User not found".to_string());
 
-        let user = user.map(|(uid, username, display_name, email, image, bio)| User {
-            online: self.voice.is_user_online(&uid),
-            uid,
-            username,
-            display_name,
-            email,
-            image,
-            bio,
-        });
+        transaction.commit()?;
 
-        user.ok_or_else(|| "User not found".to_string())
+        user
     }
 
     /// Gets the user with the given token from the database.
     pub fn get_user_by_token(&self, token: impl AsRef<str>) -> Result<User, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        #[allow(clippy::type_complexity)]
-        let user: Option<(
-            String,
-            String,
-            String,
-            String,
-            Option<String>,
-            Option<String>,
-        )> = conn
-            .exec_first(
-                "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
-                (token.as_ref(),),
-            )
-            .map_err(|_| "Could not get user from database".to_string())?;
+        let user = transaction
+            .select_user_by_token(token.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
+            })
+            .ok_or_else(|| "User not found".to_string());
 
-        let user = user.map(|(uid, username, display_name, email, image, bio)| User {
-            online: self.voice.is_user_online(&uid),
-            uid,
-            username,
-            display_name,
-            email,
-            image,
-            bio,
-        });
+        transaction.commit()?;
 
-        user.ok_or_else(|| "User not found".to_string())
+        user
     }
 
     /// Updates the authenticated user's details.
@@ -114,78 +103,36 @@ impl State {
         email: Option<String>,
         bio: Option<String>,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
-
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
         if let Some(display_name) = display_name {
-            transaction
-                .exec_drop(
-                    "UPDATE users SET display_name = ? WHERE token = ?",
-                    (display_name, token.as_ref()),
-                )
-                .map_err(|_| "Could not update display name in database".to_string())?;
+            transaction.update_user_display_name(&display_name, token.as_ref())?;
         }
 
         if let Some(email) = email {
-            transaction
-                .exec_drop(
-                    "UPDATE users SET email = ? WHERE token = ?",
-                    (email, token.as_ref()),
-                )
-                .map_err(|_| "Could not update email in database".to_string())?;
+            transaction.update_user_email(&email, token.as_ref())?;
         }
 
         if let Some(bio) = bio {
-            transaction
-                .exec_drop(
-                    "UPDATE users SET bio = ? WHERE token = ?",
-                    (bio, token.as_ref()),
-                )
-                .map_err(|_| "Could not update bio in database".to_string())?;
+            transaction.update_user_bio(&bio, token.as_ref())?;
         }
 
-        #[allow(clippy::type_complexity)]
-        let user: Option<(
-            String,
-            String,
-            String,
-            String,
-            Option<String>,
-            Option<String>,
-        )> = transaction
-            .exec_first(
-                "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
-                (token.as_ref(),),
-            )
-            .map_err(|_| "Could not get user from database".to_string())?;
-
-        let user = user
-            .map(|(uid, username, display_name, email, image, bio)| User {
-                online: self.voice.is_user_online(&uid),
-                uid,
-                username,
-                display_name,
-                email,
-                image,
-                bio,
+        let user = transaction
+            .select_user_by_token(token.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
             })
             .ok_or_else(|| "User not found".to_string())?;
+
+        transaction.commit()?;
 
         let uid = user.uid.clone();
 
         self.broadcast_update_user(user);
 
         crate::log!("Updated user {}", uid);
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }
@@ -197,60 +144,27 @@ impl State {
         name: impl AsRef<str>,
         image: Vec<u8>,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        #[allow(clippy::type_complexity)]
-        let user: Option<(
-            String,
-            String,
-            String,
-            String,
-            Option<String>,
-            Option<String>,
-        )> = transaction
-            .exec_first(
-                "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
-                (token.as_ref(),),
-            )
-            .map_err(|_| "Could not get user from database".to_string())?;
-
-        let user = user
-            .map(|(uid, username, display_name, email, image, bio)| User {
-                online: self.voice.is_user_online(&uid),
-                uid,
-                username,
-                display_name,
-                email,
-                image,
-                bio,
+        let user = transaction
+            .select_user_by_token(token.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
             })
             .ok_or_else(|| "User not found".to_string())?;
 
-        let file_id = self.set_file(name, image, &user.uid, Some(&mut transaction))?;
+        let file_id = self.set_file(name, image, &user.uid, &mut transaction)?;
 
-        transaction
-            .exec_drop(
-                "UPDATE users SET image = ? WHERE token = ?",
-                (file_id, token.as_ref()),
-            )
-            .map_err(|_| "Could not update image in database".to_string())?;
+        transaction.update_user_image(&file_id, token.as_ref())?;
+        transaction.commit()?;
 
         let uid = user.uid.clone();
 
         self.broadcast_update_user(user);
 
         crate::log!("Updated user {} image", uid);
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }

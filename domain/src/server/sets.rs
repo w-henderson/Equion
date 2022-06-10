@@ -6,7 +6,6 @@ use crate::voice::user::WrappedVoiceUser;
 use crate::State;
 
 use humphrey_json::prelude::*;
-use mysql::{prelude::*, TxOpts};
 use uuid::Uuid;
 
 /// Represents a set response from the server.
@@ -35,6 +34,31 @@ pub struct Subset {
     pub name: String,
 }
 
+impl Set {
+    /// Converts a row of the database to a set.
+    pub(crate) fn from_row(row: (String, String, String, bool)) -> Self {
+        Self {
+            id: row.0,
+            name: row.1,
+            icon: row.2,
+            admin: row.3,
+            subsets: Vec::new(),
+            members: Vec::new(),
+            voice_members: Vec::new(),
+        }
+    }
+}
+
+impl Subset {
+    /// Converts a row of the database to a subset.
+    pub(crate) fn from_row(row: (String, String)) -> Self {
+        Self {
+            id: row.0,
+            name: row.1,
+        }
+    }
+}
+
 json_map! {
     Set,
     id => "id",
@@ -55,202 +79,101 @@ json_map! {
 impl State {
     /// Gets all the sets for the authenticated uesr.
     pub fn get_sets(&self, token: impl AsRef<str>) -> Result<Vec<Set>, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        let user: Option<String> = transaction
-            .exec_first(
-                "SELECT username FROM users WHERE token = ?",
-                (token.as_ref(),),
-            )
-            .map_err(|_| "Could not check for invalid token".to_string())?;
+        let user = transaction.select_username_by_token(token.as_ref())?;
 
         if user.is_none() {
             return Err("Invalid token".to_string());
         }
 
-        let sets: Vec<(String, String, String, bool)> = transaction
-            .exec(
-                "SELECT sets.id, sets.name, sets.icon, memberships.admin FROM sets
-                    JOIN memberships ON sets.id = memberships.set_id
-                    JOIN users ON memberships.user_id = users.id
-                    WHERE users.token = ?
-                    ORDER BY memberships.creation_date ASC",
-                (token.as_ref(),),
-            )
-            .map_err(|_| "Could not execute query".to_string())?;
+        let sets: Result<Vec<Set>, String> = transaction
+            .select_sets_by_token(token.as_ref())?
+            .into_iter()
+            .map(|mut set| {
+                set.subsets = transaction.select_subsets_by_set(&set.id)?;
 
-        let mut full_sets: Vec<Set> = Vec::new();
+                set.members = transaction
+                    .select_users_by_set(&set.id)?
+                    .into_iter()
+                    .map(|mut user| {
+                        user.online = self.voice.is_user_online(&user.uid);
+                        user
+                    })
+                    .collect();
 
-        for (id, name, icon, admin) in sets {
-            let subsets: Vec<Subset> = transaction
-                .exec(
-                    "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
-                    (&id,),
-                )
-                .map_err(|_| "Could not get subsets".to_string())?
-                .into_iter()
-                .map(|(id, name)| Subset { id, name })
-                .collect();
+                let voice_members = self.voice.get_channel_members(&set.id);
 
-            let members: Vec<User> = transaction
-                .exec(
-                    "SELECT users.id, username, display_name, email, image, bio FROM users
-                    JOIN memberships ON users.id = memberships.user_id
-                    WHERE memberships.set_id = ?
-                    ORDER BY display_name ASC",
-                    (&id,),
-                )
-                .map_err(|_| "Could not get members".to_string())?
-                .into_iter()
-                .map(|(uid, username, display_name, email, image, bio)| User {
-                    online: self.voice.is_user_online(&uid),
-                    uid,
-                    username,
-                    display_name,
-                    email,
-                    image,
-                    bio,
-                })
-                .collect();
+                set.voice_members = set
+                    .members
+                    .clone()
+                    .into_iter()
+                    .filter(|member| voice_members.contains(&member.uid))
+                    .map(|user| WrappedVoiceUser {
+                        peer_id: self.voice.get_peer_id(&user.uid).unwrap(),
+                        user,
+                    })
+                    .collect();
 
-            let voice_members = self.voice.get_channel_members(&id);
+                Ok(set)
+            })
+            .collect();
 
-            let voice_members: Vec<WrappedVoiceUser> = members
-                .clone()
-                .into_iter()
-                .filter(|member| voice_members.contains(&member.uid))
-                .map(|user| WrappedVoiceUser {
-                    peer_id: self.voice.get_peer_id(&user.uid).unwrap(),
-                    user,
-                })
-                .collect();
+        let sets = sets?;
 
-            full_sets.push(Set {
-                id,
-                name,
-                icon,
-                admin,
-                subsets,
-                members,
-                voice_members,
-            });
-        }
+        transaction.commit()?;
 
         crate::log!("User {} retrieved sets", user.unwrap());
 
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
-
-        Ok(full_sets)
+        Ok(sets)
     }
 
     /// Gets the specific set.
     pub fn get_set(&self, token: impl AsRef<str>, id: impl AsRef<str>) -> Result<Set, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let set: Option<Result<Set, String>> = transaction
+            .select_set_by_id_and_token(token.as_ref(), id.as_ref())?
+            .map(|mut set| {
+                set.subsets = transaction.select_subsets_by_set(&set.id)?;
 
-        let meta: Option<(bool, String)> = transaction
-            .exec_first(
-                "SELECT memberships.admin, users.id FROM memberships
-                    JOIN users ON users.id = memberships.user_id
-                    WHERE users.token = ? AND memberships.set_id = ?",
-                (token.as_ref(), id.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
+                set.members = transaction
+                    .select_users_by_set(&set.id)?
+                    .into_iter()
+                    .map(|mut user| {
+                        user.online = self.voice.is_user_online(&user.uid);
+                        user
+                    })
+                    .collect();
 
-        if meta.is_none() {
-            return Err("Not a member of this set".to_string());
-        }
+                let voice_members = self.voice.get_channel_members(&set.id);
 
-        let (is_admin, user) = meta.unwrap();
+                set.voice_members = set
+                    .members
+                    .clone()
+                    .into_iter()
+                    .filter(|member| voice_members.contains(&member.uid))
+                    .map(|user| WrappedVoiceUser {
+                        peer_id: self.voice.get_peer_id(&user.uid).unwrap(),
+                        user,
+                    })
+                    .collect();
 
-        let set: Option<Set> = transaction
-            .exec_first(
-                "SELECT id, name, icon FROM sets WHERE id = ?",
-                (id.as_ref(),),
-            )
-            .map_err(|_| "Could not execute query".to_string())?
-            .map(|(id, name, icon)| Set {
-                id,
-                name,
-                icon,
-                admin: is_admin,
-                subsets: Vec::new(),
-                members: Vec::new(),
-                voice_members: Vec::new(),
+                Ok(set)
             });
 
-        if let Some(mut set) = set {
-            let subsets: Vec<Subset> = transaction
-                .exec(
-                    "SELECT id, name FROM subsets WHERE set_id = ? ORDER BY creation_date ASC",
-                    (&set.id,),
-                )
-                .map_err(|_| "Could not get subsets".to_string())?
-                .into_iter()
-                .map(|(id, name)| Subset { id, name })
-                .collect();
+        if let Some(set) = set {
+            let set = set?;
 
-            let members: Vec<User> = transaction
-                .exec(
-                    "SELECT users.id, username, display_name, email, image, bio FROM users
-                    JOIN memberships ON users.id = memberships.user_id
-                    WHERE memberships.set_id = ?
-                    ORDER BY display_name ASC",
-                    (&set.id,),
-                )
-                .map_err(|_| "Could not get members".to_string())?
-                .into_iter()
-                .map(|(uid, username, display_name, email, image, bio)| User {
-                    online: self.voice.is_user_online(&uid),
-                    uid,
-                    username,
-                    display_name,
-                    email,
-                    image,
-                    bio,
-                })
-                .collect();
+            transaction.commit()?;
 
-            let voice_members = self.voice.get_channel_members(&id);
-
-            let voice_members: Vec<WrappedVoiceUser> = members
-                .clone()
-                .into_iter()
-                .filter(|member| voice_members.contains(&member.uid))
-                .map(|user| WrappedVoiceUser {
-                    peer_id: self.voice.get_peer_id(&user.uid).unwrap(),
-                    user,
-                })
-                .collect();
-
-            set.subsets = subsets;
-            set.members = members;
-            set.voice_members = voice_members;
-
-            crate::log!("User {} retrieved set {}", user, id.as_ref());
-
-            transaction
-                .commit()
-                .map_err(|_| "Could not commit transaction".to_string())?;
+            crate::log!("User {} retrieved set {}", token.as_ref(), id.as_ref());
 
             Ok(set)
         } else {
-            Err("Could not find set".to_string())
+            Err("Set not found".to_string())
         }
     }
 
@@ -261,18 +184,10 @@ impl State {
         name: impl AsRef<str>,
         icon: Option<String>,
     ) -> Result<String, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        let user_id: Option<String> = transaction
-            .exec_first("SELECT id FROM users WHERE token = ?", (token.as_ref(),))
-            .map_err(|_| "Could not get user by token".to_string())?;
+        let user_id = transaction.select_id_by_token(token.as_ref())?;
 
         if user_id.is_none() {
             return Err("Invalid token".to_string());
@@ -282,6 +197,7 @@ impl State {
 
         let new_set_id = Uuid::new_v4().to_string();
         let new_membership_id = Uuid::new_v4().to_string();
+        let new_subset_id = Uuid::new_v4().to_string();
 
         let icon = icon
             .unwrap_or_else(|| {
@@ -292,30 +208,13 @@ impl State {
             .unwrap_or('α')
             .to_string();
 
-        transaction
-            .exec_drop(
-                "INSERT INTO sets (id, name, icon, creation_date) VALUES (?, ?, ?, NOW())",
-                (&new_set_id, name.as_ref(), icon),
-            )
-            .map_err(|_| "Could not add new set".to_string())?;
+        transaction.insert_set(&new_set_id, name.as_ref(), &icon)?;
+        transaction.insert_membership(&new_membership_id, &user_id, &new_set_id, true)?;
+        transaction.insert_subset(&new_subset_id, "General", &new_set_id)?;
 
-        transaction.exec_drop(
-            "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 1, NOW())",
-            (&new_membership_id, &user_id, &new_set_id),
-        )
-        .map_err(|_| "Could not add new membership".to_string())?;
-
-        transaction.exec_drop(
-            "INSERT INTO subsets (id, name, set_id, creation_date) VALUES (UUID(), \"General\", ?, NOW())",
-            (&new_set_id,),
-        )
-        .map_err(|_| "Could not add General subset".to_string())?;
+        transaction.commit()?;
 
         crate::log!("User {} created set {}", user_id, new_set_id);
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(new_set_id)
     }
@@ -327,29 +226,16 @@ impl State {
         set: impl AsRef<str>,
         name: impl AsRef<str>,
     ) -> Result<String, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let membership = transaction.select_membership(token.as_ref(), set.as_ref())?;
 
-        let meta: Option<(bool, String)> = transaction
-            .exec_first(
-                "SELECT memberships.admin, users.id FROM memberships
-                    JOIN users ON memberships.user_id = users.id
-                    WHERE users.token = ? AND memberships.set_id = ?",
-                (token.as_ref(), set.as_ref()),
-            )
-            .map_err(|_| "Could not verify permissions".to_string())?;
-
-        if meta.is_none() {
+        if membership.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
-        let (is_admin, user_id) = meta.unwrap();
+        let (is_admin, user_id) = membership.unwrap();
 
         if !is_admin {
             return Err("Insuffient permissions".to_string());
@@ -357,20 +243,13 @@ impl State {
 
         let new_subset_id = Uuid::new_v4().to_string();
 
-        transaction
-            .exec_drop(
-                "INSERT INTO subsets (id, set_id, name, creation_date) VALUES (?, ?, ?, NOW())",
-                (&new_subset_id, set.as_ref(), name.as_ref()),
-            )
-            .map_err(|_| "Could not add new subset".to_string())?;
-
-        self.broadcast_subset(set, &new_subset_id, name, false);
+        transaction.insert_subset(&new_subset_id, name.as_ref(), set.as_ref())?;
 
         crate::log!("User {} created subset {}", user_id, new_subset_id);
 
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
+        self.broadcast_subset(set, &new_subset_id, name, false);
+
+        transaction.commit()?;
 
         Ok(new_subset_id)
     }
@@ -383,24 +262,11 @@ impl State {
         name: Option<String>,
         delete: Option<bool>,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        let (admin, set_id, subset_name, user_id): (bool, String, String, String) = transaction
-            .exec_first(
-                "SELECT memberships.admin, subsets.set_id, subsets.name, users.id FROM memberships
-                    JOIN users ON memberships.user_id = users.id
-                    JOIN subsets ON memberships.set_id = subsets.set_id
-                    WHERE users.token = ? AND subsets.id = ?",
-                (token.as_ref(), subset.as_ref()),
-            )
-            .map_err(|_| "Could not verify permissions".to_string())?
+        let (admin, set_id, subset_name, user_id) = transaction
+            .select_subset_metadata_for_update(token.as_ref(), subset.as_ref())?
             .ok_or_else(|| "Not a member of this set".to_string())?;
 
         if !admin {
@@ -408,71 +274,36 @@ impl State {
         }
 
         if delete == Some(true) {
-            transaction.exec_drop("DELETE FROM messages WHERE subset = ?", (subset.as_ref(),))
-                .map_err(|_| "Could not delete messages".to_string())?;
-
-            transaction
-                .exec_drop("DELETE FROM subsets WHERE id = ?", (subset.as_ref(),))
-                .map_err(|_| "Could not delete subset".to_string())?;
+            transaction.delete_subset_messages(subset.as_ref())?;
+            transaction.delete_subset(subset.as_ref())?;
+            transaction.commit()?;
 
             self.broadcast_subset(set_id, &subset, subset_name, true);
 
             crate::log!("User {} deleted subset {}", user_id, subset.as_ref());
         } else if let Some(name) = name {
-            transaction
-                .exec_drop(
-                    "UPDATE subsets SET name = ? WHERE id = ?",
-                    (&name, subset.as_ref()),
-                )
-                .map_err(|_| "Could not update subset".to_string())?;
+            transaction.update_subset_name(&name, subset.as_ref())?;
+            transaction.commit()?;
 
             self.broadcast_subset(set_id, &subset, name, false);
 
             crate::log!("User {} updated subset {}", user_id, subset.as_ref());
         }
 
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
-
         Ok(())
     }
 
     /// Adds the authenticated user to the given set.
     pub fn join_set(&self, token: impl AsRef<str>, set: impl AsRef<str>) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
-
-        #[allow(clippy::type_complexity)]
-        let user: Option<(
-            String,
-            String,
-            String,
-            String,
-            Option<String>,
-            Option<String>,
-        )> = transaction
-            .exec_first(
-                "SELECT id, username, display_name, email, image, bio FROM users WHERE token = ?",
-                (token.as_ref(),),
-            )
-            .map_err(|_| "Invalid token".to_string())?;
-
-        let user = user.map(|(uid, username, display_name, email, image, bio)| User {
-            online: self.voice.is_user_online(&uid),
-            uid,
-            username,
-            display_name,
-            email,
-            image,
-            bio,
-        });
+        let user = transaction
+            .select_user_by_token(token.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
+            });
 
         if user.is_none() {
             return Err("Invalid token".to_string());
@@ -480,24 +311,15 @@ impl State {
 
         let user = user.unwrap();
 
-        let has_membership: Option<u8> = transaction
-            .exec_first(
-                "SELECT 1 FROM memberships WHERE user_id = ? AND set_id = ?",
-                (&user.uid, set.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
+        let has_membership = transaction.select_user_has_membership(&user.uid, set.as_ref())?;
 
-        if has_membership.unwrap_or(0) != 0 {
+        if has_membership {
             return Err("Already a member of this set".to_string());
         }
 
         let new_membership_id = Uuid::new_v4().to_string();
-
-        transaction.exec_drop(
-            "INSERT INTO memberships (id, user_id, set_id, admin, creation_date) VALUES (?, ?, ?, 0, NOW())",
-            (&new_membership_id, &user.uid, set.as_ref()),
-        )
-        .map_err(|_| "Could not add new membership".to_string())?;
+        transaction.insert_membership(&new_membership_id, &user.uid, set.as_ref(), false)?;
+        transaction.commit()?;
 
         let uid = user.uid.clone();
 
@@ -505,52 +327,40 @@ impl State {
 
         crate::log!("User {} joined set {}", uid, set.as_ref());
 
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
-
         Ok(())
     }
 
     /// Removes the authenticated user from the given set.
     pub fn leave_set(&self, token: impl AsRef<str>, set: impl AsRef<str>) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let user = self.get_user_by_token(token)?;
+        let user = transaction
+            .select_user_by_token(token.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
+            });
+
+        if user.is_none() {
+            return Err("Invalid token".to_string());
+        }
+
+        let user = user.unwrap();
         let user_id = user.uid.clone();
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let has_membership = transaction.select_user_has_membership(&user_id, set.as_ref())?;
 
-        let has_membership: Option<u8> = transaction
-            .exec_first(
-                "SELECT 1 FROM memberships WHERE user_id = ? AND set_id = ?",
-                (&user_id, set.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
-
-        if has_membership.unwrap_or(0) == 0 {
+        if !has_membership {
             return Err("Not a member of this set".to_string());
         }
 
-        transaction
-            .exec_drop(
-                "DELETE FROM memberships WHERE user_id = ? AND set_id = ?",
-                (&user_id, set.as_ref()),
-            )
-            .map_err(|_| "Could not remove membership".to_string())?;
+        transaction.delete_membership(&user_id, set.as_ref())?;
+        transaction.commit()?;
 
         self.broadcast_left_user(set.as_ref(), user);
 
         crate::log!("User {} left set {}", user_id, set.as_ref());
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }

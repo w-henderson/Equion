@@ -9,8 +9,6 @@ use humphrey_ws::Message;
 
 use humphrey_json::prelude::*;
 
-use mysql::{prelude::*, TxOpts};
-
 use std::collections::hash_map::Entry;
 use std::net::SocketAddr;
 
@@ -22,25 +20,12 @@ impl State {
         set: impl AsRef<str>,
         addr: SocketAddr,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let membership = transaction.select_membership(token.as_ref(), set.as_ref())?;
 
-        let user: Option<String> = transaction
-            .exec_first(
-                "SELECT memberships.user_id FROM memberships
-                    JOIN users ON users.id = memberships.user_id
-                    WHERE users.token = ? AND memberships.set_id = ?",
-                (token.as_ref(), set.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
-
-        if user.is_none() {
+        if membership.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -59,16 +44,14 @@ impl State {
             }
         }
 
+        transaction.commit()?;
+
         crate::log!(
             Debug,
             "User {} subscribed to set {}",
-            user.unwrap(),
+            membership.unwrap().1,
             set.as_ref()
         );
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }
@@ -80,25 +63,12 @@ impl State {
         set: impl AsRef<str>,
         addr: SocketAddr,
     ) -> Result<(), String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let mut transaction = conn
-            .start_transaction(TxOpts::default())
-            .map_err(|_| "Could not start transaction".to_string())?;
+        let membership = transaction.select_membership(token.as_ref(), set.as_ref())?;
 
-        let user: Option<String> = transaction
-            .exec_first(
-                "SELECT memberships.user_id FROM memberships
-                    JOIN users ON users.id = memberships.user_id
-                    WHERE users.token = ? AND memberships.set_id = ?",
-                (token.as_ref(), set.as_ref()),
-            )
-            .map_err(|_| "Could not verify membership".to_string())?;
-
-        if user.is_none() {
+        if membership.is_none() {
             return Err("Not a member of this set".to_string());
         }
 
@@ -117,16 +87,14 @@ impl State {
             }
         }
 
+        transaction.commit()?;
+
         crate::log!(
             Debug,
             "User {} unsubscribed from set {}",
-            user.unwrap(),
+            membership.unwrap().1,
             set.as_ref()
         );
-
-        transaction
-            .commit()
-            .map_err(|_| "Could not commit transaction".to_string())?;
 
         Ok(())
     }
@@ -220,18 +188,11 @@ impl State {
 
     /// Broadcasts the "update user" event to all subscribers of the set.
     pub fn broadcast_update_user(&self, user: User) -> Option<()> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())
-            .ok()?;
+        let mut conn = self.db.connection().ok()?;
+        let mut transaction = conn.transaction().ok()?;
 
-        let set_ids: Vec<String> = conn
-            .exec(
-                "SELECT set_id FROM memberships WHERE user_id = ?",
-                (&user.uid,),
-            )
-            .ok()?;
+        let set_ids = transaction.select_user_set_ids(&user.uid).ok()?;
+        transaction.commit().ok()?;
 
         let subscriptions = self.subscriptions.read().unwrap();
 

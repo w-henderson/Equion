@@ -3,9 +3,9 @@
 //! Currently, files are stored in the database, but in the future this will be changed to AWS S3 or Minio
 //!   to perform better at scale. The API is designed so this will require minimal changes.
 
+use crate::db::Transaction;
 use crate::State;
 
-use mysql::{prelude::*, Transaction};
 use uuid::Uuid;
 
 /// Represents a file response from the server.
@@ -20,27 +20,27 @@ pub struct FileResponse {
     pub owner: String,
 }
 
+impl FileResponse {
+    /// Converts a row of the database to a file response.
+    pub(crate) fn from_row(row: (String, String, Vec<u8>, String)) -> Self {
+        FileResponse {
+            id: row.0,
+            name: row.1,
+            content: row.2,
+            owner: row.3,
+        }
+    }
+}
+
 impl State {
     /// Gets the file with the given ID from the file store.
     pub fn get_file(&self, id: impl AsRef<str>) -> Result<FileResponse, String> {
-        let mut conn = self
-            .pool
-            .get_conn()
-            .map_err(|_| "Could not connect to database".to_string())?;
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
 
-        let file: Option<(String, String, Vec<u8>, String)> = conn
-            .exec_first(
-                "SELECT id, name, content, owner FROM files WHERE id = ?",
-                (id.as_ref(),),
-            )
-            .map_err(|_| "Could not get file from database".to_string())?;
+        let file = transaction.select_file_by_id(id.as_ref())?;
 
-        let file = file.map(|(id, name, content, owner)| FileResponse {
-            id,
-            name,
-            content,
-            owner,
-        });
+        transaction.commit()?;
 
         file.ok_or_else(|| "File not found".to_string())
     }
@@ -51,29 +51,11 @@ impl State {
         name: impl AsRef<str>,
         content: Vec<u8>,
         owner: impl AsRef<str>,
-        transaction: Option<&mut Transaction>,
+        transaction: &mut Transaction,
     ) -> Result<String, String> {
         let id = Uuid::new_v4().to_string();
 
-        if let Some(transaction) = transaction {
-            transaction
-                .exec_drop(
-                    "INSERT INTO files (id, name, content, owner) VALUES (?, ?, ?, ?)",
-                    (&id, name.as_ref(), &content, owner.as_ref()),
-                )
-                .map_err(|_| "Could not set file in database".to_string())?;
-        } else {
-            let mut conn = self
-                .pool
-                .get_conn()
-                .map_err(|_| "Could not connect to database".to_string())?;
-
-            conn.exec_drop(
-                "INSERT INTO files (id, name, content, owner) VALUES (?, ?, ?, ?)",
-                (&id, name.as_ref(), &content, owner.as_ref()),
-            )
-            .map_err(|_| "Could not set file in database".to_string())?;
-        }
+        transaction.insert_file(&id, name.as_ref(), content, owner.as_ref())?;
 
         crate::log!(
             "File created with name \"{}\" and ID \"{}\"",
