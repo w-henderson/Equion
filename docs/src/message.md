@@ -4,10 +4,12 @@ Messages are encoded in Equion in a similar way to Discord, but Equion also supp
 
 ## Patterns
 
-| Name | Regex Pattern | Example | Example Parsed |
+| Name | Regex Pattern (Simplified) | Example | Example Parsed |
 | --- | --- | --- | --- |
-| Block LaTeX | `/\\\[.*\\\]/` | `\[x^2\]` | <img src="https://latex.codecogs.com/png.image?\dpi{180}x^2" style="background-color:white;padding:4px"> |
-| Inline LaTeX | `/\\\(.*\\\)/` | `\(x^2\)` | <img src="https://latex.codecogs.com/png.image?\dpi{120}x^2" style="background-color:white;padding:4px"> |
+| Block LaTeX (`\[ \]` delimiters) | `/\\\[.*\\\]/` | `\[x^2\]` | <img src="https://latex.codecogs.com/png.image?\dpi{180}x^2" style="background-color:white;padding:4px"> |
+| Inline LaTeX (`\( \)` delimiters) | `/\\\(.*\\\)/` | `\(x^2\)` | <img src="https://latex.codecogs.com/png.image?\dpi{120}x^2" style="background-color:white;padding:4px"> |
+| Block LaTeX (`$$ $$` delimiters) | `/\$\$.*\$\$/` | `$$x^2$$` | <img src="https://latex.codecogs.com/png.image?\dpi{180}x^2" style="background-color:white;padding:4px"> |
+| Inline LaTeX (`$ $` delimiters) | `/\$.*\$/` | `$x^2$` | <img src="https://latex.codecogs.com/png.image?\dpi{120}x^2" style="background-color:white;padding:4px"> |
 | Bold | `/\*\*.*\*\*/` | `**bold**` | **bold** |
 | Italic | `/\*.*\*/` | `*italic*` | *italic* |
 | Underline | `/__.*__/` | `__underline__` | __underline__ |

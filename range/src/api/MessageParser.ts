@@ -1,6 +1,6 @@
-const SEGMENT_REGEX = {
-  blockLatex: /\\\[(.*?)\\\]/g,
-  inlineLatex: /\\\((.*?)\\\)/g,
+const SEGMENT_REGEX: Record<string, RegExp | RegExp[]> = {
+  blockLatex: [/\\\[(.*?)\\\]/g, /\$\$(.*?)\$\$/g],
+  inlineLatex: [/\\\((.*?)\\\)/g, /(?<!\$)\$(?!\$)(.*?)\$/g],
   blockCode: /^```\w*\n([\s\S]*?)^```$/gm,
   inlineCode: /`([^`\n]+?)`/g,
   bold: /\*\*(.*?)\*\*/g,
@@ -77,12 +77,24 @@ export class MessageParser {
         let type = null;
 
         for (const [newType, newRegex] of Object.entries(SEGMENT_REGEX)) {
-          const newLocation = segment.value.search(newRegex);
-          if (newLocation !== -1) {
-            location = newLocation;
-            regex = newRegex;
-            type = newType;
-            break;
+          if (newRegex instanceof RegExp) {
+            const newLocation = segment.value.search(newRegex);
+            if (newLocation !== -1) {
+              location = newLocation;
+              regex = newRegex;
+              type = newType;
+              break;
+            }
+          } else {
+            for (const newRegexComponent of newRegex) {
+              const newLocation = segment.value.search(newRegexComponent);
+              if (newLocation !== -1) {
+                location = newLocation;
+                regex = newRegexComponent;
+                type = newType;
+                break;
+              }
+            }
           }
         }
 
