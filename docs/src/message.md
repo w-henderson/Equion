@@ -1,4 +1,5 @@
-# Message Encoding Document
+# Message Encoding
+
 Messages are encoded in Equion in a similar way to Discord, but Equion also supports LaTeX expressions. Messages are stored as a string, with the following patterns having special meaning.
 
 ## Patterns
