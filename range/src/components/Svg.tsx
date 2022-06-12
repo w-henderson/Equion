@@ -193,3 +193,17 @@ export function VolumeIcon(props: SvgProps) {
     </svg>
   );
 }
+
+/**
+ * Maximise icon.
+ */
+export function MaximiseIcon(props: SvgProps) {
+  return (
+    <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onClick={props.onClick}>
+      <path d="M7 4H4V7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M17 4H20V7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 20H4V17" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M17 20H20V17" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

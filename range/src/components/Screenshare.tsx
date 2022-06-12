@@ -2,6 +2,8 @@ import React from "react";
 import Modal from "./Modal";
 import "../styles/Screenshare.scss";
 
+import { MaximiseIcon } from "./Svg";
+
 interface ScreenshareProps {
   stream: MediaStream | null,
   close: () => void
@@ -38,7 +40,19 @@ class Screenshare extends React.Component<ScreenshareProps> {
     return (
       <Modal visible={this.props.stream !== null} close={this.props.close} className="Screenshare">
         {this.props.stream &&
-          <video ref={this.videoRef} autoPlay={true} />
+          <>
+            <video ref={this.videoRef} autoPlay={true} />
+
+            <div className="controls">
+              <div onClick={() => this.videoRef.current!.requestFullscreen()}>
+                <MaximiseIcon />
+              </div>
+
+              <div className="red" onClick={this.props.close}>
+                x
+              </div>
+            </div>
+          </>
         }
       </Modal>
     );
