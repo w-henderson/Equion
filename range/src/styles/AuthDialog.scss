@@ -25,19 +25,30 @@ div.AuthDialog {
       border-radius: 4px;
 
       color: white;
-      background-color: var(--mid);
+      background-color: transparent;
 
-      transition: background-color 200ms;
+      transition: background-color 150ms, border 150ms, transform 150ms;
 
       &:focus:not(:disabled),
       &:hover:not(:disabled) {
-        background-color: var(--accent-dark);
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      &:focus:not(:disabled) {
+        background-color: var(--accent);
+        transform: scale(1.05);
       }
 
       &[type="submit"],
       &[type="button"] {
         width: 100%;
         cursor: pointer;
+
+        &:hover:not(:disabled) {
+          background-color: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
         &:disabled {
           color: rgba(255, 255, 255, 0.5);

@@ -2,7 +2,7 @@ div.App {
   display: flex;
   flex-direction: row;
   height: 100%;
-  background-color: var(--dark);
+  background: linear-gradient(to bottom, var(--accent), var(--mid));
   overflow: hidden;
 
   div.noSetSelected {
@@ -11,6 +11,7 @@ div.App {
     place-items: center;
     place-content: center;
     width: 100%;
+    background-color: var(--dark);
   }
 
   &.offline {
@@ -34,12 +35,13 @@ div.App {
       border-radius: 4px;
 
       color: white;
-      background-color: var(--mid);
+      background-color: transparent;
 
-      transition: background-color 200ms;
+      transition: background-color 150ms, border 150ms;
 
       &:hover {
-        background-color: var(--accent-dark);
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
 
       cursor: pointer;

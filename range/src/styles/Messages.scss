@@ -3,6 +3,7 @@ div.Messages {
   display: flex;
   flex-direction: column;
   flex: 1;
+  background: var(--dark);
 
   img.limitSize {
     max-width: 70vw;
