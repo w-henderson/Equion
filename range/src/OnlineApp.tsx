@@ -2,8 +2,9 @@ import React from "react";
 import "./styles/App.scss";
 
 import { confirm } from "@tauri-apps/api/dialog";
-import { MathJaxContext } from "better-react-mathjax";
+import { listen, Event as TauriEvent } from "@tauri-apps/api/event";
 import { appWindow } from "@tauri-apps/api/window";
+import { MathJaxContext } from "better-react-mathjax";
 import toast, { Toaster } from "react-hot-toast";
 import * as immutable from "object-path-immutable";
 
@@ -43,6 +44,7 @@ interface OnlineAppState {
 class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   api: Api;
   sets: React.RefObject<Sets>;
+  unlisten?: () => void;
 
   /**
    * Initializes the online app.
@@ -88,9 +90,13 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * When the app has rendered, initialize the API.
    */
-  componentDidMount() {
+  async componentDidMount() {
     if (GLOBAL_STATE.rendered) return;
     GLOBAL_STATE.rendered = true;
+
+    if (this.unlisten === undefined) {
+      this.unlisten = await listen("deep-link", this.onDeepLink.bind(this));
+    }
 
     this.api.init().then(authenticated => {
       if (authenticated) {
@@ -109,6 +115,20 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         });
       }
     });
+  }
+
+  /**
+   * Cleans up the component.
+   */
+  componentWillUnmount() {
+    if (this.unlisten !== undefined) this.unlisten();
+  }
+
+  /**
+   * Handler for deep links.
+   */
+  onDeepLink(e: TauriEvent<string>) {
+    toast(e.payload);
   }
 
   /**

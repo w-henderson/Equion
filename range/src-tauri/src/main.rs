@@ -8,11 +8,21 @@ mod commands;
 use tauri::{AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu};
 
 fn main() {
+    tauri_plugin_deep_link::prepare("dev.whenderson.equion");
+
     let tray_menu =
         SystemTrayMenu::new().add_item(CustomMenuItem::new("quit".to_string(), "Quit Equion"));
     let tray = SystemTray::new().with_menu(tray_menu);
 
     let app = tauri::Builder::default()
+        .setup(|app| {
+            let handle = app.handle();
+            tauri_plugin_deep_link::register("equion", move |req| {
+                handle.emit_all("deep-link", req).unwrap()
+            })
+            .unwrap();
+            Ok(())
+        })
         .system_tray(tray)
         .invoke_handler(tauri::generate_handler![
             commands::get_base64_file,
