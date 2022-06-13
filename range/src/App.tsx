@@ -146,8 +146,15 @@ class App extends React.Component<unknown, AppState> {
    * Handles loss of connection.
    */
   onConnectionLost() {
+    if (this.interval) {
+      window.clearInterval(this.interval);
+    }
+
     if (this.state.status === "online") window.location.reload();
-    else this.setState({ status: "offline" });
+    else this.setState({
+      status: "offline",
+      ws: null
+    });
   }
 
   /**

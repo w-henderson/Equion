@@ -135,7 +135,6 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
                 type="range"
                 min={0}
                 max={2}
-                defaultValue={1}
                 step={0.01}
                 value={this.state.volume}
                 onChange={this.volumeChange} />

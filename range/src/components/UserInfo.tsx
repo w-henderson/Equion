@@ -62,7 +62,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    * If the component is supposed to be showing a user, but their data has not been loaded, load it.
    */
   componentDidUpdate() {
-    if (!this.state.loading && this.props.id !== null && this.state.data === null) {
+    if (!this.state.loading && this.props.id !== null && (this.state.data === null || this.state.data.uid !== this.props.id)) {
       this.setState({ loading: true }, () => {
         if (this.props.id === null) return;
 
@@ -122,7 +122,6 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
     if (!this.state.loading) {
       this.props.hideCallback();
       this.setState({
-        data: null,
         editing: false,
         displayName: "",
         about: "",
@@ -159,6 +158,8 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    * Renders the component.
    */
   render() {
+    const showData = !this.state.loading && this.state.data !== null;
+
     if (!this.state.editing) {
       return (
         <Modal
@@ -166,7 +167,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
           close={this.close}
           className="UserInfo">
 
-          {this.state.data?.uid === this.context!.getUid() &&
+          {showData && this.state.data!.uid === this.context!.getUid() &&
             <>
               <div className="logoutButton" onClick={this.logout}>
                 <LogOutButton />
@@ -178,23 +179,23 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
             </>
           }
 
-          {this.state.data !== null &&
+          {showData &&
             <>
-              <div className={this.state.data.online || this.state.data.uid === this.context?.getUid() ? "image online" : "image"}>
-                <img src={this.context!.getFileURL(this.state.data.image)} alt="Profile" />
+              <div className={this.state.data!.online || this.state.data!.uid === this.context?.getUid() ? "image online" : "image"}>
+                <img src={this.context!.getFileURL(this.state.data!.image)} alt="Profile" />
               </div>
 
-              <h1>{this.state.data.displayName}</h1>
-              <span className="username">@{this.state.data.username}</span>
+              <h1>{this.state.data!.displayName}</h1>
+              <span className="username">@{this.state.data!.username}</span>
 
               <div>
                 <h2>About</h2>
-                {this.state.data.bio || <i>Not available.</i>}
+                {this.state.data!.bio || <i>Not available.</i>}
               </div>
             </>
           }
 
-          {this.state.data === null &&
+          {!showData &&
             <>
               <div className="image">
                 <img src={DEFAULT_PROFILE_IMAGE} alt="Profile" />
