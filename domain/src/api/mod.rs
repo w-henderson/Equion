@@ -37,8 +37,13 @@ declare_endpoints! {
     "v1/createSet" => create_set("token", "name", (optional "icon")) -> "id",
     "v1/createSubset" => create_subset("token", "set", "name") -> "id",
     "v1/updateSubset" => update_subset("token", "subset", (optional "name"), (boolean optional "delete")) -> None,
-    "v1/joinSet" => join_set("token", "set") -> None,
+    "v1/joinSet" => join_set("token", "code") -> None,
     "v1/leaveSet" => leave_set("token", "set") -> None,
+
+    // Invites endpoints
+    "v1/invites" => get_invites("token", "set") -> "invites",
+    "v1/createInvite" => create_invite("token", "set", (numeric optional "duration"), (optional "code")) -> "code",
+    "v1/revokeInvite" => revoke_invite("token", "set", "invite") -> None,
 
     // Messages endpoints
     "v1/messages" => messages("token", "subset", (optional "before"), (numeric optional "limit")) -> "messages",

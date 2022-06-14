@@ -1,13 +1,15 @@
 //! Provides the core functionality for message management.
 
+use crate::util::parse_date;
 use crate::State;
 
 use humphrey::http::mime::MimeType;
 use humphrey_json::prelude::*;
 
-use chrono::{TimeZone, Utc};
 use mysql::Value;
 use uuid::Uuid;
+
+use std::time::UNIX_EPOCH;
 
 /// Represents a message response from the server.
 pub struct Message {
@@ -85,16 +87,7 @@ impl Message {
                         .to_string(),
                 }
             }),
-            send_time: match row.5 {
-                Value::Date(year, month, day, hour, min, sec, micro) => {
-                    let dt = Utc
-                        .ymd(year.into(), month.into(), day.into())
-                        .and_hms_micro(hour.into(), min.into(), sec.into(), micro);
-
-                    dt.timestamp().try_into().unwrap()
-                }
-                _ => panic!("Invalid date"),
-            },
+            send_time: parse_date(row.5),
         }
     }
 }
@@ -191,7 +184,7 @@ impl State {
 
         transaction.commit()?;
 
-        let send_time = Utc::now().timestamp() as u64;
+        let send_time = UNIX_EPOCH.elapsed().unwrap().as_secs();
 
         let message = Message {
             id: new_message_id.clone(),

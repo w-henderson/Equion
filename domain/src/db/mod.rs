@@ -8,6 +8,7 @@ mod r#macro;
 use mysql::{Pool, PooledConn};
 
 use crate::server::files::FileResponse;
+use crate::server::invites::Invite;
 use crate::server::messages::Message;
 use crate::server::sets::{Set, Subset};
 use crate::server::user::User;
@@ -357,6 +358,44 @@ impl<'a> Transaction<'a> {
     db! {
         update_message(message: &str, id: &str) {
             "UPDATE messages SET content = ? WHERE id = ?"
+        }
+    }
+
+    db! {
+        select_invites_by_set(set: &str) -> Vec<Invite> {
+            "SELECT id, set_id, code, creation_date, expiry_date, uses FROM invites WHERE
+                set_id = ? AND
+                expiry_date > NOW()" => Invite::from_row
+        }
+    }
+
+    db! {
+        select_invite_by_code(code: &str) -> Option<Invite> {
+            first("SELECT id, set_id, code, creation_date, expiry_date, uses FROM invites WHERE code = ?") => Invite::from_row
+        }
+    }
+
+    db! {
+        insert_invite(id: &str, set: &str, code: &str) {
+            "INSERT INTO invites (id, set_id, code, creation_date, expiry_date) VALUES (?, ?, ?, NOW(), NULL)"
+        }
+    }
+
+    db! {
+        insert_invite_with_duration(id: &str, set: &str, code: &str, minutes: usize) {
+            "INSERT INTO invites (id, set_id, code, creation_date, expiry_date) VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? MINUTE))"
+        }
+    }
+
+    db! {
+        delete_invite(id: &str) {
+            "DELETE FROM invites WHERE id = ?"
+        }
+    }
+
+    db! {
+        increment_invite_uses(id: &str) {
+            "UPDATE invites SET uses = uses + 1 WHERE id = ?"
         }
     }
 }
