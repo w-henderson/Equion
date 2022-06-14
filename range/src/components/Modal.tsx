@@ -27,6 +27,8 @@ class Modal extends React.Component<ModalProps, { phase: "hidden" | "waiting" | 
    * Handle CSS transitions for showing and hiding the modal.
    */
   componentDidUpdate(prevProps: ModalProps) {
+    if (this.state.phase === "waiting") return;
+
     if (this.animationTimeout) {
       window.clearTimeout(this.animationTimeout);
       this.animationTimeout = null;
