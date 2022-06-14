@@ -140,14 +140,76 @@ Output:
 { "success": true, "id": "" }
 ```
 
-## `v1/joinSet`: Join a set
-Joins the authenticated user to the given set.
+## `v1/invites`: Get all invites for a set
+Returns all the invites for the given set. Requires the user to be a member of the set.
 
 Input:
 ```json
 {
   "token": "",
   "set": "",
+}
+```
+
+Output:
+```json
+{
+  "success": true,
+  "invites": [
+    {
+      "id": "",
+      "code": "",
+      "created": 0, // UNIX timestamp
+      "expires": 0, // UNIX timestamp
+      "uses": ""
+    }
+  ]
+}
+```
+
+## `v1/createInvite`: Create a new invite code
+Creates a new invite code for the given set. Requires the user to be an administrator of the set. If a custom code is specified, the user must subscribe to Equion Diffontial (maybe coming soon?) to use it.
+
+Input:
+```json
+{
+  "token": "",
+  "set": "",
+  "duration?": "", // minutes
+  "code?": "",
+}
+```
+
+Output:
+```json
+{ "success": true, "code": "" }
+```
+
+## `v1/revokeInvite`: Revoke an invite code
+Revokes an invite for the given set. Requires the user to be an administrator of the set.
+
+Input:
+```json
+{
+  "token": "",
+  "set": "",
+  "invite": "",
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+## `v1/joinSet`: Join a set
+Joins the authenticated user to the set with the given invite code.
+
+Input:
+```json
+{
+  "token": "",
+  "code": "",
 }
 ```
 
