@@ -24,6 +24,18 @@ CREATE TABLE `sets`(
     `icon` CHAR(255) NOT NULL,
     `creation_date` DATETIME NOT NULL
 );
+CREATE TABLE `invites`(
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `set_id` CHAR(36) NOT NULL,
+    `code` VARCHAR(36) NOT NULL UNIQUE,
+    `creation_date` DATETIME NOT NULL,
+    `expiry_date` DATETIME NULL,
+    `uses` INT NOT NULL DEFAULT 0
+);
+ALTER TABLE
+    `invites` ADD INDEX `invites_set_id_index`(`set_id`);
+ALTER TABLE
+    `invites` ADD INDEX `invites_code_index`(`code`);
 CREATE TABLE `subsets`(
     `id` CHAR(36) NOT NULL PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
@@ -63,6 +75,8 @@ CREATE TABLE `files`(
 );
 ALTER TABLE
     `users` ADD CONSTRAINT `users_image_foreign` FOREIGN KEY(`image`) REFERENCES `files`(`id`);
+ALTER TABLE
+    `invites` ADD CONSTRAINT `invites_set_id_foreign` FOREIGN KEY(`set_id`) REFERENCES `sets`(`id`);
 ALTER TABLE
     `subsets` ADD CONSTRAINT `subsets_set_id_foreign` FOREIGN KEY(`set_id`) REFERENCES `sets`(`id`);
 ALTER TABLE
