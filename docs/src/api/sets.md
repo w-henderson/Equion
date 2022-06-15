@@ -161,7 +161,7 @@ Output:
       "code": "",
       "created": 0, // UNIX timestamp
       "expires": 0, // UNIX timestamp
-      "uses": ""
+      "uses": 0
     }
   ]
 }
@@ -175,7 +175,7 @@ Input:
 {
   "token": "",
   "set": "",
-  "duration?": "", // minutes
+  "duration?": 0, // minutes
   "code?": "",
 }
 ```
@@ -215,7 +215,10 @@ Input:
 
 Output:
 ```json
-{ "success": true }
+{
+  "success": true,
+  "id": "",
+}
 ```
 
 ## `v1/leaveSet`: Leave a set
