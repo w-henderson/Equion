@@ -183,7 +183,7 @@ class SetManager extends React.Component<SetManagerProps, SetManagerState> {
           <form onSubmit={this.joinSet}>
             <input
               type="text"
-              placeholder="Set ID"
+              placeholder="Set Invite Code"
               key="set_id"
               value={this.state.setId}
               autoComplete={"off"}

@@ -65,3 +65,11 @@ interface RegionData {
     path: string
   }
 }
+
+interface InviteData {
+  id: string,
+  code: string,
+  created: number,
+  expires: number | null,
+  uses: number
+}
