@@ -365,7 +365,7 @@ impl<'a> Transaction<'a> {
         select_invites_by_set(set: &str) -> Vec<Invite> {
             "SELECT id, set_id, code, creation_date, expiry_date, uses FROM invites WHERE
                 set_id = ? AND
-                expiry_date > NOW()" => Invite::from_row
+                (expiry_date > NOW() OR expiry_date IS NULL)" => Invite::from_row
         }
     }
 

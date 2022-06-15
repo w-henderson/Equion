@@ -296,7 +296,7 @@ impl State {
     }
 
     /// Adds the authenticated user to the set with the given invite code.
-    pub fn join_set(&self, token: impl AsRef<str>, invite: impl AsRef<str>) -> Result<(), String> {
+    pub fn join_set(&self, token: impl AsRef<str>, invite: impl AsRef<str>) -> Result<String, String> {
         let mut conn = self.db.connection()?;
         let mut transaction = conn.transaction()?;
 
@@ -335,7 +335,7 @@ impl State {
 
         crate::log!("User {} joined set {}", uid, &invite.set_id);
 
-        Ok(())
+        Ok(invite.set_id)
     }
 
     /// Removes the authenticated user from the given set.
