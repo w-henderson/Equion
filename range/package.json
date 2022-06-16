@@ -49,7 +49,7 @@
     ]
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.0.0-rc.8",
+    "@tauri-apps/cli": "^1.0.0-rc.10",
     "@typescript-eslint/eslint-plugin": "^5.26.0",
     "@typescript-eslint/parser": "^5.26.0",
     "cross-env": "^7.0.3",

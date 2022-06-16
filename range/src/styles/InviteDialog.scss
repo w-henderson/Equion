@@ -1,0 +1,79 @@
+div.InviteDialog {
+  >div>div {
+    margin-top: 48px;
+    min-width: 400px;
+  }
+
+  div.icon {
+    display: flex;
+    place-items: center;
+    place-content: center;
+
+    position: absolute;
+    top: -48px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 96px;
+    height: 96px;
+
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 48px;
+    background-color: var(--accent-light);
+
+    span {
+      font-size: 48px;
+      line-height: 0;
+    }
+  }
+
+  h2 {
+    margin-top: 48px;
+    font-weight: 200;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 18px;
+  }
+
+  h1 {
+    margin-bottom: 48px !important;
+  }
+
+  div.buttons {
+    display: flex;
+    place-items: center;
+    place-content: center;
+    gap: 16px;
+    width: 100%;
+
+    button {
+      flex: 1;
+      padding: 12px;
+
+      font-family: Inter;
+      font-size: 16px;
+
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+
+      color: white;
+      background-color: transparent;
+
+      transition: background-color 150ms;
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      &:first-child {
+        border: 1px solid var(--green);
+      }
+
+      &:last-child {
+        border: 1px solid var(--red);
+      }
+    }
+  }
+}

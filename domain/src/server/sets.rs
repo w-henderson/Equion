@@ -1,5 +1,7 @@
 //! Provides core functionality for set management.
 
+use std::time::UNIX_EPOCH;
+
 use crate::server::user::User;
 use crate::util::get_greek_letter;
 use crate::voice::user::WrappedVoiceUser;
@@ -293,8 +295,8 @@ impl State {
         Ok(())
     }
 
-    /// Adds the authenticated user to the given set.
-    pub fn join_set(&self, token: impl AsRef<str>, set: impl AsRef<str>) -> Result<(), String> {
+    /// Adds the authenticated user to the set with the given invite code.
+    pub fn join_set(&self, token: impl AsRef<str>, invite: impl AsRef<str>) -> Result<String, String> {
         let mut conn = self.db.connection()?;
         let mut transaction = conn.transaction()?;
 
@@ -303,31 +305,37 @@ impl State {
             .map(|mut user| {
                 user.online = self.voice.is_user_online(&user.uid);
                 user
-            });
+            })
+            .ok_or_else(|| "Invalid token".to_string())?;
 
-        if user.is_none() {
-            return Err("Invalid token".to_string());
+        let invite = transaction
+            .select_invite_by_code(invite.as_ref())?
+            .ok_or_else(|| "Invalid invite code".to_string())?;
+
+        if invite
+            .expires
+            .map(|expires| expires < UNIX_EPOCH.elapsed().unwrap().as_secs())
+            .unwrap_or(false)
+        {
+            return Err("Invite code expired".to_string());
         }
 
-        let user = user.unwrap();
-
-        let has_membership = transaction.select_user_has_membership(&user.uid, set.as_ref())?;
-
-        if has_membership {
+        if transaction.select_user_has_membership(&user.uid, &invite.set_id)? {
             return Err("Already a member of this set".to_string());
         }
 
         let new_membership_id = Uuid::new_v4().to_string();
-        transaction.insert_membership(&new_membership_id, &user.uid, set.as_ref(), false)?;
+        transaction.insert_membership(&new_membership_id, &user.uid, &invite.set_id, false)?;
+        transaction.increment_invite_uses(&invite.id)?;
         transaction.commit()?;
 
         let uid = user.uid.clone();
 
-        self.broadcast_new_user(set.as_ref(), user);
+        self.broadcast_new_user(&invite.set_id, user);
 
-        crate::log!("User {} joined set {}", uid, set.as_ref());
+        crate::log!("User {} joined set {}", uid, &invite.set_id);
 
-        Ok(())
+        Ok(invite.set_id)
     }
 
     /// Removes the authenticated user from the given set.

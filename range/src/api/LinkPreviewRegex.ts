@@ -1,10 +1,14 @@
+import InvitePreview from "../components/InvitePreview";
+
 export interface LinkPreviewProvider {
   name: string,
   regex: RegExp,
-  type: "image" | "iframe",
-  url: string,
-  width: number,
-  height: number
+  type: "image" | "iframe" | "component",
+  url?: string,
+  width?: number,
+  height?: number,
+  // eslint-disable-next-line
+  component?: React.ComponentType<any>
 }
 
 export const PROVIDERS: LinkPreviewProvider[] = [
@@ -24,4 +28,10 @@ export const PROVIDERS: LinkPreviewProvider[] = [
     width: 560,
     height: 380
   },
+  {
+    name: "invite",
+    regex: /^https?:\/\/(?:.*?equion.*?|localhost)\.*?\/invite\/([A-Za-z0-9]+)$/,
+    type: "component",
+    component: InvitePreview
+  }
 ];

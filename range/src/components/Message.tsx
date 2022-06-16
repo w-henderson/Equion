@@ -197,6 +197,14 @@ class Message extends React.Component<MessageProps, MessageState> {
             });
           }}>Copy ID</div>
 
+          <div onClick={() => {
+            clipboard.writeText(this.props.message.text).then(() => {
+              toast.success("Message text copied to clipboard!");
+            }, () => {
+              toast.error("Could not copy message text to clipboard.");
+            });
+          }}>Copy Text</div>
+
           {isLocalSender &&
             <>
               <hr />

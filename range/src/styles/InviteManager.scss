@@ -1,0 +1,97 @@
+div.InviteManager {
+  >div>div {
+    min-width: 400px;
+
+    div.header {
+      display: flex;
+      place-items: center;
+      margin-bottom: 24px;
+
+      h1 {
+        flex: 1;
+        text-align: left;
+        margin: 0;
+      }
+
+      div {
+        padding: 8px;
+        font-size: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        background-color: var(--mid);
+
+        cursor: pointer;
+
+        transition: background-color 150ms;
+
+        &:hover {
+          background-color: var(--accent-dark);
+        }
+      }
+    }
+
+    div.invite {
+      display: flex;
+      place-items: center;
+      width: 100%;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 16px;
+
+      span {
+        text-align: left;
+        font-size: 18px;
+
+        &:first-child {
+          font-weight: 800;
+        }
+
+        &:last-of-type {
+          flex: 1;
+          font-weight: 200;
+          font-size: 16px;
+          opacity: 0.5;
+        }
+      }
+
+      transition: background-color 100ms;
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      svg:hover {
+        color: var(--red);
+      }
+    }
+
+    div.radio {
+      display: flex;
+      width: 100%;
+      margin: 16px 0;
+      gap: 16px;
+
+      span {
+        display: block;
+        background-color: var(--mid);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 8px 12px;
+
+        transition: background-color 150ms;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--accent-dark);
+        }
+
+        &.selected {
+          background-color: var(--accent);
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,6 @@
 import React from "react";
 import "../styles/Subsets.scss";
 
-import { clipboard } from "@tauri-apps/api";
 import toast from "react-hot-toast";
 import ApiContext from "../api/ApiContext";
 
@@ -10,6 +9,7 @@ import AddSubset from "./AddSubset";
 import Modal from "./Modal";
 import Voice from "./Voice";
 import { ShareButton } from "./Svg";
+import InviteManager from "./InviteManager";
 
 interface SubsetsProps {
   set: SetData | undefined,
@@ -31,6 +31,7 @@ interface SubsetsState {
 class Subsets extends React.Component<SubsetsProps, SubsetsState> {
   context!: React.ContextType<typeof ApiContext>;
   input: React.RefObject<HTMLInputElement>;
+  inviteRef: React.RefObject<InviteManager>;
   wasVisible = false;
 
   /**
@@ -46,10 +47,10 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
     };
 
     this.input = React.createRef();
+    this.inviteRef = React.createRef();
 
     this.createSubset = this.createSubset.bind(this);
     this.changeName = this.changeName.bind(this);
-    this.share = this.share.bind(this);
   }
 
   /**
@@ -103,19 +104,6 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
   }
 
   /**
-   * Copies the ID of the current set to the clipboard.
-   */
-  share() {
-    if (this.props.set === undefined) return;
-
-    clipboard.writeText(this.props.set.id).then(() => {
-      toast.success("Share link copied to clipboard!");
-    }, () => {
-      toast.error("Could not copy share link to clipboard.");
-    });
-  }
-
-  /**
    * Renders the component.
    */
   render() {
@@ -125,7 +113,9 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
           <div data-tauri-drag-region className="title">
             <h1>{this.props.set.name}</h1>
 
-            <ShareButton onClick={this.share} />
+            {this.props.set.admin &&
+              <ShareButton onClick={() => { if (this.inviteRef.current) this.inviteRef.current.show(); }} />
+            }
           </div>
 
           <div className="setList">
@@ -148,6 +138,8 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
               id={this.props.set.id}
               members={this.props.set.voiceMembers} />
           </div>
+
+          <InviteManager set={this.props.set.id} ref={this.inviteRef} />
 
           <Modal
             visible={this.state.creatingSubset}

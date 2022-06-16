@@ -316,22 +316,22 @@ class Api {
   }
 
   /**
-   * Joins the current user to the given set.
+   * Joins the current user to the set with the given code.
    */
-  public joinSet(id: string): Promise<SetData> {
+  public joinSet(code: string): Promise<SetData> {
     if (this.token === null) return Promise.reject("Not logged in");
 
     return fetch(`${this.region.apiRoute}/joinSet`, {
       method: "POST",
       body: JSON.stringify({
         token: this.token,
-        set: id
+        code
       })
     })
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          return id;
+          return res.id;
         } else {
           return Promise.reject(res.error);
         }
@@ -350,6 +350,96 @@ class Api {
       body: JSON.stringify({
         token: this.token,
         set: id
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
+   * Gets all the invite codes for the given set.
+   */
+  public getInvites(set: string): Promise<InviteData[]> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${this.region.apiRoute}/invites`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        set
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.invites;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
+   * Gets the details of the given invite code.
+   */
+  public getInvite(code: string): Promise<InviteData> {
+    return fetch(`${this.region.apiRoute}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ code })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.invite;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
+   * Creates an invite code for the given set.
+   */
+  public createInvite(set: string, duration?: number, code?: string): Promise<string> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${this.region.apiRoute}/createInvite`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        set,
+        duration: duration ?? null,
+        code: code ?? null
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.code;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
+   * Revokes the given invite code.
+   */
+  public revokeInvite(set: string, id: string): Promise<void> {
+    if (this.token === null) return Promise.reject("Not logged in");
+
+    return fetch(`${this.region.apiRoute}/revokeInvite`, {
+      method: "POST",
+      body: JSON.stringify({
+        token: this.token,
+        set,
+        invite: id
       })
     })
       .then(res => res.json())

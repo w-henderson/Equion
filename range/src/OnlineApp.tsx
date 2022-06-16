@@ -2,8 +2,9 @@ import React from "react";
 import "./styles/App.scss";
 
 import { confirm } from "@tauri-apps/api/dialog";
-import { MathJaxContext } from "better-react-mathjax";
+import { listen, Event as TauriEvent } from "@tauri-apps/api/event";
 import { appWindow } from "@tauri-apps/api/window";
+import { MathJaxContext } from "better-react-mathjax";
 import toast, { Toaster } from "react-hot-toast";
 import * as immutable from "object-path-immutable";
 
@@ -19,6 +20,7 @@ import Messages from "./components/Messages";
 import AuthDialog from "./components/AuthDialog";
 import UserInfo from "./components/UserInfo";
 import Members from "./components/Members";
+import InviteDialog from "./components/InviteDialog";
 
 interface OnlineAppProps {
   ws: WebSocket,
@@ -43,6 +45,8 @@ interface OnlineAppState {
 class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   api: Api;
   sets: React.RefObject<Sets>;
+  inviteDialog: React.RefObject<InviteDialog>;
+  unlisten?: () => void;
 
   /**
    * Initializes the online app.
@@ -74,6 +78,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     };
 
     this.sets = React.createRef();
+    this.inviteDialog = React.createRef();
 
     this.showUser = this.showUser.bind(this);
     this.refresh = this.refresh.bind(this);
@@ -88,9 +93,13 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * When the app has rendered, initialize the API.
    */
-  componentDidMount() {
+  async componentDidMount() {
     if (GLOBAL_STATE.rendered) return;
     GLOBAL_STATE.rendered = true;
+
+    if (this.unlisten === undefined && window.__TAURI_IPC__ !== undefined) {
+      this.unlisten = await listen("deep-link", this.onDeepLink.bind(this));
+    }
 
     this.api.init().then(authenticated => {
       if (authenticated) {
@@ -109,6 +118,31 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         });
       }
     });
+  }
+
+  /**
+   * Cleans up the component.
+   */
+  componentWillUnmount() {
+    if (this.unlisten !== undefined) this.unlisten();
+  }
+
+  /**
+   * Handler for deep links.
+   */
+  onDeepLink(e: TauriEvent<string>) {
+    if (this.state.authenticated) {
+      const payload = e.payload.replace("equion://", "");
+      const [command, data] = payload.split("/", 2);
+
+      if (command === "invite" && this.inviteDialog.current) {
+        this.inviteDialog.current.show(data);
+      } else {
+        toast.error(`Unknown link command: ${command}`);
+      }
+    } else {
+      toast.error("You need to be logged in before you can do that!");
+    }
   }
 
   /**
@@ -198,14 +232,15 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * Leave the given set, requesting confirmation.
    */
-  leaveSet(id: string) {
-    confirm("Are you sure you want to leave this set? You will not be able to rejoin unless invited.", "Leave set?").then(ok => {
-      if (ok) {
-        this.api.leaveSet(id).then(this.refresh, (e) => {
-          toast.error(e);
-        });
-      }
-    });
+  async leaveSet(id: string) {
+    const message = "Are you sure you want to leave this set? You will not be able to rejoin unless invited.";
+    const leave = window.__TAURI_IPC__ !== undefined ? await confirm(message, "Leave set?") : window.confirm(message);
+
+    if (leave) {
+      this.api.leaveSet(id).then(this.refresh, (e) => {
+        toast.error(e);
+      });
+    }
   }
 
   /**
@@ -557,6 +592,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
           showUserCallback={this.showUser}
           selectCallback={this.selectSet}
           createdCallback={this.createdSet}
+          joinCallback={id => { if (this.inviteDialog.current) this.inviteDialog.current.show(id); }}
           leaveCallback={this.leaveSet} />
 
         {selectedSet &&
@@ -594,6 +630,9 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
           hideCallback={() => this.setState({ shownUser: null })}
           refreshCallback={this.refresh} />
 
+        <InviteDialog
+          ref={this.inviteDialog}
+          joinCallback={this.createdSet} />
       </div>
     );
 
