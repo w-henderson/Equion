@@ -18,6 +18,17 @@ fn main() {
         .setup(|app| {
             let handle = app.handle();
             tauri_plugin_deep_link::register("equion", move |req| {
+                if let Some(w) = handle.get_window("main") {
+                    if w.is_visible().unwrap() {
+                        w.set_focus().ok();
+                    } else {
+                        w.show().ok();
+                        w.maximize().ok();
+                        w.set_focus().ok();
+                        w.emit("show", "").ok();
+                    }
+                }
+
                 handle.emit_all("deep-link", req).unwrap()
             })
             .unwrap();
