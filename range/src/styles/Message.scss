@@ -32,6 +32,7 @@ div.Message {
     display: inline-block;
     background-color: var(--mid-light);
     border-radius: 16px 16px 16px 0;
+    overflow: hidden;
 
     &.pingsMe {
       background: linear-gradient(to bottom right, var(--accent-light), var(--accent-mid)) !important;

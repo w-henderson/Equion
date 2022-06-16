@@ -2,6 +2,7 @@ import React from "react";
 import "../styles/LinkPreview.scss";
 
 import { LinkPreviewProvider, PROVIDERS } from "../api/LinkPreviewRegex";
+import { emit } from "@tauri-apps/api/event";
 
 interface LinkPreviewProps {
   link: string
@@ -53,12 +54,20 @@ class LinkPreview extends React.Component<LinkPreviewProps, LinkPreviewState> {
       return (
         <div className="LinkPreview">
           <iframe
-            src={this.state.preview.provider.url.replace("{{id}}", this.state.preview.id).replace("{{url}}", this.props.link)}
+            src={this.state.preview.provider.url!.replace("{{id}}", this.state.preview.id).replace("{{url}}", this.props.link)}
             width={this.state.preview.provider.width}
             height={this.state.preview.provider.height}
             frameBorder={0}
             allowFullScreen={true} />
         </div>
+      );
+    } else if (this.state.preview.provider.type === "component") {
+      const Component = this.state.preview.provider.component!;
+
+      return (
+        <Component id={this.state.preview.id} join={() => {
+          emit("deep-link", `equion://invite/${this.state.preview!.id}`);
+        }} />
       );
     }
   }
