@@ -97,7 +97,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     if (GLOBAL_STATE.rendered) return;
     GLOBAL_STATE.rendered = true;
 
-    if (this.unlisten === undefined) {
+    if (this.unlisten === undefined && window.__TAURI_IPC__ !== undefined) {
       this.unlisten = await listen("deep-link", this.onDeepLink.bind(this));
     }
 
@@ -221,14 +221,15 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * Leave the given set, requesting confirmation.
    */
-  leaveSet(id: string) {
-    confirm("Are you sure you want to leave this set? You will not be able to rejoin unless invited.", "Leave set?").then(ok => {
-      if (ok) {
-        this.api.leaveSet(id).then(this.refresh, (e) => {
-          toast.error(e);
-        });
-      }
-    });
+  async leaveSet(id: string) {
+    const message = "Are you sure you want to leave this set? You will not be able to rejoin unless invited.";
+    const leave = window.__TAURI_IPC__ !== undefined ? await confirm(message, "Leave set?") : window.confirm(message);
+
+    if (leave) {
+      this.api.leaveSet(id).then(this.refresh, (e) => {
+        toast.error(e);
+      });
+    }
   }
 
   /**

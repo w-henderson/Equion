@@ -1,5 +1,6 @@
 import React from "react";
 import ApiContext from "../api/ApiContext";
+import toast from "react-hot-toast";
 import Modal from "./Modal";
 import "../styles/InviteDialog.scss";
 
@@ -10,7 +11,8 @@ interface InviteDialogProps {
 }
 
 interface InviteDialogState {
-  phase: "hidden" | "loading" | "visible" | "invalid",
+  visible: boolean,
+  phase: "loading" | "visible" | "invalid",
   code: string | null,
   set: {
     name: string,
@@ -31,7 +33,8 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
     super(props);
 
     this.state = {
-      phase: "hidden",
+      visible: false,
+      phase: "loading",
       code: null,
       set: null
     };
@@ -46,20 +49,15 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
   show(code: string) {
     const invalid = () => this.setState({ phase: "invalid", code: null });
 
-    this.setState({ phase: "loading", code }, () => {
+    this.setState({ visible: true, phase: "loading", code }, () => {
       this.context!.getInvite(code)
-        .then(invite => this.context!.getSet(invite.set), invalid)
-        .then(set => {
-          if (set) {
-            this.setState({
-              phase: "visible",
-              set: {
-                name: set.name,
-                icon: set.icon
-              }
-            });
+        .then(invite => this.setState({
+          phase: "visible",
+          set: {
+            name: invite.setName,
+            icon: invite.setIcon
           }
-        }, invalid);
+        }), invalid);
     });
   }
 
@@ -68,7 +66,14 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
    */
   accept() {
     this.setState({ phase: "loading" }, () => {
-      this.context!.joinSet(this.state.code!).then(this.props.joinCallback, () => this.setState({ phase: "invalid", code: null }));
+      this.context!.joinSet(this.state.code!).then(s => {
+        toast.success("Successfully accepted invite!");
+        this.props.joinCallback(s);
+        this.setState({ visible: false, code: null });
+      }, (e: string) => {
+        toast.error(`Could not accept invite: ${e}`);
+        this.setState({ visible: false, code: null });
+      });
     });
   }
 
@@ -78,7 +83,7 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
   render() {
     return (
       <div className="InviteDialog">
-        <Modal visible={this.state.phase !== "hidden"} close={() => this.setState({ phase: "hidden" })}>
+        <Modal visible={this.state.visible} close={() => this.setState({ visible: false })}>
           {this.state.phase === "loading" && <Loading />}
 
           {this.state.phase === "invalid" &&
@@ -91,7 +96,7 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
             </>
           }
 
-          {(this.state.phase === "visible" || this.state.phase === "hidden") &&
+          {(this.state.phase === "visible") &&
             <>
               <div className="icon">
                 <span className="noModalStyle">{this.state.set?.icon}</span>
@@ -102,7 +107,7 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
 
               <div className="buttons">
                 <button onClick={this.accept}>Accept</button>
-                <button onClick={() => this.setState({ phase: "hidden" })}>Decline</button>
+                <button onClick={() => this.setState({ visible: false })}>Decline</button>
               </div>
             </>
           }
