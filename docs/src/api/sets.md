@@ -167,6 +167,29 @@ Output:
 }
 ```
 
+## `v1/invite`: Get information about a specific invite
+Returns information about the specific invite. Does not require authentication.
+
+Input:
+```json
+{ "code": "" }
+```
+
+Output:
+```json
+{
+  "success": true,
+  "invite": {
+    "id": "",
+    "set": "",
+    "code": "",
+    "created": 0, // UNIX timestamp
+    "expires": 0, // UNIX timestamp
+    "uses": 0
+  }
+}
+```
+
 ## `v1/createInvite`: Create a new invite code
 Creates a new invite code for the given set. Requires the user to be an administrator of the set. If a custom code is specified, the user must subscribe to Equion Diffontial (maybe coming soon?) to use it.
 

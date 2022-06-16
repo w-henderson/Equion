@@ -26,7 +26,7 @@ pub struct Invite {
 json_map! {
     Invite,
     id => "id",
-    set_id => "setId",
+    set_id => "set",
     code => "code",
     created => "created",
     expires => "expires",
@@ -74,6 +74,16 @@ impl State {
         );
 
         Ok(invites)
+    }
+
+    /// Gets a specific invite.
+    pub fn get_invite(&self, code: impl AsRef<str>) -> Result<Invite, String> {
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
+
+        let invite = transaction.select_invite_by_code(code.as_ref())?;
+
+        invite.ok_or_else(|| "Invite not found".to_string())
     }
 
     /// Creates an invite for a set.

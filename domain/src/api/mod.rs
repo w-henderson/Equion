@@ -42,6 +42,7 @@ declare_endpoints! {
 
     // Invites endpoints
     "v1/invites" => get_invites("token", "set") -> "invites",
+    "v1/invite" => get_invite("code") -> "invite",
     "v1/createInvite" => create_invite("token", "set", (numeric optional "duration"), (optional "code")) -> "code",
     "v1/revokeInvite" => revoke_invite("token", "set", "invite") -> None,
 
