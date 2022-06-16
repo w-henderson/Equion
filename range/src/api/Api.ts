@@ -386,6 +386,24 @@ class Api {
   }
 
   /**
+   * Gets the details of the given invite code.
+   */
+  public getInvite(code: string): Promise<InviteData> {
+    return fetch(`${this.region.apiRoute}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ code })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          return res.invite;
+        } else {
+          return Promise.reject(res.error);
+        }
+      });
+  }
+
+  /**
    * Creates an invite code for the given set.
    */
   public createInvite(set: string, duration?: number, code?: string): Promise<string> {

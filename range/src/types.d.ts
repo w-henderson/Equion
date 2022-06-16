@@ -69,6 +69,7 @@ interface RegionData {
 interface InviteData {
   id: string,
   code: string,
+  set: string,
   created: number,
   expires: number | null,
   uses: number

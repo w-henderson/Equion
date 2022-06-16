@@ -9,7 +9,7 @@ import AddSubset from "./AddSubset";
 import Modal from "./Modal";
 import Voice from "./Voice";
 import { ShareButton } from "./Svg";
-import InviteDialog from "./InviteDialog";
+import InviteManager from "./InviteManager";
 
 interface SubsetsProps {
   set: SetData | undefined,
@@ -31,7 +31,7 @@ interface SubsetsState {
 class Subsets extends React.Component<SubsetsProps, SubsetsState> {
   context!: React.ContextType<typeof ApiContext>;
   input: React.RefObject<HTMLInputElement>;
-  inviteRef: React.RefObject<InviteDialog>;
+  inviteRef: React.RefObject<InviteManager>;
   wasVisible = false;
 
   /**
@@ -139,7 +139,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
               members={this.props.set.voiceMembers} />
           </div>
 
-          <InviteDialog set={this.props.set.id} ref={this.inviteRef} />
+          <InviteManager set={this.props.set.id} ref={this.inviteRef} />
 
           <Modal
             visible={this.state.creatingSubset}

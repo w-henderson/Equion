@@ -20,6 +20,7 @@ import Messages from "./components/Messages";
 import AuthDialog from "./components/AuthDialog";
 import UserInfo from "./components/UserInfo";
 import Members from "./components/Members";
+import InviteDialog from "./components/InviteDialog";
 
 interface OnlineAppProps {
   ws: WebSocket,
@@ -44,6 +45,7 @@ interface OnlineAppState {
 class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   api: Api;
   sets: React.RefObject<Sets>;
+  inviteDialog: React.RefObject<InviteDialog>;
   unlisten?: () => void;
 
   /**
@@ -76,6 +78,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     };
 
     this.sets = React.createRef();
+    this.inviteDialog = React.createRef();
 
     this.showUser = this.showUser.bind(this);
     this.refresh = this.refresh.bind(this);
@@ -577,6 +580,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
           showUserCallback={this.showUser}
           selectCallback={this.selectSet}
           createdCallback={this.createdSet}
+          joinCallback={id => { if (this.inviteDialog.current) this.inviteDialog.current.show(id); }}
           leaveCallback={this.leaveSet} />
 
         {selectedSet &&
@@ -614,6 +618,9 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
           hideCallback={() => this.setState({ shownUser: null })}
           refreshCallback={this.refresh} />
 
+        <InviteDialog
+          ref={this.inviteDialog}
+          joinCallback={this.createdSet} />
       </div>
     );
 

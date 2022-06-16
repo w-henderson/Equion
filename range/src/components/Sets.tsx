@@ -16,6 +16,7 @@ interface SetsProps {
   showUserCallback: (id: string) => void,
   selectCallback: (id: string) => void,
   createdCallback: (set: SetData) => void,
+  joinCallback: (id: string) => void,
   leaveCallback: (id: string) => void
 }
 
@@ -78,25 +79,8 @@ class Sets extends React.Component<SetsProps, SetsState> {
    * Joins the given set.
    */
   joinSet(id: string) {
-    this.setState({ loading: true });
-
-    toast.promise(this.context!.joinSet(id), {
-      loading: "Joining set...",
-      success: "Set joined!",
-      error: (e) => `${e}`,
-    }).then(set => {
-      this.setState({
-        creatingSet: false,
-        loading: false,
-      }, () => {
-        this.props.createdCallback(set);
-      });
-    }, () => {
-      if (this.setManager.current) this.setManager.current.clear();
-
-      this.setState({
-        loading: false
-      });
+    this.setState({ creatingSet: false }, () => {
+      this.props.joinCallback(id);
     });
   }
 
