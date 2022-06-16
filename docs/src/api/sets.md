@@ -160,7 +160,7 @@ Output:
       "id": "",
       "setId": "",
       "setName": "",
-      "setIcon" "",
+      "setIcon": "",
       "code": "",
       "created": 0, // UNIX timestamp
       "expires": 0, // UNIX timestamp
@@ -186,7 +186,7 @@ Output:
     "id": "",
     "setId": "",
     "setName": "",
-    "setIcon" "",
+    "setIcon": "",
     "code": "",
     "created": 0, // UNIX timestamp
     "expires": 0, // UNIX timestamp
