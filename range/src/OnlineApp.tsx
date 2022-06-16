@@ -131,7 +131,18 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
    * Handler for deep links.
    */
   onDeepLink(e: TauriEvent<string>) {
-    toast(e.payload);
+    if (this.state.authenticated) {
+      const payload = e.payload.replace("equion://", "");
+      const [command, data] = payload.split("/", 2);
+
+      if (command === "invite" && this.inviteDialog.current) {
+        this.inviteDialog.current.show(data);
+      } else {
+        toast.error(`Unknown link command: ${command}`);
+      }
+    } else {
+      toast.error("You need to be logged in before you can do that!");
+    }
   }
 
   /**
