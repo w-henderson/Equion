@@ -158,6 +158,9 @@ Output:
   "invites": [
     {
       "id": "",
+      "setId": "",
+      "setName": "",
+      "setIcon" "",
       "code": "",
       "created": 0, // UNIX timestamp
       "expires": 0, // UNIX timestamp
@@ -181,7 +184,9 @@ Output:
   "success": true,
   "invite": {
     "id": "",
-    "set": "",
+    "setId": "",
+    "setName": "",
+    "setIcon" "",
     "code": "",
     "created": 0, // UNIX timestamp
     "expires": 0, // UNIX timestamp

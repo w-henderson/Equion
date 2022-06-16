@@ -13,6 +13,10 @@ pub struct Invite {
     pub id: String,
     /// The ID of the set that the invite is for.
     pub set_id: String,
+    /// The name of the set that the invite is for.
+    pub set_name: String,
+    /// The icon of the set that the invite is for.
+    pub set_icon: String,
     /// The invite code.
     pub code: String,
     /// The timestamp when the invite was created.
@@ -26,7 +30,9 @@ pub struct Invite {
 json_map! {
     Invite,
     id => "id",
-    set_id => "set",
+    set_id => "setId",
+    set_name => "setName",
+    set_icon => "setIcon",
     code => "code",
     created => "created",
     expires => "expires",
@@ -35,14 +41,27 @@ json_map! {
 
 impl Invite {
     /// Parses an invite from the database.
-    pub(crate) fn from_row(row: (String, String, String, Value, Option<Value>, usize)) -> Self {
+    pub(crate) fn from_row(
+        row: (
+            String,
+            String,
+            String,
+            String,
+            String,
+            Value,
+            Option<Value>,
+            usize,
+        ),
+    ) -> Self {
         Self {
             id: row.0,
             set_id: row.1,
-            code: row.2,
-            created: parse_date(row.3),
-            expires: row.4.map(parse_date),
-            uses: row.5,
+            set_name: row.2,
+            set_icon: row.3,
+            code: row.4,
+            created: parse_date(row.5),
+            expires: row.6.map(parse_date),
+            uses: row.7,
         }
     }
 }

@@ -363,15 +363,18 @@ impl<'a> Transaction<'a> {
 
     db! {
         select_invites_by_set(set: &str) -> Vec<Invite> {
-            "SELECT id, set_id, code, creation_date, expiry_date, uses FROM invites WHERE
-                set_id = ? AND
-                (expiry_date > NOW() OR expiry_date IS NULL)" => Invite::from_row
+            "SELECT invites.id, invites.set_id, sets.name, sets.icon, invites.code, invites.creation_date, invites.expiry_date, invites.uses FROM invites
+            JOIN sets ON sets.id = invites.set_id
+            WHERE set_id = ? AND (expiry_date > NOW() OR expiry_date IS NULL)" => Invite::from_row
         }
     }
 
     db! {
         select_invite_by_code(code: &str) -> Option<Invite> {
-            first("SELECT id, set_id, code, creation_date, expiry_date, uses FROM invites WHERE code = ?") => Invite::from_row
+            first(
+                "SELECT invites.id, invites.set_id, sets.name, sets.icon, invites.code, invites.creation_date, invites.expiry_date, invites.uses FROM invites
+                JOIN sets ON sets.id = invites.set_id WHERE code = ?"
+            ) => Invite::from_row
         }
     }
 
