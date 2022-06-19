@@ -189,7 +189,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
 
     if (timestamp - this.lastTypingPing > 1000 && e.target.value !== this.state.message) {
       this.lastTypingPing = timestamp;
-      this.context!.setTyping(this.props.subsetId);
+      this.context!.client.typing(this.props.subsetId);
     }
 
     const words = e.target.value.split(" ");
@@ -237,7 +237,7 @@ class MessageBox extends React.Component<MessageBoxProps, MessageBoxState> {
         sending: true
       }, () => {
         this.props.sendCallback();
-        this.context!.sendMessage(this.props.subsetId, message, attachment).then(() => {
+        this.context!.sendMessageOverride(this.props.subsetId, message, attachment).then(() => {
           this.setState({ sending: false }, () => {
             this.box.current?.focus();
           });

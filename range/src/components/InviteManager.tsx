@@ -47,7 +47,7 @@ class InviteManager extends React.Component<InviteManagerProps, InviteManagerSta
    */
   show() {
     this.setState({ phase: "loading" }, async () => {
-      const invites = await this.context!.getInvites(this.props.set);
+      const invites = await this.context!.client.invites(this.props.set);
       this.setState({ phase: "visible", invites });
     });
   }
@@ -68,7 +68,7 @@ class InviteManager extends React.Component<InviteManagerProps, InviteManagerSta
    */
   createInvite() {
     this.setState({ phase: "loading" }, () => {
-      toast.promise(this.context!.createInvite(this.props.set, this.state.duration ?? undefined), {
+      toast.promise(this.context!.client.createInvite(this.props.set, this.state.duration ?? undefined), {
         loading: "Creating invite...",
         error: e => `Error creating invite: ${e}`,
         success: "Invite created!"
@@ -81,7 +81,7 @@ class InviteManager extends React.Component<InviteManagerProps, InviteManagerSta
    */
   revokeInvite(id: string) {
     this.setState({ phase: "loading" }, () => {
-      toast.promise(this.context!.revokeInvite(this.props.set, id), {
+      toast.promise(this.context!.client.revokeInvite(this.props.set, id), {
         loading: "Revoking invite...",
         error: e => `Error revoking invite: ${e}`,
         success: "Invite revoked!"

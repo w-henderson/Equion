@@ -53,7 +53,7 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
   joinVoice() {
     if (!this.context!.token) return;
 
-    this.context!.voice.connectToVoiceChannel(this.context!.token, this.props.id);
+    this.context!.voice.connectToVoiceChannel(this.props.id);
   }
 
   /**
@@ -62,7 +62,7 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
   leaveVoice() {
     if (!this.context!.token) return;
 
-    this.context!.voice.leaveVoiceChannel(this.context!.token);
+    this.context!.voice.leaveVoiceChannel();
   }
 
   /**

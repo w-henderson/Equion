@@ -66,7 +66,7 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
       this.setState({ loading: true }, () => {
         if (this.props.id === null) return;
 
-        this.context!.getUserByUid(this.props.id).then(user => this.setState({ data: user, loading: false }));
+        this.context!.client.user(this.props.id).then(user => this.setState({ data: user, loading: false }));
       });
     }
   }
@@ -75,11 +75,11 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    * Logs out the current user.
    */
   logout() {
-    toast.promise(this.context!.logout(), {
+    toast.promise(this.context!.client.logout(), {
       loading: "Signing out...",
       success: "Signed out!",
       error: (e) => `${e}`,
-    });
+    }).then(() => this.context!.clearAuth());
   }
 
   /**
@@ -100,7 +100,8 @@ class UserInfo extends React.Component<UserInfoProps, UserInfoState> {
    */
   save() {
     toast.promise(
-      this.context!.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined).then(() => this.context!.getUserByUid(this.props.id ?? "")),
+      this.context!.client.updateUser(this.state.displayName, this.state.about, this.state.imageFile || undefined)
+        .then(() => this.context!.client.user(this.props.id ?? "")),
       {
         loading: "Updating profile...",
         success: "Profile updated!",

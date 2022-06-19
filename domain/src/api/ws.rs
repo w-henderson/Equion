@@ -17,20 +17,21 @@ use std::sync::Arc;
 ///
 /// This also handles voice chat WebSocket messages, since these cannot use HTTP.
 pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
-    let json: Option<(Value, String)> = message
+    let json: Option<(Value, String, Option<String>)> = message
         .text()
         .and_then(|s| humphrey_json::from_str(s).ok())
         .and_then(|v: Value| {
             let command = get_string(&v, "command").ok()?;
-            Some((v, command))
+            let id = get_string(&v, "requestId").ok();
+            Some((v, command, id))
         });
 
     let addr = stream.peer_addr();
 
-    let response_body: Value = if let Some((json, command)) = json {
+    let response_body: Value = if let Some((json, command, id)) = json {
         let handler = matcher(&command);
 
-        match handler {
+        let mut response = match handler {
             Some(handler) => handler(state, json),
             None => match command.as_str() {
                 "v1/subscribe" => subscribe(state, json, addr),
@@ -47,7 +48,15 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
                     "error": "Invalid command"
                 }),
             },
+        };
+
+        if matches!(response, Value::Object(_)) {
+            if let Some(id) = id {
+                response["requestId"] = Value::String(id);
+            }
         }
+
+        response
     } else {
         json!({
             "success": false,

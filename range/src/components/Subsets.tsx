@@ -77,7 +77,7 @@ class Subsets extends React.Component<SubsetsProps, SubsetsState> {
       loading: true
     });
 
-    toast.promise(this.context!.createSubset(this.state.subsetName, this.props.set.id), {
+    toast.promise(this.context!.client.createSubset(this.state.subsetName, this.props.set.id), {
       loading: "Creating subset...",
       success: "Subset created!",
       error: (e) => `${e}`,

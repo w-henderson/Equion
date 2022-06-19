@@ -43,7 +43,7 @@ class InvitePreview extends React.Component<InvitePreviewProps, InvitePreviewSta
   componentDidMount() {
     const invalid = () => this.setState({ phase: "invalid" });
 
-    this.context!.getInvite(this.props.id)
+    this.context!.client.invite(this.props.id)
       .then(invite => this.setState({
         phase: "visible",
         set: {

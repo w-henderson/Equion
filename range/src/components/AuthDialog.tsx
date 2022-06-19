@@ -62,7 +62,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
     this.setState({ loading: true });
 
-    toast.promise(this.context!.login(this.state.username, this.state.password), {
+    toast.promise(this.context!.client.login(this.state.username, this.state.password), {
       loading: "Logging in...",
       success: "Logged in!",
       error: (e) => `${e}`,
@@ -96,7 +96,7 @@ class AuthDialog extends React.Component<AuthDialogProps, AuthDialogState> {
 
     this.setState({ loading: true });
 
-    toast.promise(this.context!.signup(this.state.username, this.state.password, this.state.displayName, this.state.email), {
+    toast.promise(this.context!.client.signup(this.state.username, this.state.password, this.state.displayName, this.state.email), {
       loading: "Signing up...",
       success: "Signed up, welcome to Equion!",
       error: (e) => `${e}`,

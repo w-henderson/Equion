@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import EquionClient from "equion-api";
 import Peer, { MediaConnection } from "peerjs";
 
 const SPEAKING_THRESHOLD = 0.005;
@@ -31,7 +32,7 @@ class Voice {
   peer: Peer;
   peerId?: string;
   asyncPeerId: Promise<string>;
-  ws: WebSocket;
+  client: EquionClient;
 
   currentChannel: string | null;
   microphone?: Microphone;
@@ -59,7 +60,7 @@ class Voice {
    * 
    * Connects to the PeerJS server.
    */
-  constructor(ws: WebSocket, region: RegionData) {
+  constructor(client: EquionClient, region: RegionData) {
     this.peer = new Peer(region.voice);
 
     this.asyncPeerId = new Promise(resolve => {
@@ -69,7 +70,7 @@ class Voice {
       });
     });
 
-    this.ws = ws;
+    this.client = client;
 
     this.currentChannel = null;
     this.calls = [];
@@ -100,7 +101,7 @@ class Voice {
    * This waits for the PeerJS node to be ready and then registers it with the server.
    * It also creates the post-processing graph for the microphone.
    */
-  async init(token: string): Promise<void> {
+  async init(): Promise<void> {
     const peerId = await this.asyncPeerId;
     const stream = await this.getAudioStream();
 
@@ -121,11 +122,7 @@ class Voice {
       speaking: false
     };
 
-    this.ws.send(JSON.stringify({
-      command: "v1/connectUserVoice",
-      token,
-      peerId
-    }));
+    this.client.connectUserVoice(peerId);
 
     this.peer.on("call", async call => {
       if (this.allowedToCall(call.peer)) {
@@ -326,23 +323,16 @@ class Voice {
   /**
    * Connects the current user to the given voice channel.
    */
-  public connectToVoiceChannel(token: string, channel: string) {
+  public connectToVoiceChannel(channel: string) {
     this.audioContext.resume();
-    this.ws.send(JSON.stringify({
-      command: "v1/connectToVoiceChannel",
-      token,
-      channel
-    }));
+    this.client.connectToVoiceChannel(channel);
   }
 
   /**
    * Disconnects the current user from the voice channel.
    */
-  public leaveVoiceChannel(token: string) {
-    this.ws.send(JSON.stringify({
-      command: "v1/leaveVoiceChannel",
-      token
-    }));
+  public leaveVoiceChannel() {
+    this.client.leaveVoiceChannel();
   }
 
   /**
