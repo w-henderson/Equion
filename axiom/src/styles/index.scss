@@ -2,9 +2,16 @@
 @import "features";
 @import "footer";
 @import "hero";
+@import "invite";
 @import "nav";
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;800&display=swap');
+
+:root,
+html,
+body {
+  min-height: 100%;
+}
 
 body {
   font-family: Inter;
@@ -89,6 +96,10 @@ section {
         background-color: transparentize($accent-dark, 0.5);
         color: rgba(255, 255, 255, 0.5);
         cursor: default;
+      }
+
+      &:not(:first-child) {
+        background-color: $accent-dark;
       }
     }
 

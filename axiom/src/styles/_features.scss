@@ -39,14 +39,6 @@ div.features {
     span {
       font-size: 1.2rem;
     }
-
-    transition: transform 200ms,
-    box-shadow 200ms;
-
-    &:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 64px rgba(0, 0, 0, 0.15);
-    }
   }
 }
 
