@@ -5,10 +5,10 @@ import { EquionRpc } from "./rpc.js";
  * The Equion client API.
  */
 class EquionClient extends EventEmitter {
-  private rpc: EquionRpc;
+  public rpc: EquionRpc;
 
   private cacheAuth: boolean;
-  private token: string | null = null;
+  public token: string | null = null;
   public uid: string | null = null;
 
   /**
@@ -550,7 +550,7 @@ class EquionClient extends EventEmitter {
    * @returns The URL of the file.
    */
   public file(id: string): string {
-    return `${this.rpc.url}/files/${id}`
+    return `${this.rpc.url}/api/v1/files/${id}`
   }
 
   /**
