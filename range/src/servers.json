@@ -3,7 +3,7 @@
     "id": "us-east-1",
     "name": "US East 1",
     "country": "us",
-    "apiRoute": "https://equion.whenderson.dev/api/v1",
+    "apiRoute": "https://equion.whenderson.dev",
     "wsRoute": "wss://equion.whenderson.dev/ws",
     "voice": {
       "host": "equion.whenderson.dev",
@@ -16,7 +16,7 @@
     "id": "localhost",
     "name": "Development",
     "country": "xx",
-    "apiRoute": "https://localhost/api/v1",
+    "apiRoute": "https://localhost",
     "wsRoute": "wss://localhost/ws",
     "voice": {
       "host": "localhost",

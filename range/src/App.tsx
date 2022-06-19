@@ -3,6 +3,7 @@ import OnlineApp from "./OnlineApp";
 import { open } from "@tauri-apps/api/shell";
 import { forage } from "@tauri-apps/tauri-forage";
 
+import EquionClient from "equion-api";
 import REGIONS from "./servers.json";
 import RegionSelector from "./components/RegionSelector";
 
@@ -14,7 +15,7 @@ export const GLOBAL_STATE = {
 
 interface AppState {
   region: RegionData | null,
-  ws: WebSocket | null,
+  client: EquionClient | null,
   status: "online" | "offline" | "connecting",
   ping: number | null,
 }
@@ -35,7 +36,7 @@ class App extends React.Component<unknown, AppState> {
 
     this.state = {
       region: null,
-      ws: null,
+      client: null,
       status: "connecting",
       ping: null
     };
@@ -83,7 +84,7 @@ class App extends React.Component<unknown, AppState> {
   setRegion(region: number) {
     this.setState({ status: "connecting" }, () => {
       this.disconnect();
-      this.setState({ region: REGIONS[region], ws: null }, async () => {
+      this.setState({ region: REGIONS[region], client: null }, async () => {
         await forage.setItem({ key: "region", value: this.state.region!.id })();
         GLOBAL_STATE.rendered = false;
         this.connect();
@@ -95,14 +96,16 @@ class App extends React.Component<unknown, AppState> {
    * Connects to the WebSocket server.
    */
   connect() {
-    if (!this.state.region || this.state.ws !== null) return;
+    if (!this.state.region || this.state.client !== null) return;
 
-    const ws = new WebSocket(this.state.region.wsRoute);
+    const client = new EquionClient(this.state.region.apiRoute, { cacheAuth: true });
 
-    ws.onopen = () => this.setState({ status: "online" });
-    ws.onclose = this.onConnectionLost;
+    client.on("ready", () => this.setState({ status: "online" }));
+    client.on("close", this.onConnectionLost.bind(this));
 
-    this.setState({ ws });
+    client.connect(this.state.region.wsRoute);
+
+    this.setState({ client });
     this.lastPong = null;
 
     this.interval = window.setInterval(() => {
@@ -110,8 +113,8 @@ class App extends React.Component<unknown, AppState> {
         this.onConnectionLost();
       }
 
-      if (this.state.ws) {
-        this.state.ws.send(JSON.stringify({ command: "v1/ping" }));
+      if (this.state.client) {
+        this.state.client.ping();
         this.lastPing = new Date().getTime();
       }
     }, 5000);
@@ -121,10 +124,8 @@ class App extends React.Component<unknown, AppState> {
    * Disconnects from the WebSocket server.
    */
   disconnect() {
-    if (this.state.ws) {
-      // eslint-disable-next-line react/no-direct-mutation-state
-      this.state.ws.onclose = null;
-      this.state.ws.close();
+    if (this.state.client) {
+      this.state.client.disconnect();
     }
 
     if (this.interval) {
@@ -153,7 +154,7 @@ class App extends React.Component<unknown, AppState> {
     if (this.state.status === "online") window.location.reload();
     else this.setState({
       status: "offline",
-      ws: null
+      client: null
     });
   }
 
@@ -175,7 +176,7 @@ class App extends React.Component<unknown, AppState> {
     if (this.state.status === "online") {
       return (
         <OnlineApp
-          ws={this.state.ws!}
+          client={this.state.client!}
           region={this.state.region}
           setRegion={this.setRegion}
           ping={this.state.ping}
@@ -192,7 +193,7 @@ class App extends React.Component<unknown, AppState> {
 
           <div>
             <button onClick={this.reconnect}>Reconnect</button>
-            <button onClick={() => open(this.state.region!.apiRoute.replace("/api/v1", "/status"))}>Status Page</button>
+            <button onClick={() => open(`${this.state.region!.apiRoute}/status`)}>Status Page</button>
           </div>
 
           <RegionSelector

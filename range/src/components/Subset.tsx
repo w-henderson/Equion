@@ -51,7 +51,7 @@ class Subset extends React.Component<SubsetProps, SubsetState> {
 
     if (this.state.name.trim().length === 0) return;
 
-    this.context!.updateSubset(this.props.id, this.state.name).then(() => this.setState({ renaming: false }));
+    this.context!.client.updateSubset(this.props.id, this.state.name).then(() => this.setState({ renaming: false }));
   }
 
   /**
@@ -115,7 +115,7 @@ class Subset extends React.Component<SubsetProps, SubsetState> {
             <>
               <hr />
 
-              <div onClick={() => this.context!.updateSubset(this.props.id, undefined, true)} className="delete">Delete Subset</div>
+              <div onClick={() => this.context!.client.updateSubset(this.props.id, undefined, true)} className="delete">Delete Subset</div>
             </>
           }
         </ContextMenu>

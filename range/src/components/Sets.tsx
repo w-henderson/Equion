@@ -55,7 +55,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
   createSet(name: string, icon: string) {
     this.setState({ loading: true });
 
-    toast.promise(this.context!.createSet(name, icon), {
+    toast.promise(this.context!.client.createSet(name, icon), {
       loading: "Creating set...",
       success: "Set created!",
       error: (e) => `${e}`,

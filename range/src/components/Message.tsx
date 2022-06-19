@@ -73,7 +73,7 @@ class Message extends React.Component<MessageProps, MessageState> {
   saveEditInternal() {
     if (this.state.content.trim().length === 0) return;
 
-    this.context!.updateMessage(this.props.message.id, this.state.content);
+    this.context!.client.updateMessage(this.props.message.id, this.state.content);
   }
 
   /**
@@ -213,7 +213,7 @@ class Message extends React.Component<MessageProps, MessageState> {
 
               <hr />
 
-              <div onClick={() => this.context!.updateMessage(this.props.message.id, undefined, true)} className="delete">Delete Message</div>
+              <div onClick={() => this.context!.client.updateMessage(this.props.message.id, undefined, true)} className="delete">Delete Message</div>
             </>
           }
         </ContextMenu>

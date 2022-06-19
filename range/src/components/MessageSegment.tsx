@@ -43,7 +43,7 @@ class MessageSegment extends React.Component<MessageSegmentProps, MessageSegment
    */
   componentDidMount() {
     if (this.props.segment.type === MessageSegmentType.Ping) {
-      this.context!.getUserByUid(this.props.segment.value).then(user => {
+      this.context!.client.user(this.props.segment.value).then(user => {
         this.setState({ username: user.displayName }, () => this.props.scrollCallback(true));
       }, () => {
         this.setState({ username: "Invalid ping", invalidPing: true });

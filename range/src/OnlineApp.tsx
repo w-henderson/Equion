@@ -1,6 +1,8 @@
 import React from "react";
 import "./styles/App.scss";
 
+import EquionClient from "equion-api";
+
 import { confirm } from "@tauri-apps/api/dialog";
 import { listen, Event as TauriEvent } from "@tauri-apps/api/event";
 import { appWindow } from "@tauri-apps/api/window";
@@ -23,7 +25,7 @@ import Members from "./components/Members";
 import InviteDialog from "./components/InviteDialog";
 
 interface OnlineAppProps {
-  ws: WebSocket,
+  client: EquionClient,
   region: RegionData,
   setRegion: (region: number) => void,
   ping: number | null,
@@ -54,7 +56,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   constructor(props: OnlineAppProps) {
     super(props);
 
-    this.api = new Api(props.ws, props.region, props.onPong);
+    this.api = new Api(props.client, props.region, props.onPong);
 
     this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
@@ -148,17 +150,17 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * Upon completion of authentication, load the user's sets and subscribe to events for them.
    */
-  authComplete() {
-    this.api.getSets().then(sets => {
+  async authComplete() {
+    await this.api.finishAuth(this.api.uid!, this.api.token!);
+
+    this.api.client.sets().then(sets => {
       this.setState({
         sets,
         init: true,
         authenticated: true
       }, () => {
-        if (!this.api.token) return;
-
         for (const set of sets) {
-          this.api.subscriber.subscribe(this.api.token, set.id);
+          this.api.client.subscribe(set.id);
         }
       });
     });
@@ -170,11 +172,11 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   refresh() {
     if (!this.api.uid) return;
 
-    this.api.getUserByUid(this.api.uid).then(user => {
+    this.api.client.user(this.api.uid).then(user => {
       this.api.image = user.image;
     });
 
-    this.api.getSets().then(sets => {
+    this.api.client.sets().then(sets => {
       if (sets.findIndex(s => s.id === this.state.selectedSet) === -1) {
         this.setState({
           sets,
@@ -224,7 +226,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         sets: [...state.sets, set]
       };
     }, () => {
-      if (this.api.token) this.api.subscriber.subscribe(this.api.token, set.id);
+      this.api.client.subscribe(set.id);
       this.selectSet(set.id);
     });
   }
@@ -237,7 +239,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     const leave = window.__TAURI_IPC__ !== undefined ? await confirm(message, "Leave set?") : window.confirm(message);
 
     if (leave) {
-      this.api.leaveSet(id).then(this.refresh, (e) => {
+      this.api.client.leaveSet(id).then(this.refresh, (e) => {
         toast.error(e);
       });
     }
@@ -464,24 +466,24 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   /**
    * When a user starts or stops typing, update the state.
    */
-  onTyping(subset: string, uid: string) {
-    if (this.api.uid === uid) return;
+  onTyping(e: TypingEvent) {
+    if (this.api.uid === e.uid) return;
 
     this.setState(state => {
       const newState = immutable.wrap(state);
 
-      const setIndex = state.sets.findIndex(set => set.subsets.some(s => s.id === subset));
+      const setIndex = state.sets.findIndex(set => set.subsets.some(s => s.id === e.subset));
       if (setIndex === -1) return state;
 
-      const subsetIndex = state.sets[setIndex].subsets.findIndex(s => s.id === subset);
+      const subsetIndex = state.sets[setIndex].subsets.findIndex(s => s.id === e.subset);
       if (subsetIndex === -1) return state;
 
       if (state.sets[setIndex].subsets[subsetIndex].typing !== undefined) {
-        const typingIndex = state.sets[setIndex].subsets[subsetIndex].typing!.findIndex(t => t.uid === uid);
+        const typingIndex = state.sets[setIndex].subsets[subsetIndex].typing!.findIndex(t => t.uid === e.uid);
 
         if (typingIndex === -1) {
           newState.push(`sets.${setIndex}.subsets.${subsetIndex}.typing`, {
-            uid,
+            uid: e.uid,
             lastTyped: new Date().getTime()
           });
         } else {
@@ -489,7 +491,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
         }
       } else {
         newState.set(`sets.${setIndex}.subsets.${subsetIndex}.typing`, [{
-          uid,
+          uid: e.uid,
           lastTyped: new Date().getTime()
         }]);
       }
@@ -552,7 +554,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
       oldest = this.state.sets[setIndex].subsets[subsetIndex].messages?.[0].id;
     }
 
-    const messages = await this.api.getMessages(this.state.selectedSubset, oldest);
+    const messages = await this.api.client.messages(this.state.selectedSubset, oldest);
 
     return new Promise<void>((resolve) => {
       this.setState(state => {

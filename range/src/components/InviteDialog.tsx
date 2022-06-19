@@ -50,7 +50,7 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
     const invalid = () => this.setState({ phase: "invalid", code: null });
 
     this.setState({ visible: true, phase: "loading", code }, () => {
-      this.context!.getInvite(code)
+      this.context!.client.invite(code)
         .then(invite => this.setState({
           phase: "visible",
           set: {
@@ -66,7 +66,7 @@ class InviteDialog extends React.Component<InviteDialogProps, InviteDialogState>
    */
   accept() {
     this.setState({ phase: "loading" }, () => {
-      this.context!.joinSet(this.state.code!).then(s => {
+      this.context!.client.joinSet(this.state.code!).then(s => {
         toast.success("Successfully accepted invite!");
         this.props.joinCallback(s);
         this.setState({ visible: false, code: null });
