@@ -1,10 +1,11 @@
 import React from "react";
 import { Helmet } from "react-helmet";
+import "../../styles/index.scss";
 
 import icon from "../../images/icon.png";
 import { DownloadIcon, JoinIcon, Loading } from "../svg";
 
-const INVITE_API_ENDPOINT = "/api/v1/invite";
+const INVITE_API_ENDPOINT = "https://localhost/api/v1/invite";
 
 type InvitePageProps = {
   code: string;

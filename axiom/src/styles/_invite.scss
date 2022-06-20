@@ -32,6 +32,7 @@ div.invite {
     text-transform: uppercase;
     letter-spacing: 4px;
     font-size: 18px;
+    text-align: center;
   }
 
   h1 {
@@ -41,6 +42,24 @@ div.invite {
 
     &.smaller {
       font-size: 48px;
+    }
+  }
+}
+
+@media only screen and (max-width: 1000px) {
+  div.invite {
+    width: calc(100% - 64px);
+
+    h2 {
+      font-size: 16px;
+    }
+
+    h1 {
+      font-size: 48px;
+    }
+
+    div.bigButtons {
+      margin-bottom: 16px;
     }
   }
 }
