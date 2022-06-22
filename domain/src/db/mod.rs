@@ -294,6 +294,18 @@ impl<'a> Transaction<'a> {
     }
 
     db! {
+        update_set_name(name: &str, set: &str) {
+            "UPDATE sets SET name = ? WHERE id = ?"
+        }
+    }
+
+    db! {
+        update_set_icon(icon: &str, set: &str) {
+            "UPDATE sets SET icon = ? WHERE id = ?"
+        }
+    }
+
+    db! {
         update_subset_name(name: &str, subset: &str) {
             "UPDATE subsets SET name = ? WHERE id = ?"
         }
@@ -306,7 +318,7 @@ impl<'a> Transaction<'a> {
     }
 
     db! {
-        select_user_by_uid(token: &str) -> Option<User> {
+        select_user_by_uid(uid: &str) -> Option<User> {
             first("SELECT id, username, display_name, email, image, bio FROM users WHERE id = ?") => User::from_row
         }
     }
@@ -399,6 +411,36 @@ impl<'a> Transaction<'a> {
     db! {
         increment_invite_uses(id: &str) {
             "UPDATE invites SET uses = uses + 1 WHERE id = ?"
+        }
+    }
+
+    db! {
+        delete_set_messages(set: &str) {
+            "DELETE FROM messages JOIN subsets ON messages.subset = subsets.id WHERE subsets.set_id = ?"
+        }
+    }
+
+    db! {
+        delete_set_subsets(set: &str) {
+            "DELETE FROM subsets WHERE set_id = ?"
+        }
+    }
+
+    db! {
+        delete_set_invites(set: &str) {
+            "DELETE FROM invites WHERE set_id = ?"
+        }
+    }
+
+    db! {
+        delete_set_memberships(set: &str) {
+            "DELETE FROM memberships WHERE set_id = ?"
+        }
+    }
+
+    db! {
+        delete_set(set: &str) {
+            "DELETE FROM sets WHERE id = ?"
         }
     }
 }

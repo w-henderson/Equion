@@ -256,6 +256,59 @@ impl State {
         Ok(new_subset_id)
     }
 
+    /// Updates or deletes the given set.
+    pub fn update_set(
+        &self,
+        token: impl AsRef<str>,
+        set: impl AsRef<str>,
+        name: Option<String>,
+        icon: Option<String>,
+        delete: Option<bool>,
+    ) -> Result<(), String> {
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
+
+        let (admin, user_id) = transaction
+            .select_membership(token.as_ref(), set.as_ref())?
+            .ok_or_else(|| "Not a member of this set".to_string())?;
+
+        if !admin {
+            return Err("Insuffient permissions".to_string());
+        }
+
+        if delete == Some(true) {
+            transaction.delete_set_messages(set.as_ref())?;
+            transaction.delete_set_subsets(set.as_ref())?;
+            transaction.delete_set_invites(set.as_ref())?;
+            transaction.delete_set_memberships(set.as_ref())?;
+            transaction.delete_set(set.as_ref())?;
+
+            transaction.commit()?;
+
+            self.broadcast_set(set.as_ref(), None, None, None, true);
+
+            crate::log!("User {} deleted set {}", user_id, set.as_ref());
+
+            return Ok(());
+        }
+
+        if let Some(name) = &name {
+            transaction.update_set_name(name, set.as_ref())?;
+        }
+
+        if let Some(icon) = &icon {
+            transaction.update_set_icon(icon, set.as_ref())?;
+        }
+
+        transaction.commit()?;
+
+        self.broadcast_set(set.as_ref(), name, icon, None, false);
+
+        crate::log!("User {} updated set {}", user_id, set.as_ref());
+
+        Ok(())
+    }
+
     /// Updates or deletes the given subset.
     pub fn update_subset(
         &self,
@@ -296,7 +349,11 @@ impl State {
     }
 
     /// Adds the authenticated user to the set with the given invite code.
-    pub fn join_set(&self, token: impl AsRef<str>, invite: impl AsRef<str>) -> Result<String, String> {
+    pub fn join_set(
+        &self,
+        token: impl AsRef<str>,
+        invite: impl AsRef<str>,
+    ) -> Result<String, String> {
         let mut conn = self.db.connection()?;
         let mut transaction = conn.transaction()?;
 
@@ -369,6 +426,48 @@ impl State {
         self.broadcast_left_user(set.as_ref(), user);
 
         crate::log!("User {} left set {}", user_id, set.as_ref());
+
+        Ok(())
+    }
+
+    /// Kicks a user from the given set.
+    pub fn kick(
+        &self,
+        token: impl AsRef<str>,
+        set: impl AsRef<str>,
+        uid: impl AsRef<str>,
+    ) -> Result<(), String> {
+        let mut conn = self.db.connection()?;
+        let mut transaction = conn.transaction()?;
+
+        let (admin, admin_user_id) = transaction
+            .select_membership(token.as_ref(), set.as_ref())?
+            .ok_or_else(|| "You are not a member of this set".to_string())?;
+
+        if !admin {
+            return Err("Insuffient permissions".to_string());
+        }
+
+        let user = transaction
+            .select_user_by_uid(uid.as_ref())?
+            .map(|mut user| {
+                user.online = self.voice.is_user_online(&user.uid);
+                user
+            })
+            .ok_or_else(|| "Target user not in set".to_string())?;
+
+        transaction.delete_membership(uid.as_ref(), set.as_ref())?;
+        transaction.commit()?;
+
+        self.broadcast_left_user(set.as_ref(), user);
+        self.alert_kicked_user(set.as_ref(), uid.as_ref());
+
+        crate::log!(
+            "User {} kicked user {} from set {}",
+            admin_user_id,
+            uid.as_ref(),
+            set.as_ref()
+        );
 
         Ok(())
     }
