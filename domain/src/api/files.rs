@@ -59,7 +59,7 @@ fn update_user_image(request: Request, state: Arc<State>) -> Result<Response, St
 
     state.update_user_image(token, file_name, content).map(|_| {
         Response::empty(StatusCode::OK)
-            .with_bytes("OK")
+            .with_bytes(r#"{"success":true}"#)
             .with_header(HeaderType::AccessControlAllowOrigin, "*")
     })
 }
