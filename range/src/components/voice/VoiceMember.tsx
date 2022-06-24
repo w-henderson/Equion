@@ -1,6 +1,6 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
-import { MicrophoneIcon, ScreenshareIcon, VolumeIcon } from "./Svg";
+import ApiContext from "../../api/ApiContext";
+import { MicrophoneIcon, ScreenshareIcon, VolumeIcon } from "../Svg";
 
 interface VoiceMemberProps {
   member: VoiceUserData,

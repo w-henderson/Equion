@@ -1,10 +1,10 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 import toast from "react-hot-toast";
-import Modal from "./Modal";
-import "../styles/InviteDialog.scss";
+import Modal from "../Modal";
+import "../../styles/sets/InviteDialog.scss";
 
-import { Loading } from "./Svg";
+import { Loading } from "../Svg";
 
 interface InviteDialogProps {
   joinCallback: (set: SetData) => void,

@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/SetIcon.scss";
+import "../../styles/sets/SetIcon.scss";
 
 interface AddSetIconProps {
   onClick: () => void

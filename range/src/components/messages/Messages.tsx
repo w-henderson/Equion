@@ -1,15 +1,15 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 import { open } from "@tauri-apps/api/shell";
 
-import "../styles/Messages.scss";
-import "../styles/UserInfo.scss";
+import "../../styles/messages/Messages.scss";
+import "../../styles/user/UserInfo.scss";
 
 import Message from "./Message";
 import MessageBox from "./MessageBox";
-import Modal from "./Modal";
+import Modal from "../Modal";
 import TypingIndicator from "./TypingIndicator";
-import { DownArrow } from "./Svg";
+import { DownArrow } from "../Svg";
 
 interface MessagesProps {
   subset: SubsetData | undefined,

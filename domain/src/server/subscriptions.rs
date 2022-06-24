@@ -99,6 +99,41 @@ impl State {
         Ok(())
     }
 
+    /// Broadcasts the "set" event to all subscribers of the set.
+    pub fn broadcast_set(
+        &self,
+        set: impl AsRef<str>,
+        name: Option<String>,
+        icon: Option<String>,
+        kicked: Option<bool>,
+        deleted: bool,
+    ) {
+        let subscriptions = self.subscriptions.read().unwrap();
+
+        let message = Message::new(
+            json!({
+                "event": "v1/set",
+                "set": (set.as_ref()),
+                "deleted": deleted,
+                "data": {
+                    "name": name,
+                    "icon": icon,
+                    "kicked": kicked
+                }
+            })
+            .serialize(),
+        );
+
+        if let Some(subscriptions) = subscriptions.get(set.as_ref()) {
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            for subscriber in subscriptions {
+                sender.send(*subscriber, message.clone());
+            }
+        }
+    }
+
     /// Broadcasts the "subset" event to all subscribers of the set.
     pub fn broadcast_subset(
         &self,
@@ -336,6 +371,28 @@ impl State {
             for subscriber in subscriptions {
                 sender.send(*subscriber, message.clone());
             }
+        }
+    }
+
+    /// Alerts a user that they have been kicked from the set.
+    pub fn alert_kicked_user(&self, set: impl AsRef<str>, uid: impl AsRef<str>) {
+        if let Some(user) = self.voice.get_user(uid) {
+            let message = Message::new(
+                json!({
+                    "event": "v1/set",
+                    "set": (set.as_ref()),
+                    "deleted": true,
+                    "data": {
+                        "kicked": true
+                    }
+                })
+                .serialize(),
+            );
+
+            let locked_sender = self.global_sender.lock().unwrap();
+            let sender = locked_sender.as_ref().unwrap();
+
+            sender.send(user.socket_addr, message);
         }
     }
 }

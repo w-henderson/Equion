@@ -80,6 +80,13 @@ class EquionClient extends EventEmitter {
           }
         });
 
+      case "v1/set":
+        return this.emit("set", {
+          set: data.set,
+          deleted: data.deleted,
+          value: data.data
+        });
+
       case "v1/subset":
         return this.emit("subset", {
           set: data.set,
@@ -421,6 +428,30 @@ class EquionClient extends EventEmitter {
   }
 
   /**
+   * Updates or deletes the set. Requires the user to be an administrator of the set.
+   * 
+   * @param set The set to update.
+   * @param name The new name of the set.
+   * @param icon The new icon of the set.
+   * @param remove Whether to remove the set.
+   * @param customToken The token to use for the request. If not specified, the cached token will be used.
+   */
+  public updateSet(set: string, name?: string, icon?: string, remove?: boolean, customToken?: string): Promise<void> {
+    const token = customToken ?? this.token;
+    if (token === null) return Promise.reject("No token");
+
+    return this.rpc.get("v1/updateSet", {
+      data: {
+        token,
+        set,
+        name: name ?? null,
+        icon: icon ?? null,
+        delete: remove ?? null
+      }
+    });
+  }
+
+  /**
    * Updates or deletes the subset. Requires the user to be an administrator of the set.
    * 
    * @param subset The subset to update.
@@ -438,6 +469,26 @@ class EquionClient extends EventEmitter {
         subset,
         name: name ?? null,
         delete: remove ?? null
+      }
+    });
+  }
+
+  /**
+   * Kicks the specified user from the given set. Requires the user to be an administrator of the set.
+   * 
+   * @param set The set to kick the user from.
+   * @param user The user to kick.
+   * @param customToken The token to use for the request. If not specified, the cached token will be used.
+   */
+  public kick(set: string, user: string, customToken?: string): Promise<void> {
+    const token = customToken ?? this.token;
+    if (token === null) return Promise.reject("No token");
+
+    return this.rpc.get("v1/kick", {
+      data: {
+        token,
+        set,
+        uid: user
       }
     });
   }

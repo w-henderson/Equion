@@ -2,6 +2,22 @@
 
 These are sent to the client when events happen in a set.
 
+## `v1/set`: Set event
+Sent when a set is modified, deleted, or the user has been kicked.
+
+```json
+{
+  "event": "v1/set",
+  "set": "",
+  "deleted": false,
+  "data": {
+    "name?": "",
+    "icon?": "",
+    "kicked?": false
+  }
+}
+```
+
 ## `v1/subset`: Subset event
 Sent when a subset is created, modified or deleted.
 

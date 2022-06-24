@@ -146,6 +146,7 @@ export class EquionRpc {
 
     return fetch(`${this.url}/api/${command}`, {
       method: "POST",
+      headers: options?.headers,
       body
     }).then(res => res.json())
   }

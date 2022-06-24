@@ -12,17 +12,16 @@ import * as immutable from "object-path-immutable";
 
 import ApiContext from "./api/ApiContext";
 import Api from "./api/Api";
-import { SetEvent, SubsetEvent } from "./api/Subscriber";
 
 import { GLOBAL_STATE } from "./App";
 
-import Sets from "./components/Sets";
-import Subsets from "./components/Subsets";
-import Messages from "./components/Messages";
-import AuthDialog from "./components/AuthDialog";
-import UserInfo from "./components/UserInfo";
-import Members from "./components/Members";
-import InviteDialog from "./components/InviteDialog";
+import Sets from "./components/sets/Sets";
+import Subsets from "./components/sets/Subsets";
+import Messages from "./components/messages/Messages";
+import AuthDialog from "./components/user/AuthDialog";
+import UserInfo from "./components/user/UserInfo";
+import Members from "./components/user/Members";
+import InviteDialog from "./components/sets/InviteDialog";
 
 interface OnlineAppProps {
   client: EquionClient,
@@ -60,6 +59,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
 
     this.api.onShow = this.onShow.bind(this);
     this.api.onMessage = this.onMessage.bind(this);
+    this.api.onSet = this.onSet.bind(this);
     this.api.onSubset = this.onSubset.bind(this);
     this.api.onUser = this.onUser.bind(this);
     this.api.onVoice = this.onVoice.bind(this);
@@ -89,6 +89,7 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
     this.authComplete = this.authComplete.bind(this);
     this.createdSet = this.createdSet.bind(this);
     this.leaveSet = this.leaveSet.bind(this);
+    this.deleteSet = this.deleteSet.bind(this);
     this.requestMoreMessages = this.requestMoreMessages.bind(this);
   }
 
@@ -246,6 +247,22 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
   }
 
   /**
+   * Delete the given set, requesting confirmation.
+   */
+  async deleteSet(id: string) {
+    const message = "Are you sure you want to delete this set? This cannot be undone.";
+    const leave = window.__TAURI_IPC__ !== undefined ? await confirm(message, "Delete set?") : window.confirm(message);
+
+    if (leave) {
+      toast.promise(this.api.client.updateSet(id, undefined, undefined, true), {
+        error: e => `Failed to delete set: ${e}`,
+        loading: "Deleting set...",
+        success: "Deleted set."
+      });
+    }
+  }
+
+  /**
    * When a subset is selected, update the state as well as the tray icon if necessary.
    */
   onShow() {
@@ -318,6 +335,38 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
       const unreadMessages = this.state.sets.some(set => set.subsets.some(subset => subset.unread ?? false));
 
       this.api.setTrayIcon(unreadMessages ? "notification" : "default");
+    });
+  }
+
+  /**
+   * When a subset is updated, deleted or the user has been kicked, update the state.
+   */
+  onSet(e: SetEvent<SetUpdateData>) {
+    if (e.value.kicked) {
+      toast.error("You have been kicked!");
+    }
+
+    this.setState(state => {
+      const setIndex = state.sets.findIndex(s => s.id === e.set);
+      const newState = immutable.wrap(state);
+
+      if (e.deleted || e.value.kicked) {
+        newState.del(`sets.${setIndex}`);
+
+        if (state.selectedSet === e.set) {
+          newState.set("selectedSet", null);
+        }
+      } else {
+        if (e.value.name) {
+          newState.set(`sets.${setIndex}.name`, e.value.name);
+        }
+
+        if (e.value.icon) {
+          newState.set(`sets.${setIndex}.icon`, e.value.icon);
+        }
+      }
+
+      return newState.value();
     });
   }
 
@@ -595,7 +644,8 @@ class OnlineApp extends React.Component<OnlineAppProps, OnlineAppState> {
           selectCallback={this.selectSet}
           createdCallback={this.createdSet}
           joinCallback={id => { if (this.inviteDialog.current) this.inviteDialog.current.show(id); }}
-          leaveCallback={this.leaveSet} />
+          leaveCallback={this.leaveSet}
+          deleteCallback={this.deleteSet} />
 
         {selectedSet &&
           <>

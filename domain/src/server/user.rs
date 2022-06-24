@@ -147,7 +147,7 @@ impl State {
         let mut conn = self.db.connection()?;
         let mut transaction = conn.transaction()?;
 
-        let user = transaction
+        let mut user = transaction
             .select_user_by_token(token.as_ref())?
             .map(|mut user| {
                 user.online = self.voice.is_user_online(&user.uid);
@@ -161,6 +161,8 @@ impl State {
         transaction.commit()?;
 
         let uid = user.uid.clone();
+
+        user.image = Some(file_id);
 
         self.broadcast_update_user(user);
 

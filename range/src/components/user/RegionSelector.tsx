@@ -1,11 +1,11 @@
 import React from "react";
-import "../styles/RegionSelector.scss";
+import "../../styles/user/RegionSelector.scss";
 
-import REGIONS from "../servers.json";
+import REGIONS from "../../servers.json";
 
-import gbFlag from "../images/flags/gb.svg";
-import usFlag from "../images/flags/us.svg";
-import xxFlag from "../images/flags/xx.svg";
+import gbFlag from "../../images/flags/gb.svg";
+import usFlag from "../../images/flags/us.svg";
+import xxFlag from "../../images/flags/xx.svg";
 
 const FLAGS = {
   gb: gbFlag,

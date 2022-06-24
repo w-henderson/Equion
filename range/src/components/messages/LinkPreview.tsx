@@ -1,7 +1,7 @@
 import React from "react";
-import "../styles/LinkPreview.scss";
+import "../../styles/messages/LinkPreview.scss";
 
-import { LinkPreviewProvider, PROVIDERS } from "../api/LinkPreviewRegex";
+import { LinkPreviewProvider, PROVIDERS } from "../../api/LinkPreviewRegex";
 import { emit } from "@tauri-apps/api/event";
 
 interface LinkPreviewProps {

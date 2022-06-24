@@ -1,6 +1,6 @@
 import React from "react";
 import toast from "react-hot-toast";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 
 interface SetManagerProps {
   createSet: (name: string, icon: string) => void,

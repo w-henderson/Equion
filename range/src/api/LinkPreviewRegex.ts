@@ -1,4 +1,4 @@
-import InvitePreview from "../components/InvitePreview";
+import InvitePreview from "../components/messages/InvitePreview";
 
 export interface LinkPreviewProvider {
   name: string,

@@ -1,15 +1,16 @@
 import React from "react";
 import { clipboard } from "@tauri-apps/api";
 import toast from "react-hot-toast";
-import "../styles/SetIcon.scss";
+import "../../styles/sets/SetIcon.scss";
 
-import ContextMenu, { handler } from "./ContextMenu";
+import ContextMenu, { handler } from "../ContextMenu";
 
 interface SetIconProps {
   set: SetData,
   selected: boolean,
   onClick: () => void,
-  leaveCallback: () => void
+  leaveCallback: () => void,
+  deleteCallback: () => void,
 }
 
 /**
@@ -33,6 +34,10 @@ class SetIcon extends React.Component<SetIconProps> {
         </div>
 
         <ContextMenu ref={this.contextMenuRef}>
+          <span>{this.props.set.name}</span>
+
+          <hr />
+
           <div onClick={() => {
             clipboard.writeText(this.props.set.id).then(() => {
               toast.success("Set ID copied to clipboard!");
@@ -44,6 +49,10 @@ class SetIcon extends React.Component<SetIconProps> {
           <hr />
 
           <div className="delete" onClick={this.props.leaveCallback}>Leave Set</div>
+
+          {this.props.set.admin &&
+            <div className="delete" onClick={this.props.deleteCallback}>Delete Set</div>
+          }
         </ContextMenu>
       </>
     );

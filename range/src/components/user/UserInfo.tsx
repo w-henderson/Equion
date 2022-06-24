@@ -1,12 +1,12 @@
 import React from "react";
-import "../styles/UserInfo.scss";
+import "../../styles/user/UserInfo.scss";
 
 import toast from "react-hot-toast";
-import ApiContext from "../api/ApiContext";
-import { DEFAULT_PROFILE_IMAGE } from "../api/Api";
+import ApiContext from "../../api/ApiContext";
+import { DEFAULT_PROFILE_IMAGE } from "../../api/Api";
 
-import Modal from "./Modal";
-import { EditButton, LogOutButton, SaveButton } from "./Svg";
+import Modal from "../Modal";
+import { EditButton, LogOutButton, SaveButton } from "../Svg";
 
 interface UserInfoProps {
   id: string | null,

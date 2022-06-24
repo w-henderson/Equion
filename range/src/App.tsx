@@ -5,7 +5,7 @@ import { forage } from "@tauri-apps/tauri-forage";
 
 import EquionClient from "equion-api";
 import REGIONS from "./servers.json";
-import RegionSelector from "./components/RegionSelector";
+import RegionSelector from "./components/user/RegionSelector";
 
 import { Loading } from "./components/Svg";
 

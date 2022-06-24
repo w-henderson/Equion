@@ -1,8 +1,8 @@
 import React from "react";
 import { MathJax } from "better-react-mathjax";
 
-import ApiContext from "../api/ApiContext";
-import { MessageSegment as MessageSegmentData, MessageSegmentType } from "../api/MessageParser";
+import ApiContext from "../../api/ApiContext";
+import { MessageSegment as MessageSegmentData, MessageSegmentType } from "../../api/MessageParser";
 
 interface MessageSegmentProps {
   segment: MessageSegmentData,

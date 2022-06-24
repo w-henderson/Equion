@@ -265,6 +265,25 @@ Output:
 { "success": true }
 ```
 
+## `v1/updateSet`: Update or delete set
+Updates the details of the given set or deletes it. Requires admin privileges over the set.
+
+Input:
+```json
+{
+  "token": "",
+  "set": "",
+  "name?": "",
+  "icon?": "",
+  "delete?": false
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
 ## `v1/updateSubset`: Update or delete subset
 Updates the details of the given subset or deletes it. Requires admin privileges over the set.
 
@@ -275,6 +294,23 @@ Input:
   "subset": "",
   "name?": "",
   "delete?": false
+}
+```
+
+Output:
+```json
+{ "success": true }
+```
+
+## `v1/kick`: Kick a user from a set
+Kicks a user from a set. Requires admin privileges over the set.
+
+Input:
+```json
+{
+  "token": "",
+  "set": "",
+  "uid": ""
 }
 ```
 

@@ -1,9 +1,9 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 import { open } from "@tauri-apps/api/dialog";
-import "../styles/MessageBox.scss";
+import "../../styles/messages/MessageBox.scss";
 
-import { Paperclip } from "./Svg";
+import { Paperclip } from "../Svg";
 
 interface MessageBoxProps {
   subsetId: string,

@@ -1,14 +1,14 @@
 import React from "react";
-import "../styles/Subsets.scss";
+import "../../styles/sets/Subsets.scss";
 
 import toast from "react-hot-toast";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 
 import Subset from "./Subset";
 import AddSubset from "./AddSubset";
-import Modal from "./Modal";
-import Voice from "./Voice";
-import { ShareButton } from "./Svg";
+import Modal from "../Modal";
+import Voice from "../voice/Voice";
+import { ShareButton } from "../Svg";
 import InviteManager from "./InviteManager";
 
 interface SubsetsProps {

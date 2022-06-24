@@ -8,6 +8,12 @@ type SetData = {
   voiceMembers: VoiceUserData[]
 }
 
+type SetUpdateData = {
+  name?: string | null;
+  icon?: string | null;
+  kicked?: boolean | null;
+}
+
 type SubsetData = {
   id: string;
   name: string;
@@ -127,6 +133,7 @@ type Events = {
   close: DisconnectEvent;
   pong: PongEvent;
   message: SubsetEvent<MessageData>;
+  set: SetEvent<SetUpdateData>;
   subset: SetEvent<SubsetData>;
   user: SetEvent<UserData>;
   voice: SetEvent<VoiceUserData>;
