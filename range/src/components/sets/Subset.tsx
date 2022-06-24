@@ -1,12 +1,12 @@
 import React from "react";
-import "../styles/Subset.scss";
+import "../../styles/sets/Subset.scss";
 
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 
 import { clipboard } from "@tauri-apps/api";
 import toast from "react-hot-toast";
 
-import ContextMenu, { handler } from "./ContextMenu";
+import ContextMenu, { handler } from "../ContextMenu";
 
 interface SubsetProps {
   id: string,

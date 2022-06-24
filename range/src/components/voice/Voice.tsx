@@ -1,10 +1,10 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
-import "../styles/Voice.scss";
+import ApiContext from "../../api/ApiContext";
+import "../../styles/voice/Voice.scss";
 
 import VoiceMember from "./VoiceMember";
 import Screenshare from "./Screenshare";
-import { VoiceChatIcon } from "./Svg";
+import { VoiceChatIcon } from "../Svg";
 
 interface VoiceProps {
   id: string,

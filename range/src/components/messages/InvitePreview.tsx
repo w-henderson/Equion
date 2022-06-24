@@ -1,8 +1,8 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
-import "../styles/InvitePreview.scss";
+import ApiContext from "../../api/ApiContext";
+import "../../styles/messages/InvitePreview.scss";
 
-import { Loading } from "./Svg";
+import { Loading } from "../Svg";
 
 interface InvitePreviewProps {
   id: string,

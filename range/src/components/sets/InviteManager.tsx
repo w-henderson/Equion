@@ -1,12 +1,12 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 import toast from "react-hot-toast";
 import { clipboard } from "@tauri-apps/api";
-import "../styles/InviteManager.scss";
+import "../../styles/sets/InviteManager.scss";
 
-import Modal from "./Modal";
+import Modal from "../Modal";
 
-import { DeleteIcon, Loading } from "./Svg";
+import { DeleteIcon, Loading } from "../Svg";
 
 interface InviteManagerProps {
   set: string

@@ -15,13 +15,13 @@ import Api from "./api/Api";
 
 import { GLOBAL_STATE } from "./App";
 
-import Sets from "./components/Sets";
-import Subsets from "./components/Subsets";
-import Messages from "./components/Messages";
-import AuthDialog from "./components/AuthDialog";
-import UserInfo from "./components/UserInfo";
-import Members from "./components/Members";
-import InviteDialog from "./components/InviteDialog";
+import Sets from "./components/sets/Sets";
+import Subsets from "./components/sets/Subsets";
+import Messages from "./components/messages/Messages";
+import AuthDialog from "./components/user/AuthDialog";
+import UserInfo from "./components/user/UserInfo";
+import Members from "./components/user/Members";
+import InviteDialog from "./components/sets/InviteDialog";
 
 interface OnlineAppProps {
   client: EquionClient,

@@ -1,7 +1,7 @@
 import React from "react";
-import "../styles/Members.scss";
+import "../../styles/user/Members.scss";
 
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 
 interface MembersProps {
   set: SetData,

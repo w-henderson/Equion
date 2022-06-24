@@ -1,9 +1,9 @@
 import React from "react";
 import { clipboard } from "@tauri-apps/api";
 import toast from "react-hot-toast";
-import "../styles/SetIcon.scss";
+import "../../styles/sets/SetIcon.scss";
 
-import ContextMenu, { handler } from "./ContextMenu";
+import ContextMenu, { handler } from "../ContextMenu";
 
 interface SetIconProps {
   set: SetData,

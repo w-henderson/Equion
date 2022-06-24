@@ -1,17 +1,17 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
-import { MessageParser } from "../api/MessageParser";
+import ApiContext from "../../api/ApiContext";
+import { MessageParser } from "../../api/MessageParser";
 import { open } from "@tauri-apps/api/shell";
 import { clipboard } from "@tauri-apps/api";
 import toast from "react-hot-toast";
 
-import "../styles/Message.scss";
+import "../../styles/messages/Message.scss";
 
-import defaultAttachment from "../images/default_attachment.jpg";
+import defaultAttachment from "../../images/default_attachment.jpg";
 import MessageSegment from "./MessageSegment";
 import LinkPreview from "./LinkPreview";
 
-import ContextMenu, { handler } from "./ContextMenu";
+import ContextMenu, { handler } from "../ContextMenu";
 
 interface MessageProps {
   message: MessageData,

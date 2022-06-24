@@ -1,10 +1,10 @@
 import React from "react";
-import logo from "../images/logo.png";
+import logo from "../../images/logo.png";
 import toast from "react-hot-toast";
-import "../styles/AuthDialog.scss";
+import "../../styles/user/AuthDialog.scss";
 
 import RegionSelector from "./RegionSelector";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 
 interface AuthDialogProps {
   region: RegionData,

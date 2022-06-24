@@ -1,5 +1,5 @@
 import React from "react";
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 
 interface TypingIndicatorProps {
   members: UserData[],

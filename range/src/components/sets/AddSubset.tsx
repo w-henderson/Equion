@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/Subset.scss";
+import "../../styles/sets/Subset.scss";
 
 interface AddSubsetProps {
   onClick: () => void

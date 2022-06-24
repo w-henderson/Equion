@@ -1,8 +1,8 @@
 import React from "react";
-import Modal from "./Modal";
-import "../styles/Screenshare.scss";
+import Modal from "../Modal";
+import "../../styles/voice/Screenshare.scss";
 
-import { MaximiseIcon } from "./Svg";
+import { MaximiseIcon } from "../Svg";
 
 interface ScreenshareProps {
   stream: MediaStream | null,

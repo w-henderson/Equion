@@ -1,12 +1,12 @@
 import React from "react";
-import "../styles/Sets.scss";
+import "../../styles/sets/Sets.scss";
 
-import ApiContext from "../api/ApiContext";
+import ApiContext from "../../api/ApiContext";
 import toast from "react-hot-toast";
 
 import SetIcon from "./SetIcon";
 import AddSetIcon from "./AddSetIcon";
-import Modal from "./Modal";
+import Modal from "../Modal";
 import SetManager from "./SetManager";
 
 interface SetsProps {
