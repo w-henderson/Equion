@@ -9,7 +9,8 @@ interface SetIconProps {
   set: SetData,
   selected: boolean,
   onClick: () => void,
-  leaveCallback: () => void
+  leaveCallback: () => void,
+  deleteCallback: () => void,
 }
 
 /**
@@ -44,6 +45,10 @@ class SetIcon extends React.Component<SetIconProps> {
           <hr />
 
           <div className="delete" onClick={this.props.leaveCallback}>Leave Set</div>
+
+          {this.props.set.admin &&
+            <div className="delete" onClick={this.props.deleteCallback}>Delete Set</div>
+          }
         </ContextMenu>
       </>
     );

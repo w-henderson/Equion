@@ -17,7 +17,8 @@ interface SetsProps {
   selectCallback: (id: string) => void,
   createdCallback: (set: SetData) => void,
   joinCallback: (id: string) => void,
-  leaveCallback: (id: string) => void
+  leaveCallback: (id: string) => void,
+  deleteCallback: (id: string) => void,
 }
 
 interface SetsState {
@@ -97,6 +98,7 @@ class Sets extends React.Component<SetsProps, SetsState> {
               selected={set.id === this.props.selectedSet}
               onClick={() => this.props.selectCallback(set.id)}
               leaveCallback={() => this.props.leaveCallback(set.id)}
+              deleteCallback={() => this.props.deleteCallback(set.id)}
               key={set.id} />
           )}
 

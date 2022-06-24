@@ -31,6 +31,7 @@ class Api {
 
   onShow: () => void;
   onMessage: (e: SubsetEvent<MessageData>) => void;
+  onSet: (e: SetEvent<SetUpdateData>) => void;
   onSubset: (e: SetEvent<SubsetData>) => void;
   onUser: (e: SetEvent<UserData>) => void;
   onVoice: (e: SetEvent<VoiceUserData>) => void;
@@ -55,6 +56,7 @@ class Api {
 
     this.onShow = () => null;
     this.onMessage = () => null;
+    this.onSet = () => null;
     this.onSubset = () => null;
     this.onUser = () => null;
     this.onVoice = () => null;
@@ -90,6 +92,7 @@ class Api {
 
     // Initialise the subscriber
     this.client.on("message", this.onMessage.bind(this));
+    this.client.on("set", this.onSet.bind(this));
     this.client.on("subset", this.onSubset.bind(this));
     this.client.on("typing", this.onTyping.bind(this));
 
