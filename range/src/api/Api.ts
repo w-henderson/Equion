@@ -9,7 +9,9 @@ import toast from "react-hot-toast";
 import Notifier from "./Notifier";
 import Voice from "./Voice";
 
-export const DEFAULT_PROFILE_IMAGE = "https://cdn.landesa.org/wp-content/uploads/default-user-image.png";
+import user from "../images/user.png";
+
+export const DEFAULT_PROFILE_IMAGE = user;
 
 /**
  * Represents the core API.
