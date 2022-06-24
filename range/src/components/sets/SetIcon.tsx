@@ -34,6 +34,10 @@ class SetIcon extends React.Component<SetIconProps> {
         </div>
 
         <ContextMenu ref={this.contextMenuRef}>
+          <span>{this.props.set.name}</span>
+
+          <hr />
+
           <div onClick={() => {
             clipboard.writeText(this.props.set.id).then(() => {
               toast.success("Set ID copied to clipboard!");
