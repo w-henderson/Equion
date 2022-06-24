@@ -1,7 +1,9 @@
 import React from "react";
+import toast from "react-hot-toast";
+import ApiContext from "../../api/ApiContext";
 import "../../styles/user/Members.scss";
 
-import ApiContext from "../../api/ApiContext";
+import Member from "./Member";
 
 interface MembersProps {
   set: SetData,
@@ -13,6 +15,26 @@ interface MembersProps {
  */
 class Members extends React.Component<MembersProps> {
   context!: React.ContextType<typeof ApiContext>;
+
+  /**
+   * Initializes the component.
+   */
+  constructor(props: MembersProps) {
+    super(props);
+
+    this.kick = this.kick.bind(this);
+  }
+
+  /**
+   * Kicks the given user from the set.
+   */
+  kick(id: string) {
+    toast.promise(this.context!.client.kick(this.props.set.id, id), {
+      error: e => `Could not kick user: ${e}`,
+      loading: "Kicking user...",
+      success: "User kicked!"
+    });
+  }
 
   /**
    * Renders the members list.
@@ -29,25 +51,25 @@ class Members extends React.Component<MembersProps> {
 
         <div className="list">
           {onlineUsers.map(member =>
-            <div className="member" key={member.uid} onClick={() => this.props.userCallback(member.uid)}>
-              <img src={this.context!.getFileURL(member.image)} alt="Member" />
-
-              <div>
-                <h2>{member.displayName}</h2>
-                <span>@{member.username}</span>
-              </div>
-            </div>
+            <Member
+              user={member}
+              online={true}
+              admin={this.props.set.admin}
+              image={this.context!.getFileURL(member.image)}
+              onClick={() => this.props.userCallback(member.uid)}
+              kickCallback={() => this.kick(member.uid)}
+              key={member.uid} />
           )}
 
           {offlineUsers.map(member =>
-            <div className="member offline" key={member.uid} onClick={() => this.props.userCallback(member.uid)}>
-              <img src={this.context!.getFileURL(member.image)} alt="Member" />
-
-              <div>
-                <h2>{member.displayName}</h2>
-                <span>@{member.username}</span>
-              </div>
-            </div>
+            <Member
+              user={member}
+              online={false}
+              admin={this.props.set.admin}
+              image={this.context!.getFileURL(member.image)}
+              onClick={() => this.props.userCallback(member.uid)}
+              kickCallback={() => this.kick(member.uid)}
+              key={member.uid} />
           )}
 
           <div className="bottom">
