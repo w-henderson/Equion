@@ -416,7 +416,7 @@ impl<'a> Transaction<'a> {
 
     db! {
         delete_set_messages(set: &str) {
-            "DELETE FROM messages JOIN subsets ON messages.subset = subsets.id WHERE subsets.set_id = ?"
+            "DELETE messages FROM messages JOIN subsets ON messages.subset = subsets.id WHERE subsets.set_id = ?"
         }
     }
 
