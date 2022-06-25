@@ -1,12 +1,12 @@
 const SEGMENT_REGEX: Record<string, RegExp | RegExp[]> = {
-  blockLatex: [/\\\[(.*?)\\\]/g, /\$\$(.*?)\$\$/g],
-  inlineLatex: [/\\\((.*?)\\\)/g, /(?<!\$)\$(?!\$)(.*?)\$/g],
+  blockLatex: [/\\\[(.+?)\\\]/g, /\$\$(.+?)\$\$/g],
+  inlineLatex: [/\\\((.+?)\\\)/g, /\$(?!\$)(.+?)\$/g],
   blockCode: /^```\w*\n([\s\S]*?)^```$/gm,
   inlineCode: /`([^`\n]+?)`/g,
-  bold: /\*\*(.*?)\*\*/g,
-  italic: /(?<!\*)\*(?!\*)(.*?)\*/g,
-  underline: /__(.*?)__/g,
-  strike: /~~(.*?)~~/g,
+  bold: /\*\*(.+?)\*\*/g,
+  italic: /\*(?!\*)(.+?)\*/g,
+  underline: /__(.+?)__/g,
+  strike: /~~(.+?)~~/g,
   ping: /<@([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>/g,
   link: /(https?:\/\/[^\s]+)/,
   newline: /(\n)/g,
@@ -61,6 +61,8 @@ export class MessageParser {
       this.performPass();
     }
 
+    console.log(this.message);
+
     return this.message;
   }
 
@@ -76,7 +78,7 @@ export class MessageParser {
         let regex = null;
         let type = null;
 
-        for (const [newType, newRegex] of Object.entries(SEGMENT_REGEX)) {
+        outer: for (const [newType, newRegex] of Object.entries(SEGMENT_REGEX)) {
           if (newRegex instanceof RegExp) {
             const newLocation = segment.value.search(newRegex);
             if (newLocation !== -1) {
@@ -92,7 +94,7 @@ export class MessageParser {
                 location = newLocation;
                 regex = newRegexComponent;
                 type = newType;
-                break;
+                break outer;
               }
             }
           }
