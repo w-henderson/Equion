@@ -1,19 +1,19 @@
 FROM rust:latest
 
-RUN USER=root cargo new --bin equion_download_manager
+RUN USER=root cargo new --bin matrix
 
-WORKDIR /equion_download_manager
+WORKDIR /matrix
 
-COPY ./Cargo.toml ./Cargo.toml
-COPY ./Cargo.lock ./Cargo.lock
+COPY ./server/Cargo.toml ./Cargo.toml
+COPY ./server/Cargo.lock ./Cargo.lock
 
 RUN cargo build --release
 
 RUN rm src/*.rs
-COPY ./src ./src
+COPY ./server/src ./src
 
-RUN rm ./target/release/deps/equion*
+RUN rm ./target/release/deps/matrix*
 RUN cargo build --release
 
 EXPOSE 80
-CMD ["./target/release/equion_download_manager"]
+CMD ["./target/release/matrix"]

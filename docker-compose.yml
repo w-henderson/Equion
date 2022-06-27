@@ -42,15 +42,16 @@ services:
     restart: always
     expose:
       - 80
+    volumes:
+      - releaseData:/releaseData
     environment:
-      EQUION_USER: w-henderson
-      EQUION_REPO: Equion
-      EQUION_TOKEN: "$EQUION_TOKEN"
+      EQUION_MATRIX_DATA_DIR: "/releaseData"
 
   gateway:
     image: nginx:latest
     restart: always
     depends_on:
+      - download_manager
       - server
       - voice
       - web
@@ -61,7 +62,9 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./cert:/cert
       - website:/var/www/html
+      - releaseData:/releaseData
 
 volumes:
   data:
   website:
+  releaseData:
