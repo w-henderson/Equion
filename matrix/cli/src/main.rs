@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use sha2::{Digest, Sha256};
 
 use humphrey::http::StatusCode;
 use humphrey::Client;
@@ -38,12 +37,7 @@ struct Args {
 }
 
 fn main() {
-    let mut args = Args::parse();
-    args.api_key = {
-        let mut hasher = Sha256::new();
-        hasher.update(args.api_key);
-        hex::encode(hasher.finalize())
-    };
+    let args = Args::parse();
 
     let payload = {
         let file_contents =

@@ -8,6 +8,4 @@ edition = "2021"
 humphrey = { version = "^0.6.3", features = ["tls"] }
 humphrey_json = "^0.1.1"
 clap = { version = "^3.2.6", features = ["derive"] }
-sha2 = "^0.10.2"
-hex = "^0.4.3"
 base64 = "^0.13.0"
