@@ -86,7 +86,7 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
 
         // Write to the database
         let database_entry = Release {
-            url: format!("{}/{}", state.url, json.file.name),
+            url: json.file.name,
             version: json.version,
             notes: json.release_notes,
             platform: json.platform.clone(),

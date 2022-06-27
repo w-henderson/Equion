@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 pub fn handler(request: Request, state: Arc<State>) -> Response {
     error_context(move || {
-        let path = request.uri.strip_prefix("/update/*").unwrap();
+        let path = request.uri.strip_prefix("/update/").unwrap();
 
         // Parse the path
         let mut components = path.split('/');
@@ -39,8 +39,15 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
             Utc,
         );
 
+        let host = request
+            .headers
+            .get("Host")
+            .ok_or_else(|| (StatusCode::BadRequest, "Missing Host header".into()))?;
+
+        let release_url = format!("https://{}/release/download/{}/{}", host, release.platform, release.url);
+
         let payload = json!({
-            "url": (release.url),
+            "url": release_url,
             "version": (release.version),
             "notes": (release.notes),
             "pub_date": (pub_date.to_rfc3339()),

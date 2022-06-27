@@ -22,7 +22,6 @@ pub struct State {
     api_key: Mutex<Option<String>>,
     hashed_api_key: String,
     base_path: PathBuf,
-    url: String,
 }
 
 pub struct Release {
@@ -45,7 +44,6 @@ json_map! {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let url = var("EQUION_MATRIX_URL")?;
     let data_dir = var("EQUION_MATRIX_DATA_DIR")?;
     let data_dir = PathBuf::from(data_dir);
 
@@ -53,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         panic!("EQUION_MATRIX_DATA_DIR is not a directory");
     }
 
-    let (api_key, hashed_api_key) = if !data_dir.exists() {
+    let (api_key, hashed_api_key) = if !data_dir.exists() || !data_dir.join("key").exists() {
         // Create directories
         fs::create_dir_all(&data_dir)?;
         fs::create_dir(&data_dir.join("releases"))?;
@@ -63,13 +61,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Generate API key
         let api_key = Uuid::new_v4().to_string();
-        fs::write(data_dir.join("key"), &api_key)?;
 
         let hashed_api_key = {
             let mut hasher = Sha256::new();
             hasher.update(&api_key);
             hex::encode(hasher.finalize())
         };
+
+        fs::write(data_dir.join("key"), &hashed_api_key)?;
 
         (Some(api_key), hashed_api_key)
     } else {
@@ -83,7 +82,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         api_key: Mutex::new(api_key),
         hashed_api_key,
         base_path: data_dir,
-        url,
     };
 
     let app = App::new_with_config(32, state)
