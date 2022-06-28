@@ -1,9 +1,14 @@
 [package]
-name = "equion_download_manager"
+name = "matrix"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 humphrey = { version = "^0.6.3", features = ["tls"] }
 humphrey_json = "^0.1.1"
+jasondb = "^0.2.5"
+chrono = "^0.4.19"
+uuid = { version = "^1.1.2", features = ["v4"] }
+sha2 = "^0.10.2"
+hex = "^0.4.3"
 base64 = "^0.13.0"

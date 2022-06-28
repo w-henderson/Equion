@@ -1,0 +1,11 @@
+[package]
+name = "matrix"
+description = "Manages Equion releases with a CLI."
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+humphrey = { version = "^0.6.4", features = ["tls"] }
+humphrey_json = "^0.1.1"
+clap = { version = "^3.2.6", features = ["derive"] }
+base64 = "^0.13.0"

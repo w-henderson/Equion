@@ -91,7 +91,7 @@ class InvitePage extends React.Component<InvitePageProps, InvitePageState> {
                     <span>Open in Equion</span>
                   </a>
 
-                  <a href="/download/windows">
+                  <a href="/release/windows">
                     <DownloadIcon />
                     <span>Download Equion</span>
                   </a>
