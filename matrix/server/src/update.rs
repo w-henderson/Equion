@@ -44,7 +44,10 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
             .get("Host")
             .ok_or_else(|| (StatusCode::BadRequest, "Missing Host header".into()))?;
 
-        let release_url = format!("https://{}/release/download/{}/{}", host, release.platform, release.url);
+        let release_url = format!(
+            "https://{}/release/download/{}/{}",
+            host, release.platform, release.updater_filename
+        );
 
         let payload = json!({
             "url": release_url,

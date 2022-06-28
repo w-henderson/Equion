@@ -25,7 +25,8 @@ pub struct State {
 }
 
 pub struct Release {
-    url: String,
+    filename: String,
+    updater_filename: String,
     version: String,
     notes: String,
     platform: String,
@@ -35,7 +36,8 @@ pub struct Release {
 
 json_map! {
     Release,
-    url => "url",
+    filename => "filename",
+    updater_filename => "updater_filename",
     version => "version",
     notes => "notes",
     platform => "platform",

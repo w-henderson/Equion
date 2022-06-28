@@ -16,10 +16,13 @@ struct Args {
     platform: String,
 
     #[clap(short, long, value_parser)]
-    file: String,
+    file: Option<String>,
 
     #[clap(short, long, value_parser)]
-    signature: String,
+    updater: Option<String>,
+
+    #[clap(short, long, value_parser)]
+    signature: Option<String>,
 
     #[clap(short = 'n', long = "notes", value_parser)]
     release_notes: Option<String>,
@@ -39,18 +42,65 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    let directory_listing = std::fs::read_dir("./")
+        .unwrap()
+        .flatten()
+        .collect::<Vec<_>>();
+
+    let file_path = args
+        .file
+        .map(PathBuf::from)
+        .or_else(|| {
+            directory_listing
+                .iter()
+                .find(|d| match d.path().extension() {
+                    Some(ext) => ext == "msi" || ext == "app" || ext == "AppImage",
+                    None => false,
+                })
+                .map(|d| d.path())
+        })
+        .expect("Could not find file");
+
+    let updater_path = args
+        .updater
+        .map(PathBuf::from)
+        .or_else(|| {
+            directory_listing
+                .iter()
+                .find(|d| match d.path().extension() {
+                    Some(ext) => ext == "gz" || ext == "zip",
+                    None => false,
+                })
+                .map(|d| d.path())
+        })
+        .expect("Could not find updater");
+
+    let signature_path = args
+        .signature
+        .map(PathBuf::from)
+        .or_else(|| {
+            directory_listing
+                .iter()
+                .find(|d| d.path().extension().unwrap_or_default() == "sig")
+                .map(|d| d.path())
+        })
+        .expect("Could not find signature");
+
     let payload = {
         let file_contents =
-            base64::encode(std::fs::read(&args.file).expect("Could not read release file"));
+            base64::encode(std::fs::read(&file_path).expect("Could not read release file"));
+        let updater_contents =
+            base64::encode(std::fs::read(&updater_path).expect("Could not read updater file"));
         let signature_contents =
-            base64::encode(std::fs::read(&args.signature).expect("Could not read signature file"));
+            base64::encode(std::fs::read(&signature_path).expect("Could not read signature file"));
 
-        let file_name = PathBuf::from(&args.file)
+        let file_name = file_path.file_name().unwrap().to_string_lossy().to_string();
+        let updater_name = updater_path
             .file_name()
             .unwrap()
             .to_string_lossy()
             .to_string();
-        let signature_name = PathBuf::from(&args.signature)
+        let signature_name = signature_path
             .file_name()
             .unwrap()
             .to_string_lossy()
@@ -66,6 +116,10 @@ fn main() {
             "file": {
                 "name": file_name,
                 "data": file_contents
+            },
+            "updater": {
+                "name": updater_name,
+                "data": updater_contents
             },
             "signature": {
                 "name": signature_name,

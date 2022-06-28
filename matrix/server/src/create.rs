@@ -14,6 +14,7 @@ struct CreateJson {
     version: String,
     platform: String,
     file: FileJson,
+    updater: FileJson,
     signature: FileJson,
     release_notes: String,
     api_key: String,
@@ -29,6 +30,7 @@ json_map! {
     version => "version",
     platform => "platform",
     file => "file",
+    updater => "updater",
     signature => "signature",
     release_notes => "releaseNotes",
     api_key => "apiKey"
@@ -64,8 +66,10 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
             return Err((StatusCode::BadRequest, "Invalid platform".into()));
         }
 
-        // Extract and parse the contents of the file and signature.
+        // Extract and parse the contents of the file, updater and signature.
         let file_contents = base64::decode(json.file.data)
+            .map_err(|_| (StatusCode::BadRequest, "Invalid base64".into()))?;
+        let updater_contents = base64::decode(json.updater.data)
             .map_err(|_| (StatusCode::BadRequest, "Invalid base64".into()))?;
         let signature = String::from_utf8(
             base64::decode(json.signature.data)
@@ -84,9 +88,20 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
         )
         .map_err(|_| (StatusCode::InternalError, "Failed to write file".into()))?;
 
+        fs::write(
+            state
+                .base_path
+                .join("releases")
+                .join(&json.platform)
+                .join(&json.updater.name),
+            updater_contents,
+        )
+        .map_err(|_| (StatusCode::InternalError, "Failed to write updater".into()))?;
+
         // Write to the database
         let database_entry = Release {
-            url: json.file.name,
+            filename: json.file.name,
+            updater_filename: json.updater.name,
             version: json.version,
             notes: json.release_notes,
             platform: json.platform.clone(),

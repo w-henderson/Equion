@@ -17,7 +17,7 @@ pub fn handler(request: Request, state: Arc<State>) -> Response {
     match release {
         Ok(release) => Response::redirect(format!(
             "/release/download/{}/{}",
-            release.platform, release.url
+            release.platform, release.filename
         )),
         Err(JasonError::InvalidKey) => Response::new(StatusCode::NotFound, "Invalid platform"),
         Err(err) => Response::new(StatusCode::InternalError, err.to_string()),
