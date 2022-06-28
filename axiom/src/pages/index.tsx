@@ -55,7 +55,7 @@ class Index extends React.Component {
           <span>Integrate Together.</span>
 
           <div className="bigButtons">
-            <a href="/download/windows">
+            <a href="/release/windows">
               <DownloadIcon />
               <span>Download for Windows</span>
             </a>
@@ -116,7 +116,7 @@ class Index extends React.Component {
           </div>
 
           <div className="bigButtons">
-            <a href="/download/windows">
+            <a href="/release/windows">
               <DownloadIcon />
               <span>Download for Windows</span>
             </a>
