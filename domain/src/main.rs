@@ -25,7 +25,6 @@ use humphrey_ws::async_app::AsyncSender;
 use humphrey_ws::ping::Heartbeat;
 use humphrey_ws::{async_websocket_handler, AsyncWebsocketApp};
 
-use mysql::{Opts, Pool};
 use voice::VoiceServer;
 
 use std::collections::HashMap;
@@ -56,7 +55,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let db_url = std::env::var("EQUION_DATABASE_URL").unwrap_or_else(|_| String::from(DB_URL));
 
     // Connect to the database.
-    let db = Database::new(Pool::new(Opts::from_url(&db_url)?)?);
+    #[cfg(not(test))]
+    let db = Database::new(mysql::Pool::new(mysql::Opts::from_url(&db_url)?)?);
+    #[cfg(test)]
+    let db = Database::new();
 
     log!("Connected to MySQL database at {}", db_url);
 

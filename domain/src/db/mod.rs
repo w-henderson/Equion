@@ -2,38 +2,49 @@
 //!
 //! (basically a pretty dodgy ORM)
 
+#[cfg(test)]
+pub mod mock;
+
 #[macro_use]
 mod r#macro;
 
-use mysql::{Pool, PooledConn};
+#[cfg(not(test))]
+use crate::server::{
+    files::FileResponse,
+    invites::Invite,
+    messages::Message,
+    sets::{Set, Subset},
+    user::User,
+};
 
-use crate::server::files::FileResponse;
-use crate::server::invites::Invite;
-use crate::server::messages::Message;
-use crate::server::sets::{Set, Subset};
-use crate::server::user::User;
+#[cfg(test)]
+pub use mock::MockDatabase as Database;
 
 /// Represents a pool of connections to the database.
+#[cfg(not(test))]
 pub struct Database {
     /// The pool of connections to the database.
-    pool: Pool,
+    pool: mysql::Pool,
 }
 
 /// Represents a connection to the database.
+#[cfg(not(test))]
 pub struct Connection {
     /// The connection to the database.
-    pub(crate) inner: PooledConn,
+    pub(crate) inner: mysql::PooledConn,
 }
 
 /// Represents an ongoing transaction.
+#[cfg(not(test))]
 pub struct Transaction<'a> {
     /// The transaction.
     pub(crate) inner: mysql::Transaction<'a>,
 }
 
+#[cfg(not(test))]
 impl Database {
     /// Creates a new database instance.
-    pub fn new(pool: Pool) -> Self {
+    pub fn new(pool: mysql::Pool) -> Self {
         Self { pool }
     }
 
@@ -48,6 +59,7 @@ impl Database {
     }
 }
 
+#[cfg(not(test))]
 impl Connection {
     /// Starts a new transaction.
     pub fn transaction(&mut self) -> Result<Transaction, String> {
@@ -60,6 +72,7 @@ impl Connection {
     }
 }
 
+#[cfg(not(test))]
 impl<'a> Transaction<'a> {
     /// Commits the transaction.
     pub fn commit(self) -> Result<(), String> {
