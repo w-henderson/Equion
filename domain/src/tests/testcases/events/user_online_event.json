@@ -1,0 +1,56 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/login",
+      "username": "test1",
+      "password": "test1"
+    },
+    "output": {
+      "success": true,
+      "token": "{{token}}",
+      "uid": "user_1"
+    }
+  },
+  {
+    "type": "request",
+    "addr": "127.0.0.1:12345",
+    "input": {
+      "command": "v1/subscribe",
+      "token": "{{token}}",
+      "set": "set_1"
+    },
+    "output": {
+      "success": true
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/connectUserVoice",
+      "token": "{{token}}",
+      "peerId": "peerId_1"
+    },
+    "output": {
+      "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/user",
+      "set": "set_1",
+      "user": {
+        "uid": "user_1",
+        "username": "test1",
+        "displayName": "Test User 1",
+        "email": "test1@whenderson.dev",
+        "image": null,
+        "bio": null,
+        "online": true
+      },
+      "deleted": false
+    }
+  }
+]

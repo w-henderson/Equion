@@ -1,9 +1,11 @@
 mod data;
-mod schema;
+pub mod schema;
 mod sql;
 
 use schema::*;
 
+use std::net::SocketAddr;
+use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct MockDatabaseInner {
@@ -31,6 +33,15 @@ pub struct MockTransaction<'a> {
 
 pub struct MockTransactionInner;
 
+pub struct MockEventSender {
+    inner: Sender<MockOutgoingMessage>,
+}
+
+pub struct MockOutgoingMessage {
+    pub(crate) addr: SocketAddr,
+    pub(crate) message: humphrey_ws::Message,
+}
+
 impl MockDatabase {
     pub fn new() -> Self {
         data::init()
@@ -55,5 +66,20 @@ impl MockConnection {
 impl MockTransactionInner {
     pub fn affected_rows(&self) -> usize {
         1
+    }
+}
+
+impl MockEventSender {
+    pub fn new(inner: Sender<MockOutgoingMessage>) -> Self {
+        MockEventSender { inner }
+    }
+
+    pub fn send(&self, address: SocketAddr, message: humphrey_ws::Message) {
+        self.inner
+            .send(MockOutgoingMessage {
+                addr: address,
+                message,
+            })
+            .ok();
     }
 }

@@ -24,7 +24,12 @@ use crate::db::Database;
 use humphrey::http::cors::Cors;
 use humphrey::App;
 
+#[cfg(not(test))]
 use humphrey_ws::async_app::AsyncSender;
+
+#[cfg(test)]
+use tests::mock::MockEventSender as AsyncSender;
+
 use humphrey_ws::ping::Heartbeat;
 use humphrey_ws::{async_websocket_handler, AsyncWebsocketApp};
 
@@ -85,6 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .with_disconnect_handler(ws::unsubscribe_all);
 
     // Give the state access to the WebSocket sender.
+    #[cfg(not(test))]
     state.global_sender.lock().unwrap().replace(ws_app.sender());
     let hook = ws_app.connect_hook().unwrap();
 
