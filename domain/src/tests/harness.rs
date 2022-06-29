@@ -22,18 +22,34 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
         voice: Arc::new(VoiceServer::new()),
     });
 
-    for stage in stages {
+    let mut variables: HashMap<String, String> = HashMap::new();
+
+    for mut stage in stages {
+        if !variables.is_empty() {
+            let mut input_string = stage.input.serialize();
+
+            for (key, value) in variables.iter() {
+                input_string = input_string.replace(&format!("{{{{{}}}}}", key), value);
+            }
+
+            stage.input = humphrey_json::from_str(input_string).unwrap();
+        }
+
         let output = stage.run(state.clone());
 
         println!("Input: {}", stage.input.serialize());
         println!("Output: {}", output.serialize());
         println!("Expected Output: {}\n", stage.output.serialize());
 
-        assert_wildcard_equality(&output, &stage.output);
+        for (k, v) in equality_and_variables(&output, &stage.output) {
+            variables.insert(k, v);
+        }
     }
 }
 
-fn assert_wildcard_equality(v1: &Value, v2: &Value) {
+fn equality_and_variables(v1: &Value, v2: &Value) -> Vec<(String, String)> {
+    let mut variables = Vec::new();
+
     if let Value::Object(v1_object) = v1 {
         if let Value::Object(v2_object) = v2 {
             let v1_object = v1_object.clone();
@@ -45,13 +61,13 @@ fn assert_wildcard_equality(v1: &Value, v2: &Value) {
                 if let Some(index) = v2_object.iter().position(|(k2, _)| *k2 == k) {
                     let (_, v2) = v2_object.swap_remove(index);
 
-                    assert_wildcard_equality(&v, &v2);
+                    variables.extend(equality_and_variables(&v, &v2));
                 } else {
                     panic!("Resultant JSON missing key {}", k)
                 }
             }
 
-            return;
+            return variables;
         }
 
         panic!("Resultant JSON is not an object")
@@ -72,7 +88,7 @@ fn assert_wildcard_equality(v1: &Value, v2: &Value) {
                 }
             }
 
-            return;
+            return variables;
         }
 
         panic!("Resultant JSON is not an array")
@@ -81,18 +97,33 @@ fn assert_wildcard_equality(v1: &Value, v2: &Value) {
     if let Value::String(v1_s) = v1 {
         if let Value::String(v2_s) = v2 {
             if v2_s == "*" {
-                return;
+                return variables;
+            }
+
+            if v2_s.starts_with("{{") && v2_s.ends_with("}}") {
+                variables.push((
+                    v2_s.strip_prefix("{{")
+                        .unwrap()
+                        .strip_suffix("}}")
+                        .unwrap()
+                        .to_string(),
+                    v1_s.to_string(),
+                ));
+
+                return variables;
             }
 
             assert_eq!(v1_s, v2_s);
 
-            return;
+            return variables;
         }
 
         panic!("Resultant JSON is not a string")
     }
 
-    assert_eq!(v1, v2)
+    assert_eq!(v1, v2);
+
+    variables
 }
 
 impl TestStage {

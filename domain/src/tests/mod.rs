@@ -5,6 +5,22 @@ use humphrey_json::Value;
 
 use std::net::ToSocketAddrs;
 
+macro_rules! declare_tests {
+    ($($name:ident: $path:expr),*) => {
+        $(
+            #[test]
+            fn $name() {
+                let stages = parse_stages(include_str!($path));
+                harness::harness(stages);
+            }
+        )*
+    };
+}
+
+declare_tests! {
+    login_logout_flow: "./testcases/login_logout_flow.json"
+}
+
 fn parse_stages(stages: &str) -> impl Iterator<Item = TestStage> {
     let stages = Value::parse(stages).unwrap();
     let stages = stages.as_array().unwrap();
@@ -28,20 +44,4 @@ fn parse_stages(stages: &str) -> impl Iterator<Item = TestStage> {
         })
         .collect::<Vec<_>>()
         .into_iter()
-}
-
-macro_rules! declare_tests {
-    ($($name:ident: $path:expr),*) => {
-        $(
-            #[test]
-            fn $name() {
-                let stages = parse_stages(include_str!($path));
-                harness::harness(stages);
-            }
-        )*
-    };
-}
-
-declare_tests! {
-    login_valid: "./testcases/login_valid.json"
 }
