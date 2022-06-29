@@ -5,7 +5,7 @@ mod r#macro;
 use once_cell::sync::Lazy;
 
 use std::fmt::{Display, Formatter};
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::Write;
 use std::sync::Mutex;
 
@@ -32,21 +32,34 @@ pub struct Logger {
     /// The log level of the logger.
     level: LogLevel,
     /// The file to write logs to, as well as printing to the console.
-    file: Mutex<File>,
+    file: Mutex<Option<File>>,
 }
 
 impl Logger {
     /// Creates a new logger at the given level.
+    #[cfg(not(test))]
     pub fn new(level: LogLevel) -> Self {
+        use std::fs::OpenOptions;
+
         Self {
             level,
-            file: Mutex::new(
+            file: Mutex::new(Some(
                 OpenOptions::new()
                     .create(true)
                     .append(true)
                     .open("log.txt")
                     .unwrap(),
-            ),
+            )),
+        }
+    }
+
+    /// Creates a new quiet logger with no file.
+    #[cfg(test)]
+    #[allow(clippy::new_without_default)]
+    pub fn new(_level: LogLevel) -> Self {
+        Self {
+            level: LogLevel::Error,
+            file: Mutex::new(None),
         }
     }
 
@@ -55,7 +68,11 @@ impl Logger {
         if level as u8 <= self.level as u8 {
             let mut file = self.file.lock().unwrap();
             let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
-            writeln!(file, "[{}] {} {}", level, timestamp, message).unwrap();
+
+            if let Some(file) = file.as_mut() {
+                writeln!(file, "[{}] {} {}", level, timestamp, message).unwrap();
+            }
+
             println!("[{}] {} {}", level, timestamp, message);
         }
     }

@@ -15,6 +15,9 @@ mod voice;
 #[macro_use]
 mod log;
 
+#[cfg(test)]
+mod tests;
+
 use crate::api::{http, ws};
 use crate::db::Database;
 

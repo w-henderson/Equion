@@ -1,0 +1,14 @@
+[
+  {
+    "input": {
+      "command": "v1/login",
+      "username": "test1",
+      "password": "test1"
+    },
+    "output": {
+      "success": true,
+      "token": "*",
+      "uid": "user_1"
+    }
+  }
+]
