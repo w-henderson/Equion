@@ -7,7 +7,7 @@
 use crate::db::Transaction;
 
 #[cfg(test)]
-use crate::db::mock::MockTransaction as Transaction;
+use crate::tests::mock::MockTransaction as Transaction;
 
 use crate::State;
 

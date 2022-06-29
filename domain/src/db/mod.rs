@@ -2,9 +2,6 @@
 //!
 //! (basically a pretty dodgy ORM)
 
-#[cfg(test)]
-pub mod mock;
-
 #[macro_use]
 mod r#macro;
 
@@ -18,7 +15,7 @@ use crate::server::{
 };
 
 #[cfg(test)]
-pub use mock::MockDatabase as Database;
+pub use crate::tests::mock::MockDatabase as Database;
 
 /// Represents a pool of connections to the database.
 #[cfg(not(test))]

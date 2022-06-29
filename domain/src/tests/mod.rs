@@ -1,4 +1,6 @@
 mod harness;
+pub mod mock;
+
 use harness::TestStage;
 
 use humphrey_json::Value;
