@@ -29,6 +29,12 @@ declare_tests! {
     // User tests
     user_get_and_update_details: "./testcases/user/get_and_update_details.json",
 
+    // Message tests
+    messages_get_messages: "./testcases/messages/get_messages.json",
+    messages_send_message: "./testcases/messages/send_message.json",
+    messages_typing_notification: "./testcases/messages/typing_notification.json",
+    messages_update_and_delete_message: "./testcases/messages/update_and_delete_message.json",
+
     // Set and subset tests
     sets_create_invite: "./testcases/sets/create_invite.json",
     sets_create_set: "./testcases/sets/create_set.json",

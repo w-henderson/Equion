@@ -114,7 +114,7 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
             TestStage::Import {
                 stages: stage_stages,
             } => {
-                for stage in stage_stages {
+                for stage in stage_stages.into_iter().rev() {
                     stages.push_front(stage);
                 }
             }

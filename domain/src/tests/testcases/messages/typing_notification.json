@@ -1,0 +1,26 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/typing",
+      "token": "{{token}}",
+      "subset": "subset_1"
+    },
+    "output": {
+      "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/typing",
+      "subset": "subset_1",
+      "uid": "user_1"
+    }
+  }
+]

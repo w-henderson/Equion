@@ -5,18 +5,6 @@
   },
   {
     "type": "request",
-    "addr": "127.0.0.1:12345",
-    "input": {
-      "command": "v1/subscribe",
-      "token": "{{token}}",
-      "set": "set_1"
-    },
-    "output": {
-      "success": true
-    }
-  },
-  {
-    "type": "request",
     "input": {
       "command": "v1/connectUserVoice",
       "token": "{{token}}",
