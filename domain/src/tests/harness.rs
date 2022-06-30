@@ -75,8 +75,8 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
                     state.clone(),
                 );
 
-                println!("Input: {}", stage_input.serialize());
-                println!("Output: {}", output.serialize());
+                println!("Input:           {}", stage_input.serialize());
+                println!("Output:          {}", output.serialize());
                 println!("Expected Output: {}\n", stage_output.serialize());
 
                 // Update variables if necessary and check for equality
@@ -99,7 +99,7 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
 
                     let data = Value::parse(event.message.text().unwrap()).unwrap();
 
-                    println!("Event: {}", event.message.text().unwrap());
+                    println!("Event:          {}", event.message.text().unwrap());
                     println!("Expected Event: {}\n", stage_data.serialize());
 
                     // Update variables if necessary and check for equality
@@ -124,6 +124,10 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
 
 fn update_variables(v1: &Value, v2: &Value) -> Result<Vec<(String, String)>, String> {
     let mut variables: Vec<(String, String)> = Vec::new();
+
+    if *v2 == Value::String("*".to_string()) {
+        return Ok(variables);
+    }
 
     if let Value::Object(v1_object) = v1 {
         if let Value::Object(v2_object) = v2 {
@@ -175,10 +179,6 @@ fn update_variables(v1: &Value, v2: &Value) -> Result<Vec<(String, String)>, Str
 
     if let Value::String(v1_s) = v1 {
         if let Value::String(v2_s) = v2 {
-            if v2_s == "*" {
-                return Ok(variables);
-            }
-
             if v2_s.starts_with("{{") && v2_s.ends_with("}}") {
                 variables.push((
                     v2_s.strip_prefix("{{")

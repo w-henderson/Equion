@@ -58,7 +58,14 @@ pub fn init() -> MockDatabase {
         },
     ];
 
-    let invites: Vec<Invite> = Vec::new();
+    let invites: Vec<Invite> = vec![Invite {
+        id: "invite_1".into(),
+        set_id: "set_1".into(),
+        creation_date: Value::Date(2022, 3, 7, 0, 0, 0, 0),
+        code: "abc123".into(),
+        expiry_date: None,
+        uses: 3,
+    }];
 
     let subsets: Vec<Subset> = vec![Subset {
         id: "subset_1".into(),
@@ -113,7 +120,7 @@ pub fn now() -> Value {
         now.hour().try_into().unwrap(),
         now.minute().try_into().unwrap(),
         now.second().try_into().unwrap(),
-        now.nanosecond(),
+        now.nanosecond() / 1_000,
     )
 }
 
@@ -139,6 +146,6 @@ pub fn minutes_in_future(minutes: usize) -> Value {
         chrono_date.hour().try_into().unwrap(),
         chrono_date.minute().try_into().unwrap(),
         chrono_date.second().try_into().unwrap(),
-        chrono_date.nanosecond(),
+        chrono_date.nanosecond() / 1_000,
     )
 }

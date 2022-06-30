@@ -531,20 +531,29 @@ impl<'a> MockTransaction<'a> {
     ) -> Result<Option<(bool, String, String, String)>, String> {
         Ok(self
             .database
-            .users
+            .subsets
             .iter()
-            .find(|u| u.token == Some(token.to_string()))
-            .and_then(|user| {
+            .find(|s| s.id == subset)
+            .map(|s| s.set_id.clone())
+            .and_then(|set_id| {
                 self.database
-                    .memberships
+                    .users
                     .iter()
-                    .find(|m| m.user_id == user.id && m.set_id == subset)
-                    .and_then(|m| {
+                    .find(|u| u.token == Some(token.to_string()))
+                    .and_then(|user| {
                         self.database
-                            .subsets
+                            .memberships
                             .iter()
-                            .find(|s| s.id == subset)
-                            .map(|s| (m.admin, s.set_id.clone(), s.name.clone(), user.id.clone()))
+                            .find(|m| m.user_id == user.id && m.set_id == set_id)
+                            .and_then(|m| {
+                                self.database
+                                    .subsets
+                                    .iter()
+                                    .find(|s| s.id == subset)
+                                    .map(|s| {
+                                        (m.admin, s.set_id.clone(), s.name.clone(), user.id.clone())
+                                    })
+                            })
                     })
             }))
     }
@@ -627,7 +636,7 @@ impl<'a> MockTransaction<'a> {
     pub fn delete_membership(&mut self, user_id: &str, set_id: &str) -> Result<(), String> {
         self.database
             .memberships
-            .retain(|m| !(m.user_id == user_id && m.set_id != set_id));
+            .retain(|m| !(m.user_id == user_id && m.set_id == set_id));
         Ok(())
     }
 

@@ -30,8 +30,16 @@ declare_tests! {
     user_get_and_update_details: "./testcases/user/get_and_update_details.json",
 
     // Set and subset tests
+    sets_create_invite: "./testcases/sets/create_invite.json",
     sets_create_set: "./testcases/sets/create_set.json",
+    sets_create_subset: "./testcases/sets/create_subset.json",
+    sets_get_invites_and_invite: "./testcases/sets/get_invites_and_invite.json",
     sets_get_sets_and_set: "./testcases/sets/get_sets_and_set.json",
+    sets_kick_user: "./testcases/sets/kick_user.json",
+    sets_leave_and_join_set: "./testcases/sets/leave_and_join_set.json",
+    sets_revoke_invite: "./testcases/sets/revoke_invite.json",
+    sets_update_and_delete_set: "./testcases/sets/update_and_delete_set.json",
+    sets_update_and_delete_subset: "./testcases/sets/update_and_delete_subset.json",
 
     // Event tests
     events_user_online_event: "./testcases/events/user_online_event.json"

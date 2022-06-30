@@ -1,0 +1,67 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/createSubset",
+      "token": "{{token}}",
+      "set": "set_1",
+      "name": "Subset 2"
+    },
+    "output": {
+      "success": true,
+      "id": "{{subsetId}}"
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/set",
+      "id": "set_1",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": true,
+      "set": {
+        "id": "set_1",
+        "name": "Set 1",
+        "icon": "1",
+        "admin": true,
+        "subsets": [
+          {
+            "id": "subset_1",
+            "name": "General"
+          },
+          {
+            "id": "{{subsetId}}",
+            "name": "Subset 2"
+          }
+        ],
+        "members": [
+          {
+            "uid": "user_1",
+            "username": "test1",
+            "displayName": "Test User 1",
+            "email": "test1@whenderson.dev",
+            "image": null,
+            "bio": null,
+            "online": false
+          },
+          {
+            "uid": "user_2",
+            "username": "test2",
+            "displayName": "Test User 2",
+            "email": "test2@whenderson.dev",
+            "image": null,
+            "bio": null,
+            "online": false
+          }
+        ],
+        "voiceMembers": []
+      }
+    }
+  }
+]
