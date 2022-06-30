@@ -1,16 +1,7 @@
 [
   {
-    "type": "request",
-    "input": {
-      "command": "v1/login",
-      "username": "test1",
-      "password": "test1"
-    },
-    "output": {
-      "success": true,
-      "token": "{{token}}",
-      "uid": "user_1"
-    }
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
   },
   {
     "type": "request",

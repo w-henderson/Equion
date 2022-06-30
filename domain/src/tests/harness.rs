@@ -20,6 +20,9 @@ pub enum TestStage {
         data: Value,
         addr: SocketAddr,
     },
+    Import {
+        stages: Vec<TestStage>,
+    },
 }
 
 pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
@@ -32,10 +35,13 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
         voice: Arc::new(VoiceServer::new()),
     });
 
+    let mut stages: VecDeque<TestStage> = stages.collect();
     let mut variables: HashMap<String, String> = HashMap::new();
     let mut events: VecDeque<MockOutgoingMessage> = VecDeque::new();
 
-    for stage in stages {
+    while !stages.is_empty() {
+        let stage = stages.pop_front().unwrap();
+
         match stage {
             TestStage::Request {
                 addr,
@@ -102,6 +108,14 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
                     }
                 } else {
                     panic!("No event received");
+                }
+            }
+
+            TestStage::Import {
+                stages: stage_stages,
+            } => {
+                for stage in stage_stages {
+                    stages.push_front(stage);
                 }
             }
         }

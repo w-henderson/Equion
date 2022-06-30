@@ -5,14 +5,16 @@ use harness::TestStage;
 
 use humphrey_json::Value;
 
+use std::fs;
 use std::net::ToSocketAddrs;
+use std::path::PathBuf;
 
 macro_rules! declare_tests {
     ($($name:ident: $path:expr),*) => {
         $(
             #[test]
             fn $name() {
-                let stages = parse_stages(include_str!($path));
+                let stages = parse_stages(include_str!($path), $path);
                 harness::harness(stages);
             }
         )*
@@ -20,12 +22,38 @@ macro_rules! declare_tests {
 }
 
 declare_tests! {
+    // Auth tests
     auth_login_logout_flow: "./testcases/auth/login_logout_flow.json",
+    auth_signup_flow: "./testcases/auth/signup_flow.json",
 
+    // User tests
+    user_get_and_update_details: "./testcases/user/get_and_update_details.json",
+
+    // Set and subset tests
+    sets_create_set: "./testcases/sets/create_set.json",
+    sets_get_sets_and_set: "./testcases/sets/get_sets_and_set.json",
+
+    // Event tests
     events_user_online_event: "./testcases/events/user_online_event.json"
 }
 
-fn parse_stages(stages: &str) -> impl Iterator<Item = TestStage> {
+fn parse_stages(stages: &str, path: &str) -> impl Iterator<Item = TestStage> {
+    let path = PathBuf::from(path);
+
+    let path = if path.is_relative() {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("tests")
+            .join(path)
+            .parent()
+            .unwrap()
+            .to_owned()
+            .canonicalize()
+            .unwrap()
+    } else {
+        path.canonicalize().unwrap()
+    };
+
     let stages = Value::parse(stages).unwrap();
     let stages = stages.as_array().unwrap();
 
@@ -67,6 +95,20 @@ fn parse_stages(stages: &str) -> impl Iterator<Item = TestStage> {
                     TestStage::Event {
                         data: data.clone(),
                         addr,
+                    }
+                }
+
+                "import" => {
+                    let import_path = stage.get("path").unwrap().as_str().unwrap().to_string();
+                    let import_path_absolute = path.join(import_path).canonicalize().unwrap();
+                    let import_data = fs::read_to_string(&import_path_absolute).unwrap();
+
+                    let import_stages =
+                        parse_stages(&import_data, import_path_absolute.to_str().unwrap())
+                            .collect::<Vec<_>>();
+
+                    TestStage::Import {
+                        stages: import_stages,
                     }
                 }
 
