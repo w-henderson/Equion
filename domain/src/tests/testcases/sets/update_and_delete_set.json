@@ -17,6 +17,20 @@
     }
   },
   {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/set",
+      "set": "set_1",
+      "data": {
+        "name": "Updated Name",
+        "icon": "!",
+        "kicked": null
+      },
+      "deleted": false
+    }
+  },
+  {
     "type": "request",
     "input": {
       "command": "v1/set",
@@ -70,6 +84,20 @@
     },
     "output": {
       "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/set",
+      "set": "set_1",
+      "data": {
+        "name": null,
+        "icon": null,
+        "kicked": null
+      },
+      "deleted": true
     }
   },
   {

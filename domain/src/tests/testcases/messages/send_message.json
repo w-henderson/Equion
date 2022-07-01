@@ -16,6 +16,25 @@
     }
   },
   {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/message",
+      "set": "set_1",
+      "subset": "subset_1",
+      "message": {
+        "id": "{{messageId1}}",
+        "content": "Hello, world!",
+        "authorId": "user_1",
+        "authorName": "Test User 1",
+        "authorImage": null,
+        "attachment": null,
+        "sendTime": "*"
+      },
+      "deleted": false
+    }
+  },
+  {
     "type": "request",
     "input": {
       "command": "v1/messages",
@@ -52,6 +71,29 @@
     },
     "output": {
       "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/message",
+      "set": "set_1",
+      "subset": "subset_1",
+      "message": {
+        "id": "{{messageId2}}",
+        "content": "This message has an attachment.",
+        "authorId": "user_1",
+        "authorName": "Test User 1",
+        "authorImage": null,
+        "attachment": {
+          "id": "{{attachmentId}}",
+          "name": "test.txt",
+          "type": "text/plain"
+        },
+        "sendTime": "*"
+      },
+      "deleted": false
     }
   },
   {

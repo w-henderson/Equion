@@ -17,6 +17,19 @@
     }
   },
   {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/subset",
+      "set": "set_1",
+      "subset": {
+        "id": "{{subsetId}}",
+        "name": "Subset 2"
+      },
+      "deleted": false
+    }
+  },
+  {
     "type": "request",
     "input": {
       "command": "v1/set",

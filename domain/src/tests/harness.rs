@@ -120,6 +120,16 @@ pub(crate) fn harness(stages: impl Iterator<Item = TestStage>) {
             }
         }
     }
+
+    if !events.is_empty() {
+        println!("-- UNHANDLED EVENTS! --");
+
+        for event in events {
+            println!("Event: {}", event.message.text().unwrap());
+        }
+
+        panic!("Some events not handled");
+    }
 }
 
 fn update_variables(v1: &Value, v2: &Value) -> Result<Vec<(String, String)>, String> {

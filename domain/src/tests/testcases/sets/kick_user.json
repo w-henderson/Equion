@@ -4,6 +4,10 @@
     "path": "../base/user_1_logged_in.json"
   },
   {
+    "type": "import",
+    "path": "../base/user_2_logged_in_and_online.json"
+  },
+  {
     "type": "request",
     "input": {
       "command": "v1/kick",
@@ -13,6 +17,54 @@
     },
     "output": {
       "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/user",
+      "set": "set_1",
+      "user": {
+        "uid": "user_2",
+        "username": "test2",
+        "displayName": "Test User 2",
+        "email": "test2@whenderson.dev",
+        "image": null,
+        "bio": null,
+        "online": true
+      },
+      "deleted": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:6789",
+    "data": {
+      "event": "v1/user",
+      "set": "set_1",
+      "user": {
+        "uid": "user_2",
+        "username": "test2",
+        "displayName": "Test User 2",
+        "email": "test2@whenderson.dev",
+        "image": null,
+        "bio": null,
+        "online": true
+      },
+      "deleted": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:6789",
+    "data": {
+      "event": "v1/set",
+      "set": "set_1",
+      "data": {
+        "kicked": true
+      },
+      "deleted": true
     }
   },
   {
