@@ -1,0 +1,13 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/validateToken",
+      "token": "this is an invalid token"
+    },
+    "output": {
+      "success": false,
+      "error": "Invalid token"
+    }
+  }
+]

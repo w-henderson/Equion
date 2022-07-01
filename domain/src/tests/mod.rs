@@ -10,12 +10,16 @@ use std::net::ToSocketAddrs;
 use std::path::PathBuf;
 
 macro_rules! declare_tests {
-    ($($name:ident: $path:expr),*) => {
+    ($(mod $mod_name:ident { $($name:ident: $path:expr),* } )*) => {
         $(
-            #[test]
-            fn $name() {
-                let stages = parse_stages(include_str!($path), $path);
-                harness::harness(stages);
+            mod $mod_name {
+                $(
+                    #[test]
+                    fn $name() {
+                        let stages = $crate::tests::parse_stages(include_str!($path), $path);
+                        $crate::tests::harness::harness(stages);
+                    }
+                )*
             }
         )*
     };
@@ -23,32 +27,49 @@ macro_rules! declare_tests {
 
 declare_tests! {
     // Auth tests
-    auth_login_logout_flow: "./testcases/auth/login_logout_flow.json",
-    auth_signup_flow: "./testcases/auth/signup_flow.json",
+    mod auth {
+        login_incorrect_password: "./testcases/auth/login_incorrect_password.json",
+        login_logout_flow: "./testcases/auth/login_logout_flow.json",
+        signup_empty_display_name: "./testcases/auth/signup_empty_display_name.json",
+        signup_flow: "./testcases/auth/signup_flow.json",
+        signup_invalid_username: "./testcases/auth/signup_invalid_username.json",
+        signup_password_too_short: "./testcases/auth/signup_password_too_short.json",
+        signup_username_already_exists: "./testcases/auth/signup_username_already_exists.json",
+        signup_username_too_short: "./testcases/auth/signup_username_too_short.json",
+        validate_invalid_token: "./testcases/auth/validate_invalid_token.json"
+    }
 
     // User tests
-    user_get_and_update_details: "./testcases/user/get_and_update_details.json",
+    mod user {
+        get_and_update_details: "./testcases/user/get_and_update_details.json"
+    }
 
     // Message tests
-    messages_get_messages: "./testcases/messages/get_messages.json",
-    messages_send_message: "./testcases/messages/send_message.json",
-    messages_typing_notification: "./testcases/messages/typing_notification.json",
-    messages_update_and_delete_message: "./testcases/messages/update_and_delete_message.json",
+    mod message {
+        get_messages: "./testcases/messages/get_messages.json",
+        send_message: "./testcases/messages/send_message.json",
+        typing_notification: "./testcases/messages/typing_notification.json",
+        update_and_delete_message: "./testcases/messages/update_and_delete_message.json"
+    }
 
     // Set and subset tests
-    sets_create_invite: "./testcases/sets/create_invite.json",
-    sets_create_set: "./testcases/sets/create_set.json",
-    sets_create_subset: "./testcases/sets/create_subset.json",
-    sets_get_invites_and_invite: "./testcases/sets/get_invites_and_invite.json",
-    sets_get_sets_and_set: "./testcases/sets/get_sets_and_set.json",
-    sets_kick_user: "./testcases/sets/kick_user.json",
-    sets_leave_and_join_set: "./testcases/sets/leave_and_join_set.json",
-    sets_revoke_invite: "./testcases/sets/revoke_invite.json",
-    sets_update_and_delete_set: "./testcases/sets/update_and_delete_set.json",
-    sets_update_and_delete_subset: "./testcases/sets/update_and_delete_subset.json",
+    mod sets {
+        create_invite: "./testcases/sets/create_invite.json",
+        create_set: "./testcases/sets/create_set.json",
+        create_subset: "./testcases/sets/create_subset.json",
+        get_invites_and_invite: "./testcases/sets/get_invites_and_invite.json",
+        get_sets_and_set: "./testcases/sets/get_sets_and_set.json",
+        kick_user: "./testcases/sets/kick_user.json",
+        leave_and_join_set: "./testcases/sets/leave_and_join_set.json",
+        revoke_invite: "./testcases/sets/revoke_invite.json",
+        update_and_delete_set: "./testcases/sets/update_and_delete_set.json",
+        update_and_delete_subset: "./testcases/sets/update_and_delete_subset.json"
+    }
 
     // Event tests
-    events_user_online_event: "./testcases/events/user_online_event.json"
+    mod event {
+        events_user_online_event: "./testcases/events/user_online_event.json"
+    }
 }
 
 fn parse_stages(stages: &str, path: &str) -> impl Iterator<Item = TestStage> {

@@ -1,0 +1,16 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/signup",
+      "username": "test3",
+      "password": "abc123",
+      "displayName": "",
+      "email": "test3@whenderson.dev"
+    },
+    "output": {
+      "success": false,
+      "error": "You must enter a display name."
+    }
+  }
+]
