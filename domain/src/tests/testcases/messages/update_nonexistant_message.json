@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/updateMessage",
+      "token": "{{token}}",
+      "message": "message_7",
+      "content": "Hello, world!"
+    },
+    "output": {
+      "success": false,
+      "error": "Insufficient permissions"
+    }
+  }
+]

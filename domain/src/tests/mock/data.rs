@@ -32,6 +32,18 @@ pub fn init() -> MockDatabase {
             token: None,
             creation_date: Value::Date(2022, 2, 1, 0, 0, 0, 0),
         },
+        User {
+            id: "lonely".into(),
+            username: "lonely".into(),
+            display_name: "Lonely User".into(),
+            email: "lonely@whenderson.dev".into(),
+            image: None,
+            bio: Some("Not in any sets".into()),
+            password: "$argon2id$v=19$m=16,t=2,p=1$cUFFT2dDZExKMGdPQVAyaQ$Eu2/Jfw/uLDAvfFZMz3DfQ"
+                .into(),
+            token: None,
+            creation_date: Value::Date(2022, 3, 1, 0, 0, 0, 0),
+        },
     ];
 
     let sets: Vec<Set> = vec![Set {

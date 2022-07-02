@@ -48,10 +48,20 @@ declare_tests! {
 
     // Message tests
     mod message {
+        get_messages_without_permissions: "./testcases/messages/get_messages_without_permissions.json",
         get_messages: "./testcases/messages/get_messages.json",
+        send_attachment_without_content: "./testcases/messages/send_attachment_without_content.json",
+        send_invalid_attachment: "./testcases/messages/send_invalid_attachment.json",
+        send_message_invalid_subset: "./testcases/messages/send_message_invalid_subset.json",
+        send_message_without_permissions: "./testcases/messages/send_message_without_permissions.json",
         send_message: "./testcases/messages/send_message.json",
+        typing_notification_invalid_subset: "./testcases/messages/typing_notification_invalid_subset.json",
+        typing_notification_invalid_token: "./testcases/messages/typing_notification_invalid_token.json",
+        typing_notification_without_permissions: "./testcases/messages/typing_notification_without_permissions.json",
         typing_notification: "./testcases/messages/typing_notification.json",
-        update_and_delete_message: "./testcases/messages/update_and_delete_message.json"
+        update_and_delete_message: "./testcases/messages/update_and_delete_message.json",
+        update_message_without_permissions: "./testcases/messages/update_message_without_permissions.json",
+        update_nonexistant_message: "./testcases/messages/update_nonexistant_message.json"
     }
 
     // Set and subset tests

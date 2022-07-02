@@ -1,0 +1,18 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/typing",
+      "token": "{{token}}",
+      "subset": "subset_7"
+    },
+    "output": {
+      "success": false,
+      "error": "Invalid subset"
+    }
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_3_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/typing",
+      "token": "{{token3}}",
+      "subset": "subset_1"
+    },
+    "output": {
+      "success": false,
+      "error": "Insufficient permissions"
+    }
+  }
+]
