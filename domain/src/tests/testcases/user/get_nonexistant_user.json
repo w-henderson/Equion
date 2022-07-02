@@ -1,0 +1,13 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/user",
+      "uid": "this uid does not exist"
+    },
+    "output": {
+      "success": false,
+      "error": "User not found"
+    }
+  }
+]

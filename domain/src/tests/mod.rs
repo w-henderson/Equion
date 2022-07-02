@@ -41,7 +41,9 @@ declare_tests! {
 
     // User tests
     mod user {
-        get_and_update_details: "./testcases/user/get_and_update_details.json"
+        get_and_update_details: "./testcases/user/get_and_update_details.json",
+        get_nonexistant_user: "./testcases/user/get_nonexistant_user.json",
+        update_with_invalid_token: "./testcases/user/update_with_invalid_token.json"
     }
 
     // Message tests
