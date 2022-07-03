@@ -272,12 +272,16 @@ impl State {
 
         transaction.commit()?;
 
-        if let Some((uid, set)) = uid.and_then(|u| set.map(|s| (u, s))) {
-            self.broadcast_typing(set, subset, uid);
+        if let Some(uid) = uid {
+            if let Some(set) = set {
+                self.broadcast_typing(set, subset, uid);
 
-            Ok(())
+                Ok(())
+            } else {
+                Err("Invalid subset".to_string())
+            }
         } else {
-            Err("Insufficient permissions or invalid subset".to_string())
+            Err("Insufficient permissions".to_string())
         }
     }
 }
