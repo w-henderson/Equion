@@ -80,24 +80,21 @@ impl<'a> MockTransaction<'a> {
     }
 
     pub fn update_token_by_id(&mut self, token: &str, id: &str) -> Result<(), String> {
-        let user = self
-            .database
-            .users
-            .iter_mut()
-            .find(|user| user.id == id)
-            .ok_or_else(|| format!("User with id {} not found", id))?;
-        user.token = Some(token.to_string());
+        if let Some(user) = self.database.users.iter_mut().find(|user| user.id == id) {
+            user.token = Some(token.to_string());
+        }
         Ok(())
     }
 
     pub fn update_invalidate_token(&mut self, token: &str) -> Result<(), String> {
-        let user = self
+        if let Some(user) = self
             .database
             .users
             .iter_mut()
             .find(|user| user.token.as_ref().map(|t| t == token).unwrap_or(false))
-            .ok_or_else(|| format!("User with token {} not found", token))?;
-        user.token = None;
+        {
+            user.token = None;
+        }
         Ok(())
     }
 
@@ -138,28 +135,25 @@ impl<'a> MockTransaction<'a> {
         token: &str,
         subset: &str,
     ) -> Result<Option<String>, String> {
-        let subset_set = self
+        Ok(self
             .database
             .subsets
             .iter()
             .find(|s| s.id == subset)
-            .ok_or_else(|| format!("Subset with id {} not found", subset))?
-            .set_id
-            .clone();
-
-        Ok(self
-            .database
-            .users
-            .iter()
-            .find(|user| {
-                user.token == Some(token.to_string())
-                    && self
-                        .database
-                        .memberships
-                        .iter()
-                        .any(|m| m.user_id == user.id && m.set_id == subset_set)
-            })
-            .map(|user| user.username.clone()))
+            .and_then(|subset| {
+                self.database
+                    .users
+                    .iter()
+                    .find(|user| {
+                        user.token == Some(token.to_string())
+                            && self
+                                .database
+                                .memberships
+                                .iter()
+                                .any(|m| m.user_id == user.id && m.set_id == subset.set_id)
+                    })
+                    .map(|user| user.username.clone())
+            }))
     }
 
     pub fn select_messages_before(
@@ -168,51 +162,52 @@ impl<'a> MockTransaction<'a> {
         before: &str,
         limit: usize,
     ) -> Result<Vec<Message>, String> {
-        let before_send_time = parse_date(
-            self.database
-                .messages
-                .iter()
-                .find(|message| message.id == before)
-                .ok_or_else(|| format!("Message with id {} not found", before))?
-                .send_time
-                .clone(),
-        );
-
         Ok(self
             .database
             .messages
             .iter()
-            .filter(|m| m.subset == subset && parse_date(m.send_time.clone()) < before_send_time)
-            .rev()
-            .take(limit)
-            .map(|m| {
-                let user = self
-                    .database
-                    .users
+            .find(|message| message.id == before)
+            .map(|before_message| {
+                self.database
+                    .messages
                     .iter()
-                    .find(|u| u.id == m.sender)
-                    .unwrap();
+                    .filter(|m| {
+                        m.subset == subset
+                            && parse_date(m.send_time.clone())
+                                < parse_date(before_message.send_time.clone())
+                    })
+                    .rev()
+                    .take(limit)
+                    .map(|m| {
+                        let user = self
+                            .database
+                            .users
+                            .iter()
+                            .find(|u| u.id == m.sender)
+                            .unwrap();
 
-                let file_name = m.attachment.clone().and_then(|id| {
-                    self.database
-                        .files
-                        .iter()
-                        .find(|f| f.id == id)
-                        .map(|f| f.name.clone())
-                });
+                        let file_name = m.attachment.clone().and_then(|id| {
+                            self.database
+                                .files
+                                .iter()
+                                .find(|f| f.id == id)
+                                .map(|f| f.name.clone())
+                        });
 
-                Message::from_row((
-                    m.id.clone(),
-                    m.content.clone(),
-                    m.sender.clone(),
-                    user.display_name.clone(),
-                    user.image.clone(),
-                    m.send_time.clone(),
-                    m.attachment.clone(),
-                    file_name,
-                ))
+                        Message::from_row((
+                            m.id.clone(),
+                            m.content.clone(),
+                            m.sender.clone(),
+                            user.display_name.clone(),
+                            user.image.clone(),
+                            m.send_time.clone(),
+                            m.attachment.clone(),
+                            file_name,
+                        ))
+                    })
+                    .collect::<Vec<_>>()
             })
-            .collect())
+            .unwrap_or_default())
     }
 
     pub fn select_messages(&mut self, subset: &str, limit: usize) -> Result<Vec<Message>, String> {
@@ -258,42 +253,40 @@ impl<'a> MockTransaction<'a> {
         message: &str,
         token: &str,
     ) -> Result<Option<Message>, String> {
-        let message = self
+        Ok(self
             .database
             .messages
             .iter()
             .find(|m| m.id == message)
-            .ok_or_else(|| format!("Message with id {} not found", message))?;
-
-        let user = self
-            .database
-            .users
-            .iter()
-            .find(|u| u.id == message.sender)
-            .ok_or_else(|| format!("User with id {} not found", message.sender))?;
-
-        let file_name = message.attachment.clone().and_then(|id| {
-            self.database
-                .files
-                .iter()
-                .find(|f| f.id == id)
-                .map(|f| f.name.clone())
-        });
-
-        if user.token != Some(token.to_string()) {
-            return Ok(None);
-        }
-
-        Ok(Some(Message::from_row((
-            message.id.clone(),
-            message.content.clone(),
-            message.sender.clone(),
-            user.display_name.clone(),
-            user.image.clone(),
-            message.send_time.clone(),
-            message.attachment.clone(),
-            file_name,
-        ))))
+            .and_then(|message| {
+                self.database
+                    .users
+                    .iter()
+                    .find(|u| u.id == message.sender)
+                    .map(|user| (user, message))
+            })
+            .and_then(|(user, message)| {
+                if user.token == Some(token.to_string()) {
+                    Some(Message::from_row((
+                        message.id.clone(),
+                        message.content.clone(),
+                        message.sender.clone(),
+                        user.display_name.clone(),
+                        user.image.clone(),
+                        message.send_time.clone(),
+                        message.attachment.clone(),
+                        message.attachment.clone().and_then(|id| {
+                            self.database
+                                .files
+                                .iter()
+                                .find(|f| f.id == id)
+                                .map(|f| f.name.clone())
+                        }),
+                    )))
+                } else {
+                    None
+                }
+            }))
     }
 
     #[allow(clippy::type_complexity)]

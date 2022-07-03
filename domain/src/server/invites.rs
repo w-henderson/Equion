@@ -124,7 +124,7 @@ impl State {
 
         let (admin, uid) = transaction
             .select_membership(token.as_ref(), set.as_ref())?
-            .ok_or_else(|| "Invalid token".to_string())?;
+            .ok_or_else(|| "Invalid token or set".to_string())?;
 
         if !admin {
             return Err("User is not an admin of the set".to_string());
@@ -163,7 +163,7 @@ impl State {
 
         let (admin, uid) = transaction
             .select_membership(token.as_ref(), set.as_ref())?
-            .ok_or_else(|| "Invalid token".to_string())?;
+            .ok_or_else(|| "Invalid token or set".to_string())?;
 
         if !admin {
             return Err("User is not an admin of the set".to_string());
