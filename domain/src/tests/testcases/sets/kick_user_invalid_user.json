@@ -1,0 +1,32 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/kick",
+      "token": "{{token}}",
+      "set": "set_1",
+      "uid": "user_4"
+    },
+    "output": {
+      "success": false,
+      "error": "Target user does not exist"
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/kick",
+      "token": "{{token}}",
+      "set": "set_1",
+      "uid": "lonely"
+    },
+    "output": {
+      "success": false,
+      "error": "Target user not in set"
+    }
+  }
+]

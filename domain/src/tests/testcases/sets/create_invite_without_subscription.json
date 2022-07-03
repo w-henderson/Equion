@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/createInvite",
+      "token": "{{token}}",
+      "set": "set_1",
+      "code": "custom"
+    },
+    "output": {
+      "success": false,
+      "error": "Custom invite codes require a subscription to Equion Diffontial"
+    }
+  }
+]

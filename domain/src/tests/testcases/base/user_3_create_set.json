@@ -1,0 +1,18 @@
+[
+  {
+    "type": "import",
+    "path": "./user_3_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/createSet",
+      "token": "{{token3}}",
+      "name": "My Set"
+    },
+    "output": {
+      "success": true,
+      "id": "{{user3_set_id}}"
+    }
+  }
+]

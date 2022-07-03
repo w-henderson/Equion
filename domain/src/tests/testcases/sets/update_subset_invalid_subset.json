@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/updateSubset",
+      "token": "{{token}}",
+      "subset": "this subset does not exist",
+      "name": "New Subset Name"
+    },
+    "output": {
+      "success": false,
+      "error": "Invalid token or subset"
+    }
+  }
+]

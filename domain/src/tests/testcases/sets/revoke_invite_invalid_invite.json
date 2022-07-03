@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/revokeInvite",
+      "token": "{{token}}",
+      "set": "set_1",
+      "invite": "this invite does not exist"
+    },
+    "output": {
+      "success": false,
+      "error": "Invite does not exist"
+    }
+  }
+]

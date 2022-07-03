@@ -66,16 +66,34 @@ declare_tests! {
 
     // Set and subset tests
     mod sets {
+        create_invite_invalid_set: "./testcases/sets/create_invite_invalid_set.json",
+        create_invite_without_permissions: "./testcases/sets/create_invite_without_permissions.json",
+        create_invite_without_subscription: "./testcases/sets/create_invite_without_subscription.json",
         create_invite: "./testcases/sets/create_invite.json",
         create_set: "./testcases/sets/create_set.json",
+        create_subset_invalid_set: "./testcases/sets/create_subset_invalid_set.json",
+        create_subset_without_permissions: "./testcases/sets/create_subset_without_permissions.json",
         create_subset: "./testcases/sets/create_subset.json",
         get_invites_and_invite: "./testcases/sets/get_invites_and_invite.json",
         get_sets_and_set: "./testcases/sets/get_sets_and_set.json",
+        join_set_invalid_code: "./testcases/sets/join_set_invalid_code.json",
+        kick_user_invalid_set: "./testcases/sets/kick_user_invalid_set.json",
+        kick_user_invalid_user: "./testcases/sets/kick_user_invalid_user.json",
+        kick_user_without_permissions: "./testcases/sets/kick_user_without_permissions.json",
         kick_user: "./testcases/sets/kick_user.json",
         leave_and_join_set: "./testcases/sets/leave_and_join_set.json",
+        leave_set_invalid_set: "./testcases/sets/leave_set_invalid_set.json",
+        revoke_invite_invalid_invite: "./testcases/sets/revoke_invite_invalid_invite.json",
+        revoke_invite_invalid_set: "./testcases/sets/revoke_invite_invalid_set.json",
+        revoke_invite_unmatching_set_and_invite: "./testcases/sets/revoke_invite_unmatching_set_and_invite.json",
+        revoke_invite_without_permissions: "./testcases/sets/revoke_invite_without_permissions.json",
         revoke_invite: "./testcases/sets/revoke_invite.json",
         update_and_delete_set: "./testcases/sets/update_and_delete_set.json",
-        update_and_delete_subset: "./testcases/sets/update_and_delete_subset.json"
+        update_and_delete_subset: "./testcases/sets/update_and_delete_subset.json",
+        update_set_invalid_set: "./testcases/sets/update_set_invalid_set.json",
+        update_set_without_permissions: "./testcases/sets/update_set_without_permissions.json",
+        update_subset_invalid_subset: "./testcases/sets/update_subset_invalid_subset.json",
+        update_subset_without_permissions: "./testcases/sets/update_subset_without_permissions.json"
     }
 
     // Event tests

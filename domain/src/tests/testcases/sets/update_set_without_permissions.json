@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_2_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/updateSet",
+      "token": "{{token2}}",
+      "set": "set_1",
+      "name": "New Set Name"
+    },
+    "output": {
+      "success": false,
+      "error": "Insufficient permissions"
+    }
+  }
+]
