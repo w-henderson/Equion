@@ -456,6 +456,10 @@ impl State {
             })
             .ok_or_else(|| "Target user does not exist".to_string())?;
 
+        if !transaction.select_user_has_membership(&user.uid, set.as_ref())? {
+            return Err("Target user not in set".to_string());
+        }
+
         transaction.delete_membership(uid.as_ref(), set.as_ref())?;
         transaction.commit()?;
 
