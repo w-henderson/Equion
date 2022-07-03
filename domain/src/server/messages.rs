@@ -269,15 +269,28 @@ impl State {
 
         let uid = transaction.select_id_by_token(token.as_ref())?;
         let set = transaction.select_set_by_subset(subset.as_ref())?;
+        let in_set = uid
+            .as_ref()
+            .and_then(|uid| set.as_ref().map(|set| (uid, set)))
+            .and_then(|(uid, set)| transaction.select_user_has_membership(uid, set).ok())
+            .unwrap_or(false);
 
         transaction.commit()?;
 
-        if let Some((uid, set)) = uid.and_then(|u| set.map(|s| (u, s))) {
-            self.broadcast_typing(set, subset, uid);
+        if let Some(uid) = uid {
+            if let Some(set) = set {
+                if in_set {
+                    self.broadcast_typing(set, subset, uid);
 
-            Ok(())
+                    Ok(())
+                } else {
+                    Err("Insufficient permissions".to_string())
+                }
+            } else {
+                Err("Invalid subset".to_string())
+            }
         } else {
-            Err("Insufficient permissions or invalid subset".to_string())
+            Err("Insufficient permissions".to_string())
         }
     }
 }

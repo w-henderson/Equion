@@ -3,7 +3,12 @@
 //! Currently, files are stored in the database, but in the future this will be changed to AWS S3 or Minio
 //!   to perform better at scale. The API is designed so this will require minimal changes.
 
+#[cfg(not(test))]
 use crate::db::Transaction;
+
+#[cfg(test)]
+use crate::tests::mock::MockTransaction as Transaction;
+
 use crate::State;
 
 use uuid::Uuid;

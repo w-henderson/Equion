@@ -1,0 +1,27 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/login",
+      "username": "lonely",
+      "password": "lonely"
+    },
+    "output": {
+      "success": true,
+      "token": "{{token3}}",
+      "uid": "lonely"
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/createSet",
+      "token": "{{token3}}",
+      "name": "My Set"
+    },
+    "output": {
+      "success": true,
+      "id": "{{user3_set_id}}"
+    }
+  }
+]

@@ -17,16 +17,43 @@ use std::sync::Arc;
 ///
 /// This also handles voice chat WebSocket messages, since these cannot use HTTP.
 pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
-    let json: Option<(Value, String, Option<String>)> = message
+    let input = message
         .text()
-        .and_then(|s| humphrey_json::from_str(s).ok())
-        .and_then(|v: Value| {
-            let command = get_string(&v, "command").ok()?;
-            let id = get_string(&v, "requestId").ok();
-            Some((v, command, id))
-        });
+        .map(|s| s.to_string())
+        .and_then(|s| humphrey_json::from_str(s).ok());
 
     let addr = stream.peer_addr();
+
+    let response = handler_internal(input, addr, state);
+
+    let serialized = response.serialize();
+
+    if !response
+        .get("success")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+    {
+        crate::log!(
+            "{} WebSocket Error: {}",
+            addr,
+            response.get("error").and_then(|v| v.as_str()).unwrap()
+        );
+    }
+
+    let message = Message::new(serialized);
+
+    stream.send(message);
+}
+
+/// Handles WebSocket requests.
+///
+/// This is a separate function to `handler` to allow for easier testing.
+pub fn handler_internal(input: Option<Value>, addr: SocketAddr, state: Arc<State>) -> Value {
+    let json: Option<(Value, String, Option<String>)> = input.and_then(|v: Value| {
+        let command = get_string(&v, "command").ok()?;
+        let id = get_string(&v, "requestId").ok();
+        Some((v, command, id))
+    });
 
     let response_body: Value = if let Some((json, command, id)) = json {
         let handler = matcher(&command);
@@ -64,23 +91,7 @@ pub fn handler(stream: AsyncStream, message: Message, state: Arc<State>) {
         })
     };
 
-    let serialized = response_body.serialize();
-
-    if !response_body
-        .get("success")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(false)
-    {
-        crate::log!(
-            "{} WebSocket Error: {}",
-            addr,
-            response_body.get("error").and_then(|v| v.as_str()).unwrap()
-        );
-    }
-
-    let message = Message::new(serialized);
-
-    stream.send(message);
+    response_body
 }
 
 /// Subscribes the user to events for the specified set.

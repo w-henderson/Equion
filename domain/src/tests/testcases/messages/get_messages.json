@@ -1,0 +1,83 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/messages",
+      "token": "{{token}}",
+      "subset": "subset_1"
+    },
+    "output": {
+      "success": true,
+      "messages": [
+        {
+          "id": "message_1",
+          "content": "Hello from User 1",
+          "authorId": "user_1",
+          "authorName": "Test User 1",
+          "authorImage": null,
+          "attachment": null,
+          "sendTime": 1646096400
+        },
+        {
+          "id": "message_2",
+          "content": "Hello from User 2",
+          "authorId": "user_2",
+          "authorName": "Test User 2",
+          "authorImage": null,
+          "attachment": null,
+          "sendTime": 1646100000
+        }
+      ]
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/messages",
+      "token": "{{token}}",
+      "subset": "subset_1",
+      "limit": 1
+    },
+    "output": {
+      "success": true,
+      "messages": [
+        {
+          "id": "message_2",
+          "content": "Hello from User 2",
+          "authorId": "user_2",
+          "authorName": "Test User 2",
+          "authorImage": null,
+          "attachment": null,
+          "sendTime": 1646100000
+        }
+      ]
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/messages",
+      "token": "{{token}}",
+      "subset": "subset_1",
+      "before": "message_2"
+    },
+    "output": {
+      "success": true,
+      "messages": [
+        {
+          "id": "message_1",
+          "content": "Hello from User 1",
+          "authorId": "user_1",
+          "authorName": "Test User 1",
+          "authorImage": null,
+          "attachment": null,
+          "sendTime": 1646096400
+        }
+      ]
+    }
+  }
+]

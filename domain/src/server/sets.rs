@@ -234,13 +234,13 @@ impl State {
         let membership = transaction.select_membership(token.as_ref(), set.as_ref())?;
 
         if membership.is_none() {
-            return Err("Not a member of this set".to_string());
+            return Err("Invalid token or set".to_string());
         }
 
         let (is_admin, user_id) = membership.unwrap();
 
         if !is_admin {
-            return Err("Insuffient permissions".to_string());
+            return Err("Insufficient permissions".to_string());
         }
 
         let new_subset_id = Uuid::new_v4().to_string();
@@ -270,10 +270,10 @@ impl State {
 
         let (admin, user_id) = transaction
             .select_membership(token.as_ref(), set.as_ref())?
-            .ok_or_else(|| "Not a member of this set".to_string())?;
+            .ok_or_else(|| "Invalid token or set".to_string())?;
 
         if !admin {
-            return Err("Insuffient permissions".to_string());
+            return Err("Insufficient permissions".to_string());
         }
 
         if delete == Some(true) {
@@ -322,10 +322,10 @@ impl State {
 
         let (admin, set_id, subset_name, user_id) = transaction
             .select_subset_metadata_for_update(token.as_ref(), subset.as_ref())?
-            .ok_or_else(|| "Not a member of this set".to_string())?;
+            .ok_or_else(|| "Invalid token or subset".to_string())?;
 
         if !admin {
-            return Err("Insuffient permissions".to_string());
+            return Err("Insufficient permissions".to_string());
         }
 
         if delete == Some(true) {
@@ -442,10 +442,10 @@ impl State {
 
         let (admin, admin_user_id) = transaction
             .select_membership(token.as_ref(), set.as_ref())?
-            .ok_or_else(|| "You are not a member of this set".to_string())?;
+            .ok_or_else(|| "Invalid token or set".to_string())?;
 
         if !admin {
-            return Err("Insuffient permissions".to_string());
+            return Err("Insufficient permissions".to_string());
         }
 
         let user = transaction
@@ -454,7 +454,11 @@ impl State {
                 user.online = self.voice.is_user_online(&user.uid);
                 user
             })
-            .ok_or_else(|| "Target user not in set".to_string())?;
+            .ok_or_else(|| "Target user does not exist".to_string())?;
+
+        if !transaction.select_user_has_membership(&user.uid, set.as_ref())? {
+            return Err("Target user not in set".to_string());
+        }
 
         transaction.delete_membership(uid.as_ref(), set.as_ref())?;
         transaction.commit()?;

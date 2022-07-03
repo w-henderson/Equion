@@ -1,0 +1,27 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/login",
+      "username": "test2",
+      "password": "test2"
+    },
+    "output": {
+      "success": true,
+      "token": "{{token2}}",
+      "uid": "user_2"
+    }
+  },
+  {
+    "type": "request",
+    "addr": "127.0.0.1:6789",
+    "input": {
+      "command": "v1/subscribe",
+      "token": "{{token2}}",
+      "set": "set_1"
+    },
+    "output": {
+      "success": true
+    }
+  }
+]

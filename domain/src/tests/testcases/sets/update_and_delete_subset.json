@@ -1,0 +1,139 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/updateSubset",
+      "token": "{{token}}",
+      "subset": "subset_1",
+      "name": "Updated Name"
+    },
+    "output": {
+      "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/subset",
+      "set": "set_1",
+      "subset": {
+        "id": "subset_1",
+        "name": "Updated Name"
+      },
+      "deleted": false
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/set",
+      "id": "set_1",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": true,
+      "set": {
+        "id": "set_1",
+        "name": "Set 1",
+        "icon": "1",
+        "admin": true,
+        "subsets": [
+          {
+            "id": "subset_1",
+            "name": "Updated Name"
+          }
+        ],
+        "members": [
+          {
+            "uid": "user_1",
+            "username": "test1",
+            "displayName": "Test User 1",
+            "email": "test1@whenderson.dev",
+            "image": null,
+            "bio": null,
+            "online": false
+          },
+          {
+            "uid": "user_2",
+            "username": "test2",
+            "displayName": "Test User 2",
+            "email": "test2@whenderson.dev",
+            "image": null,
+            "bio": null,
+            "online": false
+          }
+        ],
+        "voiceMembers": []
+      }
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/updateSubset",
+      "token": "{{token}}",
+      "subset": "subset_1",
+      "delete": true
+    },
+    "output": {
+      "success": true
+    }
+  },
+  {
+    "type": "event",
+    "addr": "127.0.0.1:12345",
+    "data": {
+      "event": "v1/subset",
+      "set": "set_1",
+      "subset": {
+        "id": "subset_1",
+        "name": "Updated Name"
+      },
+      "deleted": true
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/set",
+      "id": "set_1",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": true,
+      "set": {
+        "id": "set_1",
+        "name": "Set 1",
+        "icon": "1",
+        "admin": true,
+        "subsets": [],
+        "members": [
+          {
+            "uid": "user_1",
+            "username": "test1",
+            "displayName": "Test User 1",
+            "email": "test1@whenderson.dev",
+            "image": null,
+            "bio": null,
+            "online": false
+          },
+          {
+            "uid": "user_2",
+            "username": "test2",
+            "displayName": "Test User 2",
+            "email": "test2@whenderson.dev",
+            "image": null,
+            "bio": null,
+            "online": false
+          }
+        ],
+        "voiceMembers": []
+      }
+    }
+  }
+]

@@ -124,7 +124,7 @@ impl State {
 
         let (admin, uid) = transaction
             .select_membership(token.as_ref(), set.as_ref())?
-            .ok_or_else(|| "Invalid token".to_string())?;
+            .ok_or_else(|| "Invalid token or set".to_string())?;
 
         if !admin {
             return Err("User is not an admin of the set".to_string());
@@ -163,19 +163,31 @@ impl State {
 
         let (admin, uid) = transaction
             .select_membership(token.as_ref(), set.as_ref())?
-            .ok_or_else(|| "Invalid token".to_string())?;
+            .ok_or_else(|| "Invalid token or set".to_string())?;
 
         if !admin {
             return Err("User is not an admin of the set".to_string());
         }
 
-        transaction.delete_invite(invite.as_ref())?;
+        let invite = transaction.select_invite_by_id(invite.as_ref())?;
+
+        if invite.is_none() {
+            return Err("Invite does not exist".to_string());
+        }
+
+        let invite = invite.unwrap();
+
+        if invite.set_id != set.as_ref() {
+            return Err("Invite does not match set".to_string());
+        }
+
+        transaction.delete_invite(&invite.id)?;
         transaction.commit()?;
 
         crate::log!(
             "User {} revoked invite {} for set {}",
             uid,
-            invite.as_ref(),
+            &invite.id,
             set.as_ref()
         );
 

@@ -1,0 +1,23 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/sendMessage",
+      "token": "{{token}}",
+      "subset": "subset_1",
+      "message": "Hello, world!",
+      "attachment": {
+        "name": "test.txt",
+        "data": "this isn't base64 😎"
+      }
+    },
+    "output": {
+      "success": false,
+      "error": "Could not decode attachment"
+    }
+  }
+]

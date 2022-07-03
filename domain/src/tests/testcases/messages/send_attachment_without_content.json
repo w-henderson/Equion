@@ -1,0 +1,22 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/sendMessage",
+      "token": "{{token}}",
+      "subset": "subset_1",
+      "message": "Hello, world!",
+      "attachment": {
+        "name": "test.txt"
+      }
+    },
+    "output": {
+      "success": false,
+      "error": "No attachment content provided"
+    }
+  }
+]

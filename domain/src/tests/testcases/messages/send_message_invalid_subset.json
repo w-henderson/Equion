@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/sendMessage",
+      "token": "{{token}}",
+      "subset": "this is an invalid subset",
+      "message": "Hello, world!"
+    },
+    "output": {
+      "success": false,
+      "error": "Insufficient permissions"
+    }
+  }
+]

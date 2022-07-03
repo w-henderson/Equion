@@ -1,0 +1,47 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/login",
+      "username": "test1",
+      "password": "test1"
+    },
+    "output": {
+      "success": true,
+      "token": "{{token}}",
+      "uid": "user_1"
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/validateToken",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": true,
+      "uid": "user_1"
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/logout",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": true
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/validateToken",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": false,
+      "error": "Invalid token"
+    }
+  }
+]

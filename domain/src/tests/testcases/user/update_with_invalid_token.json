@@ -1,0 +1,14 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/updateUser",
+      "token": "this token does not exist",
+      "displayName": "New Display Name"
+    },
+    "output": {
+      "success": false,
+      "error": "User not found"
+    }
+  }
+]

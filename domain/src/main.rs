@@ -15,17 +15,24 @@ mod voice;
 #[macro_use]
 mod log;
 
+#[cfg(test)]
+mod tests;
+
 use crate::api::{http, ws};
 use crate::db::Database;
 
 use humphrey::http::cors::Cors;
 use humphrey::App;
 
+#[cfg(not(test))]
 use humphrey_ws::async_app::AsyncSender;
+
+#[cfg(test)]
+use tests::mock::MockEventSender as AsyncSender;
+
 use humphrey_ws::ping::Heartbeat;
 use humphrey_ws::{async_websocket_handler, AsyncWebsocketApp};
 
-use mysql::{Opts, Pool};
 use voice::VoiceServer;
 
 use std::collections::HashMap;
@@ -56,7 +63,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let db_url = std::env::var("EQUION_DATABASE_URL").unwrap_or_else(|_| String::from(DB_URL));
 
     // Connect to the database.
-    let db = Database::new(Pool::new(Opts::from_url(&db_url)?)?);
+    #[cfg(not(test))]
+    let db = Database::new(mysql::Pool::new(mysql::Opts::from_url(&db_url)?)?);
+    #[cfg(test)]
+    let db = Database::new();
 
     log!("Connected to MySQL database at {}", db_url);
 
@@ -80,6 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .with_disconnect_handler(ws::unsubscribe_all);
 
     // Give the state access to the WebSocket sender.
+    #[cfg(not(test))]
     state.global_sender.lock().unwrap().replace(ws_app.sender());
     let hook = ws_app.connect_hook().unwrap();
 

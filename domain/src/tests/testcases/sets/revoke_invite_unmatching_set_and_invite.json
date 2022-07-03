@@ -1,0 +1,19 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_3_create_set.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/revokeInvite",
+      "token": "{{token3}}",
+      "set": "{{user3_set_id}}",
+      "invite": "invite_1"
+    },
+    "output": {
+      "success": false,
+      "error": "Invite does not match set"
+    }
+  }
+]

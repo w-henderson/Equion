@@ -1,0 +1,14 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/typing",
+      "token": "this is an invalid token",
+      "subset": "subset_1"
+    },
+    "output": {
+      "success": false,
+      "error": "Insufficient permissions"
+    }
+  }
+]

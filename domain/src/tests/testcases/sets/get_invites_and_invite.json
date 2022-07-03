@@ -1,0 +1,49 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/invites",
+      "token": "{{token}}",
+      "set": "set_1"
+    },
+    "output": {
+      "success": true,
+      "invites": [
+        {
+          "id": "invite_1",
+          "setId": "set_1",
+          "setName": "Set 1",
+          "setIcon": "1",
+          "code": "abc123",
+          "created": 1646611200,
+          "expires": null,
+          "uses": 3
+        }
+      ]
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/invite",
+      "code": "abc123"
+    },
+    "output": {
+      "success": true,
+      "invite": {
+        "id": "invite_1",
+        "setId": "set_1",
+        "setName": "Set 1",
+        "setIcon": "1",
+        "code": "abc123",
+        "created": 1646611200,
+        "expires": null,
+        "uses": 3
+      }
+    }
+  }
+]

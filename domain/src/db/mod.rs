@@ -5,35 +5,43 @@
 #[macro_use]
 mod r#macro;
 
-use mysql::{Pool, PooledConn};
+#[cfg(not(test))]
+use crate::server::{
+    files::FileResponse,
+    invites::Invite,
+    messages::Message,
+    sets::{Set, Subset},
+    user::User,
+};
 
-use crate::server::files::FileResponse;
-use crate::server::invites::Invite;
-use crate::server::messages::Message;
-use crate::server::sets::{Set, Subset};
-use crate::server::user::User;
+#[cfg(test)]
+pub use crate::tests::mock::MockDatabase as Database;
 
 /// Represents a pool of connections to the database.
+#[cfg(not(test))]
 pub struct Database {
     /// The pool of connections to the database.
-    pool: Pool,
+    pool: mysql::Pool,
 }
 
 /// Represents a connection to the database.
+#[cfg(not(test))]
 pub struct Connection {
     /// The connection to the database.
-    pub(crate) inner: PooledConn,
+    pub(crate) inner: mysql::PooledConn,
 }
 
 /// Represents an ongoing transaction.
+#[cfg(not(test))]
 pub struct Transaction<'a> {
     /// The transaction.
     pub(crate) inner: mysql::Transaction<'a>,
 }
 
+#[cfg(not(test))]
 impl Database {
     /// Creates a new database instance.
-    pub fn new(pool: Pool) -> Self {
+    pub fn new(pool: mysql::Pool) -> Self {
         Self { pool }
     }
 
@@ -48,6 +56,7 @@ impl Database {
     }
 }
 
+#[cfg(not(test))]
 impl Connection {
     /// Starts a new transaction.
     pub fn transaction(&mut self) -> Result<Transaction, String> {
@@ -60,6 +69,7 @@ impl Connection {
     }
 }
 
+#[cfg(not(test))]
 impl<'a> Transaction<'a> {
     /// Commits the transaction.
     pub fn commit(self) -> Result<(), String> {
@@ -386,6 +396,15 @@ impl<'a> Transaction<'a> {
             first(
                 "SELECT invites.id, invites.set_id, sets.name, sets.icon, invites.code, invites.creation_date, invites.expiry_date, invites.uses FROM invites
                 JOIN sets ON sets.id = invites.set_id WHERE code = ?"
+            ) => Invite::from_row
+        }
+    }
+
+    db! {
+        select_invite_by_id(id: &str) -> Option<Invite> {
+            first(
+                "SELECT invites.id, invites.set_id, sets.name, sets.icon, invites.code, invites.creation_date, invites.expiry_date, invites.uses FROM invites
+                JOIN sets ON sets.id = invites.set_id WHERE invites.id = ?"
             ) => Invite::from_row
         }
     }

@@ -1,0 +1,28 @@
+[
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/signup",
+      "username": "test3",
+      "password": "test3!!",
+      "displayName": "Test User 3",
+      "email": "test3@whenderson.dev"
+    },
+    "output": {
+      "success": true,
+      "token": "{{token}}",
+      "uid": "{{uid}}"
+    }
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/validateToken",
+      "token": "{{token}}"
+    },
+    "output": {
+      "success": true,
+      "uid": "{{uid}}"
+    }
+  }
+]

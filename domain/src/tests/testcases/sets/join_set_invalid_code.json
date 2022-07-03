@@ -1,0 +1,18 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_1_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/joinSet",
+      "token": "{{token}}",
+      "code": "this code does not exist"
+    },
+    "output": {
+      "success": false,
+      "error": "Invalid invite code"
+    }
+  }
+]

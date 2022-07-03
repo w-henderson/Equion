@@ -1,0 +1,34 @@
+[
+  {
+    "type": "import",
+    "path": "../base/user_2_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/createInvite",
+      "token": "{{token2}}",
+      "set": "set_1"
+    },
+    "output": {
+      "success": false,
+      "error": "User is not an admin of the set"
+    }
+  },
+  {
+    "type": "import",
+    "path": "../base/user_3_logged_in.json"
+  },
+  {
+    "type": "request",
+    "input": {
+      "command": "v1/createInvite",
+      "token": "{{token3}}",
+      "set": "set_1"
+    },
+    "output": {
+      "success": false,
+      "error": "Invalid token or set"
+    }
+  }
+]
