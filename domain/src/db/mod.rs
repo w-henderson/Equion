@@ -401,6 +401,15 @@ impl<'a> Transaction<'a> {
     }
 
     db! {
+        select_invite_by_id(id: &str) -> Option<Invite> {
+            first(
+                "SELECT invites.id, invites.set_id, sets.name, sets.icon, invites.code, invites.creation_date, invites.expiry_date, invites.uses FROM invites
+                JOIN sets ON sets.id = invites.set_id WHERE invites.id = ?"
+            ) => Invite::from_row
+        }
+    }
+
+    db! {
         insert_invite(id: &str, set: &str, code: &str) {
             "INSERT INTO invites (id, set_id, code, creation_date, expiry_date) VALUES (?, ?, ?, NOW(), NULL)"
         }

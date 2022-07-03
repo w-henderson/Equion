@@ -762,6 +762,32 @@ impl<'a> MockTransaction<'a> {
             }))
     }
 
+    pub fn select_invite_by_id(&mut self, id: &str) -> Result<Option<Invite>, String> {
+        Ok(self
+            .database
+            .invites
+            .iter()
+            .find(|i| i.id == id)
+            .and_then(|i| {
+                self.database
+                    .sets
+                    .iter()
+                    .find(|s| s.id == i.set_id)
+                    .map(|s| {
+                        Invite::from_row((
+                            i.id.clone(),
+                            i.set_id.clone(),
+                            s.name.clone(),
+                            s.icon.clone(),
+                            i.code.clone(),
+                            i.creation_date.clone(),
+                            i.expiry_date.clone(),
+                            i.uses as usize,
+                        ))
+                    })
+            }))
+    }
+
     pub fn insert_invite(&mut self, id: &str, set: &str, code: &str) -> Result<(), String> {
         self.database.invites.push(schema::Invite {
             id: id.to_string(),
