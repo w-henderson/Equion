@@ -90,6 +90,8 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
     if (!this.context!.token) return;
 
     this.context!.voice.setMicrophoneVolume(0);
+    this.context!.voice.userMuteAudio.load();
+    this.context!.voice.userMuteAudio.play();
 
     this.setState({ muted: true });
   }
@@ -101,6 +103,8 @@ class Voice extends React.Component<VoiceProps, VoiceState> {
     if (!this.context!.token) return;
 
     this.context!.voice.setMicrophoneVolume(this.state.microphoneVolume);
+    this.context!.voice.userUnmuteAudio.load();
+    this.context!.voice.userUnmuteAudio.play();
 
     this.setState({ muted: false });
   }

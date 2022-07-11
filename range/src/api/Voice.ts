@@ -51,6 +51,8 @@ class Voice {
 
   audioContext: AudioContext;
   analyserThread?: number;
+  userMuteAudio: HTMLAudioElement;
+  userUnmuteAudio: HTMLAudioElement;
   userJoinAudio: HTMLAudioElement;
   userLeaveAudio: HTMLAudioElement;
   userStartScreenshareAudio: HTMLAudioElement;
@@ -85,11 +87,15 @@ class Voice {
 
     this.audioContext = new AudioContext();
 
+    this.userMuteAudio = new Audio("/audio/equion-00.ogg");
+    this.userUnmuteAudio = new Audio("/audio/equion-01.ogg");
     this.userJoinAudio = new Audio("/audio/equion-02.ogg");
     this.userLeaveAudio = new Audio("/audio/equion-03.ogg");
     this.userStartScreenshareAudio = new Audio("/audio/equion-04.ogg");
     this.userEndScreenshareAudio = new Audio("/audio/equion-05.ogg");
 
+    this.userMuteAudio.load();
+    this.userUnmuteAudio.load();
     this.userJoinAudio.load();
     this.userLeaveAudio.load();
     this.userStartScreenshareAudio.load();
