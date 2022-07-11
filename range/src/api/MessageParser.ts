@@ -61,8 +61,6 @@ export class MessageParser {
       this.performPass();
     }
 
-    console.log(this.message);
-
     return this.message;
   }
 

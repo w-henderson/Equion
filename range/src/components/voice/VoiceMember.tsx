@@ -5,6 +5,9 @@ import { MicrophoneIcon, ScreenshareIcon, VolumeIcon } from "../Svg";
 interface VoiceMemberProps {
   member: VoiceUserData,
   inVoiceChat: boolean,
+  isLocalUser: boolean,
+  microphoneVolume: number,
+  changeMicrophoneVolume: (volume: number) => void,
   startScreenShareCallback: () => void,
   stopScreenShareCallback: () => void,
   watchScreenShareCallback: () => void,
@@ -33,7 +36,7 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
 
     this.state = {
       optionsVisible: false,
-      volume: 1
+      volume: this.props.isLocalUser ? this.props.microphoneVolume : 1
     };
 
     this.wrapperRef = React.createRef();
@@ -85,7 +88,7 @@ class VoiceMember extends React.Component<VoiceMemberProps, VoiceMemberState> {
     if (this.props.member.user.uid !== this.context!.uid) {
       this.context!.voice.setVolume(this.props.member.peerId, e.target.value);
     } else {
-      this.context!.voice.setMicrophoneVolume(e.target.value);
+      this.props.changeMicrophoneVolume(e.target.value);
     }
   }
 

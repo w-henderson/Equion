@@ -8,9 +8,17 @@ div.Voice {
     margin-bottom: 24px;
   }
 
-  div.Subset.voice {
-    svg {
-      margin-right: 8px;
+  div.voiceButtons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+
+    div.Subset.voice:not(.muteButton) {
+      flex: 1;
+
+      svg {
+        margin-right: 8px;
+      }
     }
   }
 
