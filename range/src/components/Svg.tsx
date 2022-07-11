@@ -170,13 +170,14 @@ export function ScreenshareIcon(props: SvgProps) {
 }
 
 /**
- * Microphone icon, shows up as a megaphone.
+ * Microphone icon.
  */
 export function MicrophoneIcon(props: SvgProps) {
   return (
     <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onClick={props.onClick}>
-      <path d="M14 14V6M14 14L20.1023 17.487C20.5023 17.7156 21 17.4268 21 16.9661V3.03391C21 2.57321 20.5023 2.28439 20.1023 2.51296L14 6M14 14H7C4.79086 14 3 12.2091 3 10V10C3 7.79086 4.79086 6 7 6H14" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M7.75716 19.3001L7 14H11L11.6772 18.7401C11.8476 19.9329 10.922 21 9.71716 21C8.73186 21 7.8965 20.2755 7.75716 19.3001Z" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9" y="2" width="6" height="12" rx="3" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M5 10V11C5 14.866 8.13401 18 12 18V18V18C15.866 18 19 14.866 19 11V10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 18V22M12 22H9M12 22H15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -216,6 +217,20 @@ export function DeleteIcon(props: SvgProps) {
     <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onClick={props.onClick}>
       <path d="M9.17218 14.8284L12.0006 12M14.829 9.17157L12.0006 12M12.0006 12L9.17218 9.17157M12.0006 12L14.829 14.8284" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/**
+ * Mute icon.
+ */
+export function MuteIcon(props: SvgProps) {
+  return (
+    <svg width="24" height="24" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onClick={props.onClick}>
+      <path d="M3 3L21 21" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 9V9C9 11.7614 11.2386 14 14 14V14M15 10.5V5C15 3.34315 13.6569 2 12 2V2C10.3431 2 9 3.34315 9 5V5.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 10V11C5 14.866 8.13401 18 12 18V18V18C15.866 18 19 14.866 19 11V10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 18V22M12 22H9M12 22H15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

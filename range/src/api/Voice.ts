@@ -20,6 +20,7 @@ interface Screenshare {
 interface Microphone {
   inputStream: MediaStream,
   analyser: AnalyserNode,
+  volume: number,
   gain: GainNode,
   outputStream: MediaStreamAudioDestinationNode,
   speaking: boolean
@@ -108,8 +109,8 @@ class Voice {
     const inputStream = this.audioContext.createMediaStreamSource(stream);
     const analyser = this.audioContext.createAnalyser();
     const gain = this.audioContext.createGain();
-    inputStream.connect(analyser);
     inputStream.connect(gain);
+    gain.connect(analyser);
 
     const outputStream = this.audioContext.createMediaStreamDestination();
     gain.connect(outputStream);
@@ -117,6 +118,7 @@ class Voice {
     this.microphone = {
       inputStream: stream,
       analyser,
+      volume: 1,
       gain,
       outputStream,
       speaking: false
@@ -211,7 +213,6 @@ class Voice {
 
       this.calls[callIndex].analyser = this.audioContext.createAnalyser();
       this.calls[callIndex].gain = this.audioContext.createGain();
-
       mediaStreamSource.connect(this.calls[callIndex].analyser!);
 
       // work around for https://bugs.chromium.org/p/chromium/issues/detail?id=933677
@@ -257,6 +258,14 @@ class Voice {
    */
   public setMicrophoneVolume(volume: number) {
     this.microphone!.gain!.gain.value = volume * volume * volume;
+    this.microphone!.volume = volume;
+  }
+
+  /**
+   * Get the volume for the microphone
+   */
+  public getMicrophoneVolume(): number {
+    return this.microphone!.volume;
   }
 
   /**
