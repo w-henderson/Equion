@@ -1,4 +1,4 @@
-use tauri::{AppHandle, TrayIcon};
+use tauri::{AppHandle, Icon};
 
 use std::fs::File;
 use std::io::Read;
@@ -28,9 +28,9 @@ pub fn get_base64_file(path: String) -> Result<String, String> {
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 pub fn set_notification_icon(app_handle: AppHandle, icon: String) {
     let icon = if icon == "notification" {
-        TrayIcon::Raw(NOTIFICATION_ICON.to_vec())
+        Icon::Raw(NOTIFICATION_ICON.to_vec())
     } else {
-        TrayIcon::Raw(PLAIN_ICON.to_vec())
+        Icon::Raw(PLAIN_ICON.to_vec())
     };
 
     app_handle.tray_handle().set_icon(icon).ok();
