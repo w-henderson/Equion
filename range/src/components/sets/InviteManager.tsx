@@ -56,7 +56,7 @@ class InviteManager extends React.Component<InviteManagerProps, InviteManagerSta
    * Copies the invite link to the clipboard.
    */
   copy(code: string) {
-    clipboard.writeText(`${this.context!.region.apiRoute.replace("api/v1", "invite")}/${code}`).then(() => {
+    clipboard.writeText(`${this.context!.region.apiRoute}/invite/${code}`).then(() => {
       toast.success("Share link copied to clipboard!");
     }, () => {
       toast.error("Could not copy share link to clipboard.");
