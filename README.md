@@ -10,7 +10,7 @@
   </p><br>
 
   <img src="https://img.shields.io/badge/language-rust-b07858?style=for-the-badge&logo=rust" style="margin-right:5px">
-  <img src="https://img.shields.io/github/workflow/status/w-henderson/Equion/Server%20CI?style=for-the-badge" style="margin-right:5px"><br><br>
+  <img src="https://img.shields.io/github/actions/workflow/status/w-henderson/Equion/server.yml?branch=master&style=for-the-badge" style="margin-right:5px"><br><br>
 </div>
 
 <hr><br>
