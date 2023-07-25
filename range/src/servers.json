@@ -1,18 +1,5 @@
 [
   {
-    "id": "us-east-1",
-    "name": "US East 1",
-    "country": "us",
-    "apiRoute": "https://equion.whenderson.dev",
-    "wsRoute": "wss://equion.whenderson.dev/ws",
-    "voice": {
-      "host": "equion.whenderson.dev",
-      "port": 443,
-      "secure": true,
-      "path": "/voice"
-    }
-  },
-  {
     "id": "localhost",
     "name": "Development",
     "country": "xx",

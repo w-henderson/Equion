@@ -32,9 +32,9 @@ All of Equion's custom services are built with Rust where possible and have math
 | Voice | The Equion voice chat server | PeerJS, WebRTC |
 | Gateway | The Equion gateway | NGINX |
 
-## Use Equion now
+## Use Equion
 
-You can use Equion now by downloading it from [the website](https://equion.whenderson.dev). The downloaded build is automatically configured to connect to the Equion server hosted on Google Cloud. If you want to host your own server, follow the following instructions.
+As of July 2023, I'm no longer hosting Equion, so you'll need to host your own server:
 
 1. Install Docker and Docker Compose on the server.
 2. `git clone https://github.com/w-henderson/Equion && cd Equion`.
